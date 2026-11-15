@@ -87,11 +87,16 @@ jobs:
           git push origin "HEAD:${{ github.ref_name }}" || true
           exit 1
 
+      - name: Build release APK (unsigned)
+        run: ./gradlew --no-daemon :app:assembleRelease | tail -40
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: open-motion-android-debug
-          path: app/build/outputs/apk/debug/*.apk
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 90
 

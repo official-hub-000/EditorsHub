@@ -23,6 +23,9 @@ val prepareWebAssets by tasks.registering(Exec::class) {
 
 tasks.named("preBuild") { dependsOn(prepareWebAssets) }
 
+// Name the APK after the app instead of the module: Open Motion-debug.apk
+base.archivesName.set("OpenMotion")
+
 android {
     namespace = "dev.openmotion.nativeapp"
     compileSdk = 35
