@@ -125,6 +125,7 @@ fetched when the user actually opens those features.
 | Method | Purpose |
 | --- | --- |
 | `ping()` / `deviceInfo()` | Shell + device capabilities |
+| `beginUpload` / `appendUpload` / `finishUpload` | Streamed transfer for large exports (no base64 memory spike) |
 | `saveBase64(b64, name)` | Write an artefact to `files/exports` |
 | `saveDocumentBase64(b64, name, mime)` | Native "Save as" via SAF |
 | `shareBase64(b64, name, mime)` | Android share sheet (FileProvider URI) |
@@ -134,11 +135,28 @@ fetched when the user actually opens those features.
 | `toast(msg)` / `shareText()` / `log()` | Small UX helpers |
 
 `native-shell/native-shell.js` wraps these into `window.omsNativeShell` and adapts the
-editor: downloads become native saves, the export preview's share button becomes the
-Android share sheet, the wake lock is mirrored to the window flag, the PWA install
-banner is hidden, and Back is delegated to the editor's own router.
+editor:
+
+- **Exports** (MP4/WebM, PNG frame, JSON package, Alight Motion XML, presets) go to the
+  Android "Save as" picker. Two layers cover this: the build retargets the editor's own
+  `download()` helper, and the adapter also intercepts every `a[download]` click —
+  including detached anchors, which never reach DOM event listeners.
+- **Share** in the export preview opens the Android share sheet (the button is enabled
+  even though `navigator.share({files})` is unreliable in WebView).
+- **Large files** stream in 1 MiB chunks so a 4K export never doubles peak memory.
+- **Wake lock**, **fullscreen**, the **PWA install banner**, **imports** from other
+  apps, and **Back** are all forwarded to the native equivalents.
 
 ---
+
+## Downloading a build
+
+Successful CI runs publish `open-motion-debug.apk` as a release asset — open the
+repository's **Releases** page, or:
+
+```bash
+gh release download --pattern open-motion-debug.apk --repo official-hub-000/EditorsHub
+```
 
 ## Media decoding & export
 

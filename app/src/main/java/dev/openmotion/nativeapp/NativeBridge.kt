@@ -13,6 +13,7 @@ import androidx.core.content.FileProvider
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * The native <-> editor contract.
@@ -34,6 +35,9 @@ class NativeBridge(
 
     private val sharedDir: File
         get() = File(activity.cacheDir, "shared").apply { if (!exists()) mkdirs() }
+
+    /** In-flight chunked transfers (see beginUpload/appendUpload/finishUpload). */
+    private val uploads = ConcurrentHashMap<String, UploadSession>()
 
     // ---------------------------------------------------------------- lifecycle
 
@@ -205,6 +209,125 @@ class NativeBridge(
                 null
             )
         }
+    }
+
+    // ------------------------------------------------------- chunked transfer
+
+    /**
+     * Large exports (MP4/WebM) cannot be marshalled as one base64 string without
+     * doubling peak memory, so they are streamed in chunks:
+     *
+     *   beginUpload(name, mime) -> id
+     *   appendUpload(id, base64Chunk)   (repeated)
+     *   finishUpload(id, mode) -> absolute path
+     *
+     * `mode` is "share" (system share sheet), "document" (SAF save-as) or
+     * "exports" (the app's own export folder).
+     */
+    @JavascriptInterface
+    fun beginUpload(name: String, mimeType: String): String {
+        return try {
+            val id = "u" + System.nanoTime().toString(36)
+            val file = File(sharedDir, NativeFiles.sanitiseFileName(name).ifEmpty { id })
+            uploads[id] = UploadSession(id, file, mimeType, FileOutputStream(file))
+            id
+        } catch (t: Throwable) {
+            NativeLog.log("ERROR", "beginUpload failed: ${t.message}", tag, 0)
+            ""
+        }
+    }
+
+    @JavascriptInterface
+    fun appendUpload(id: String, base64Chunk: String): Boolean {
+        val session = uploads[id] ?: return false
+        return try {
+            val bytes = Base64.decode(base64Chunk, Base64.DEFAULT)
+            synchronized(session) {
+                session.stream.write(bytes)
+                session.written += bytes.size
+            }
+            true
+        } catch (t: Throwable) {
+            NativeLog.log("ERROR", "appendUpload failed: ${t.message}", tag, 0)
+            false
+        }
+    }
+
+    @JavascriptInterface
+    fun finishUpload(id: String, mode: String): String {
+        val session = uploads.remove(id) ?: return ""
+        return try {
+            synchronized(session) { session.stream.flush(); session.stream.close() }
+            when (mode.lowercase()) {
+                "share" -> shareFinishedFile(session.file, session.mimeType)
+                "document" -> {
+                    saveFinishedFile(session.file, session.mimeType)
+                    session.file.absolutePath
+                }
+                else -> {
+                    val target = File(exportsDir, session.file.name)
+                    session.file.copyTo(target, overwrite = true)
+                    session.file.delete()
+                    target.absolutePath
+                }
+            }
+        } catch (t: Throwable) {
+            NativeLog.log("ERROR", "finishUpload failed: ${t.message}", tag, 0)
+            ""
+        }
+    }
+
+    @JavascriptInterface
+    fun abortUpload(id: String) {
+        uploads.remove(id)?.let { session ->
+            runCatching { session.stream.close() }
+            session.file.delete()
+        }
+    }
+
+    private fun shareFinishedFile(file: File, mimeType: String): String {
+        val uri = FileProvider.getUriForFile(
+            activity,
+            "${activity.packageName}.fileprovider",
+            file
+        )
+        main.post {
+            val share = Intent(Intent.ACTION_SEND).apply {
+                type = mimeType.ifBlank { NativeFiles.mimeFor(file.name) }
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            activity.startActivity(Intent.createChooser(share, "Open Motion exports"))
+        }
+        return file.absolutePath
+    }
+
+    private fun saveFinishedFile(file: File, mimeType: String) {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = mimeType.ifBlank { NativeFiles.mimeFor(file.name) }
+            putExtra(Intent.EXTRA_TITLE, file.name)
+        }
+        activity.launchCreateDocument(intent) { uri ->
+            if (uri == null) return@launchCreateDocument
+            runCatching {
+                activity.contentResolver.openOutputStream(uri)?.use { output ->
+                    file.inputStream().use { input -> input.copyTo(output) }
+                }
+                main.post { Toast.makeText(activity, "Saved", Toast.LENGTH_SHORT).show() }
+            }.onFailure {
+                main.post { Toast.makeText(activity, "Save failed", Toast.LENGTH_SHORT).show() }
+            }
+        }
+    }
+
+    private class UploadSession(
+        val id: String,
+        val file: File,
+        val mimeType: String,
+        val stream: FileOutputStream
+    ) {
+        var written: Long = 0
     }
 
     /** Share a plain link (used by the About / credits section). */

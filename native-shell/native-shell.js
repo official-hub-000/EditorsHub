@@ -47,6 +47,66 @@
     });
   }
 
+  /**
+   * Streams a Blob to the native side in chunks. A 60 s 1080p export can be tens of
+   * megabytes; converting it to one base64 string would double peak memory on a phone.
+   */
+  function uploadBlob(blob, filename, mime, mode) {
+    var type = mime || blob.type || 'application/octet-stream';
+    if (!Native || typeof Native.beginUpload !== 'function') {
+      // Older shell: fall back to the single-shot base64 bridge.
+      return blobToBase64(blob).then(function (base64) {
+        if (mode === 'share' && Native.shareBase64) {
+          Native.shareBase64(base64, filename, type);
+          return filename;
+        }
+        if (mode === 'exports' && Native.saveBase64) {
+          return Native.saveBase64(base64, filename) || filename;
+        }
+        if (Native.saveDocumentBase64) Native.saveDocumentBase64(base64, filename, type);
+        return filename;
+      });
+    }
+    var CHUNK = 1024 * 1024; // 1 MiB raw -> ~1.37 MiB base64 per call
+    var id = Native.beginUpload(filename, type);
+    if (!id) return Promise.reject(new Error('upload unavailable'));
+    var offset = 0;
+
+    function step() {
+      if (offset >= blob.size) {
+        return Promise.resolve(Native.finishUpload(id, mode || 'exports'));
+      }
+      var slice = blob.slice(offset, Math.min(offset + CHUNK, blob.size));
+      offset += CHUNK;
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          var result = String(reader.result || '');
+          var base64 = result.slice(result.indexOf(',') + 1);
+          var ok = false;
+          try {
+            ok = Native.appendUpload(id, base64);
+          } catch (e) {
+            ok = false;
+          }
+          if (!ok) reject(new Error('chunk rejected'));
+          else resolve(step());
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(slice);
+      });
+    }
+
+    return step().catch(function (error) {
+      try {
+        Native.abortUpload(id);
+      } catch (e) {
+        /* ignore */
+      }
+      throw error;
+    });
+  }
+
   function base64ToBlob(base64, mime) {
     var binary = atob(base64 || '');
     var bytes = new Uint8Array(binary.length);
@@ -76,35 +136,21 @@
    * Save an artefact produced by the editor (video, PNG frame, JSON/XML bundle).
    * Uses the Storage Access Framework when available, otherwise the app export folder.
    */
-  shell.saveBlob = function (blob, filename, mime) {
+  shell.saveBlob = function (blob, filename, mime, mode) {
     if (!blob || !blob.size) return Promise.reject(new Error('empty blob'));
-    var type = mime || blob.type || 'application/octet-stream';
-    return blobToBase64(blob).then(function (base64) {
-      try {
-        Native.saveDocumentBase64(base64, filename, type);
-        return filename;
-      } catch (e) {
-        try {
-          Native.saveBase64(base64, filename);
-        } catch (inner) {
-          /* ignore */
-        }
-        return filename;
-      }
-    });
+    return uploadBlob(blob, filename, mime, mode || 'exports');
+  };
+
+  /** Save through the Android "Save as" document picker. */
+  shell.saveBlobAs = function (blob, filename, mime) {
+    if (!blob || !blob.size) return Promise.reject(new Error('empty blob'));
+    return uploadBlob(blob, filename, mime, 'document');
   };
 
   /** Open the Android share sheet with an exported artefact. */
   shell.shareBlob = function (blob, filename, mime) {
     if (!blob || !blob.size) return Promise.reject(new Error('empty blob'));
-    var type = mime || blob.type || 'application/octet-stream';
-    return blobToBase64(blob).then(function (base64) {
-      try {
-        Native.shareBase64(base64, filename, type);
-      } catch (e) {
-        log('share failed', e);
-      }
-    });
+    return uploadBlob(blob, filename, mime, 'share');
   };
 
   shell.keepScreenAwake = function (enabled) {
@@ -146,32 +192,61 @@
    * export through an anchor with a `download` attribute or a `download(blob, name)`
    * helper. Intercept both and hand the bytes to the native layer.
    */
+  function interceptAnchorDownload(anchor) {
+    if (!anchor || !anchor.getAttribute) return false;
+    var href = anchor.getAttribute('href') || '';
+    if (!href || href.indexOf('data:') === 0) return false;
+    var name = anchor.getAttribute('download') || 'OpenMotion-' + Date.now();
+    fetch(href)
+      .then(function (response) {
+        return response.blob();
+      })
+      .then(function (blob) {
+        return shell.saveBlobAs(blob, name, blob.type);
+      })
+      .then(function () {
+        toast('Tersimpan: ' + name);
+      })
+      .catch(function () {
+        toast('Gagal menyimpan berkas');
+      });
+    return true;
+  }
+
+  /* Belt and braces: catch downloads the source patch could not reach. */
+  if (window.HTMLAnchorElement && window.HTMLAnchorElement.prototype) {
+    var proto = window.HTMLAnchorElement.prototype;
+    var nativeClick = proto.click;
+    proto.click = function () {
+      try {
+        if (this.hasAttribute && this.hasAttribute('download')) {
+          if (interceptAnchorDownload(this)) return;
+        }
+      } catch (e) {
+        /* fall through to the browser behaviour */
+      }
+      return nativeClick ? nativeClick.call(this) : undefined;
+    };
+  }
+
   document.addEventListener(
     'click',
     function (event) {
       var anchor = event.target && event.target.closest ? event.target.closest('a[download]') : null;
-      if (!anchor) return;
-      var href = anchor.getAttribute('href') || '';
-      if (!href || href.indexOf('data:') === 0) return;
+      if (!anchor || !interceptAnchorDownload(anchor)) return;
       event.preventDefault();
       event.stopPropagation();
-      var name = anchor.getAttribute('download') || 'OpenMotion-' + Date.now();
-      fetch(href)
-        .then(function (response) {
-          return response.blob();
-        })
-        .then(function (blob) {
-          return shell.saveBlob(blob, name, blob.type);
-        })
-        .then(function () {
-          toast('Tersimpan: ' + name);
-        })
-        .catch(function () {
-          toast('Gagal menyimpan berkas');
-        });
     },
     true
   );
+
+  /*
+   * Kept for completeness: assigning window.download cannot shadow the editor's
+   * scoped helper, but third-party snippets sometimes call it.
+   */
+  window.download = function (blob, name) {
+    return shell.saveBlobAs(blob, name || 'OpenMotion-' + Date.now(), (blob && blob.type) || '');
+  };
 
   /* Install surface: the app is already installed. */
   function hideInstallSurface() {
@@ -194,6 +269,14 @@
   /* Share sheet instead of navigator.share (WebView's implementation is unreliable). */
   if (window.omsExportResultPreview) {
     var preview = window.omsExportResultPreview;
+    // The editor dims its Share button when navigator.share is missing; the native
+    // share sheet is always present, so advertise it.
+    try {
+      var resultPanel = document.getElementById('exportResultPreview');
+      if (resultPanel) resultPanel.dataset.shareSupported = 'true';
+    } catch (e) {
+      /* ignore */
+    }
     preview.share = function () {
       var blob = preview.blob;
       var filename = preview.filename || 'open-motion-export.mp4';
