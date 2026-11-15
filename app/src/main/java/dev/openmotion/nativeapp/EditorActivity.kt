@@ -142,9 +142,8 @@ class EditorActivity : ComponentActivity() {
         applySafeAreaInsets()
         installBackHandler()
 
-        if (savedInstanceState != null) {
-            webView.restoreState(savedInstanceState)
-        } else {
+        val restored = savedInstanceState != null && webView.restoreState(savedInstanceState) != null
+        if (!restored) {
             webView.loadUrl(OpenMotionApplication.ASSET_BASE_URL, nativeHeaders())
         }
     }
@@ -268,6 +267,17 @@ class EditorActivity : ComponentActivity() {
             }
 
             webChromeClient = object : WebChromeClient() {
+                override fun onProgressChanged(view: WebView, newProgress: Int) {
+                    // The editor shows its own splash screen; nothing to do here but let
+                    // the page keep the native shell marker up to date.
+                    if (newProgress >= 90) {
+                        view.evaluateJavascript(
+                            "document.documentElement.classList.add('omsNativeShell');",
+                            null
+                        )
+                    }
+                }
+
                 override fun onShowFileChooser(
                     webView: WebView,
                     callback: ValueCallback<Array<Uri>>,
@@ -293,7 +303,10 @@ class EditorActivity : ComponentActivity() {
                     runOnUiThread { request.grant(request.resources) }
                 }
 
-                override fun onShowCustomView(view: View, callback: WebChromeClient.CustomViewCallback) {
+                override fun onShowCustomView(
+                    view: View,
+                    callback: WebChromeClient.CustomViewCallback
+                ) {
                     if (customView != null) {
                         callback.onCustomViewHidden()
                         return

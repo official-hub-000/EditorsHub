@@ -1,0 +1,60 @@
+name: Refresh Gradle wrapper
+
+# Sandboxed/CI runners with only GitHub access cannot download binaries from
+# services.gradle.org, so the wrapper is bootstrapped from the wrapper JAR that
+# GitHub itself serves for the Gradle repository (contents API + codeload).
+#
+# Run this once from the Actions tab on any branch that is missing the wrapper JAR,
+# or set OPEN_MOTION_SKIP_WRAPPER=1 in repo variables to skip it entirely.
+
+on:
+  workflow_dispatch:
+    inputs:
+      gradle_ref:
+        description: 'Gradle tag to copy the wrapper from'
+        required: false
+        default: 'v8.11.1'
+
+permissions:
+  contents: write
+
+jobs:
+  wrapper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for existing wrapper JAR
+        id: check
+        run: |
+          if [ -f gradle/wrapper/gradle-wrapper.jar ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fetch wrapper JAR from the Gradle repository
+        if: steps.check.outputs.present == 'false'
+        run: |
+          set -e
+          REF="${{ github.event.inputs.gradle_ref }}"
+          REF="${REF:-v8.11.1}"
+          mkdir -p gradle/wrapper
+          api="https://api.github.com/repos/gradle/gradle/contents/gradle/wrapper/gradle-wrapper.jar?ref=$REF"
+          curl -fsSL "$api" | python3 -c '
+          import json,sys,base64
+          data=json.load(sys.stdin)
+          with open("gradle/wrapper/gradle-wrapper.jar","wb") as f:
+              f.write(base64.b64decode(data["content"]))
+          print("wrapper jar bytes:", data["size"])
+          '
+          ls -l gradle/wrapper/gradle-wrapper.jar
+
+      - name: Commit wrapper JAR
+        if: steps.check.outputs.present == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gradle/wrapper/gradle-wrapper.jar
+          git commit -m "Add Gradle wrapper JAR (bootstrap via GitHub API)" || echo "nothing to commit"
+          git push

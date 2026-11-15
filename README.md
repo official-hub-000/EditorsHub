@@ -78,8 +78,13 @@ Or open the folder in **Android Studio** (Ladybug or newer), let it sync, and pr
 `./gradlew :app:assembleRelease` produces an unsigned release APK; add your own
 `signingConfig` (or use Android Studio → Build → Generate Signed Bundle/APK) to publish.
 
-Every push to `main` builds both APKs in CI and uploads them as the
-**open-motion-android-apk** artifact.
+Every push builds the debug APK in CI (`.github/workflows/android.yml`); grab it from
+the run's **open-motion-android-debug** artifact.
+
+> **Runner without outbound downloads?** Gradle needs `services.gradle.org` and Google
+> Maven on first run. If your network only allows GitHub, run the
+> *Refresh Gradle wrapper* workflow once to add `gradle/wrapper/gradle-wrapper.jar`
+> (fetched from the Gradle repository through the GitHub API).
 
 ### Rebuilding the editor bundle by hand
 
