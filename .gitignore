@@ -15,3 +15,6 @@ captures/
 
 # Generated at build time from /web + /native-shell + /vendor
 app/src/main/assets/www/
+
+# Build diagnostics captured by CI on failure
+ci-logs/
