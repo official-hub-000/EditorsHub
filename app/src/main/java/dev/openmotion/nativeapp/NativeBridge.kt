@@ -23,7 +23,7 @@ import java.io.FileOutputStream
  */
 class NativeBridge(
     private val activity: EditorActivity,
-    private val webView: WebView
+    internal val webView: WebView
 ) {
     private val main = Handler(Looper.getMainLooper())
     private val tag = "OpenMotionBridge"
@@ -57,14 +57,14 @@ class NativeBridge(
 
     /** Immersive mode for the editor / fullscreen preview. */
     @JavascriptInterface
-    fun setImmersive(enabled: Boolean) = activity.setImmersive(enabled)
+    fun setImmersive(enabled: Boolean) = activity.applyImmersiveMode(enabled)
 
     /** Device-level fullscreen request from the WebView (Fullscreen API is unreliable). */
     @JavascriptInterface
-    fun requestFullscreen() = activity.setImmersive(true)
+    fun requestFullscreen() = activity.applyImmersiveMode(true)
 
     @JavascriptInterface
-    fun exitFullscreen() = activity.setImmersive(false)
+    fun exitFullscreen() = activity.applyImmersiveMode(false)
 
     // ------------------------------------------------------------------ toasts
 

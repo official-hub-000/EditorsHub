@@ -193,10 +193,7 @@ class EditorActivity : ComponentActivity() {
                 setSupportZoom(false)
             }
 
-            CookieManager.getInstance().apply {
-                setAcceptCookie(true)
-                setAcceptThirdPartyCookies(this@apply, false)
-            }
+            CookieManager.getInstance().setAcceptCookie(true)
 
             webViewClient = object : WebViewClientCompat() {
                 override fun shouldInterceptRequest(
@@ -315,7 +312,7 @@ class EditorActivity : ComponentActivity() {
                     customViewCallback = callback
                     root.addView(view, FrameLayout.LayoutParams(-1, -1))
                     webView.visibility = View.GONE
-                    setImmersive(true)
+                    applyImmersiveMode(true)
                 }
 
                 override fun onHideCustomView() {
@@ -324,7 +321,7 @@ class EditorActivity : ComponentActivity() {
                     webView.visibility = View.VISIBLE
                     customViewCallback?.onCustomViewHidden()
                     customViewCallback = null
-                    setImmersive(false)
+                    applyImmersiveMode(false)
                 }
 
                 override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
@@ -380,7 +377,7 @@ class EditorActivity : ComponentActivity() {
                 })();
             """.trimIndent()
             webView.evaluateJavascript(js, null)
-            view.onApplyWindowInsets(insets)
+            view.onApplyWindowInsets(insets.toWindowInsets())
         }
         ViewCompat.requestApplyInsets(root)
     }
@@ -435,7 +432,7 @@ class EditorActivity : ComponentActivity() {
     }
 
     /** Hidden system bars for the editor / fullscreen preview. */
-    internal fun setImmersive(enabled: Boolean) {
+    internal fun applyImmersiveMode(enabled: Boolean) {
         runOnUiThread {
             WindowCompat.getInsetsController(window, root).apply {
                 if (enabled) {
