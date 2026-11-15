@@ -8,7 +8,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # `write` is only needed to refresh the rolling `android-latest` release that holds
+  # the newest APK; the editor bundle and APK contents are still verified read-only.
+  contents: write
 
 concurrency:
   group: android-${{ github.ref }}
@@ -121,8 +123,13 @@ jobs:
           apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
           cp "$apk" "open-motion-debug.apk"
 
-          # One rolling release holds the newest APK; per-build tags would pile up.
-          gh release delete android-latest --yes --cleanup-tag 2>/dev/null || true
+          # One rolling release holds the newest APK. Update it in place where
+          # possible so the download URL never disappears mid-publish.
+          if gh release view android-latest >/dev/null 2>&1; then
+            gh release upload android-latest "open-motion-debug.apk" --clobber
+            gh release edit android-latest --notes "Updated from commit ${{ github.sha }}." || true
+            exit 0
+          fi
           gh release create android-latest "open-motion-debug.apk" \
             --title "Open Motion Android — latest build" \
             --notes "Debug APK built from commit ${{ github.sha }} (run ${{ github.run_number }}, $(date -u +%Y-%m-%dT%H:%MZ)).
