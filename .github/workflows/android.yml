@@ -131,13 +131,19 @@ jobs:
         run: |
           set -e
           apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
-          tag="android-build-${{ github.run_number }}"
           cp "$apk" "open-motion-debug.apk"
-          # Keep a stable, always-current download for the latest successful build.
-          gh release create "$tag" "open-motion-debug.apk" \
-            --title "Open Motion Android — build ${{ github.run_number }}" \
-            --notes "Debug APK built from ${{ github.sha }}.
 
-          Install with: adb install -r open-motion-debug.apk
-          or copy it to the device and tap it (allow install from unknown sources)." \
-            --latest || echo "release publish skipped"
+          # One rolling release holds the newest APK; per-build tags would pile up.
+          gh release delete android-latest --yes --cleanup-tag 2>/dev/null || true
+          gh release create android-latest "open-motion-debug.apk" \
+            --title "Open Motion Android — latest build" \
+            --notes "Debug APK built from commit ${{ github.sha }} (run ${{ github.run_number }}, $(date -u +%Y-%m-%dT%H:%MZ)).
+
+          Install with:
+
+          \`\`\`
+          adb install -r open-motion-debug.apk
+          \`\`\`
+
+          or copy the file to the device and tap it (allow install from unknown sources)." \
+            --latest
