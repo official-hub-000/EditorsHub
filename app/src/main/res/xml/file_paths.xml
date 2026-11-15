@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Exports produced by the editor are written here and shared via the system sheet. -->
+    <files-path name="exports" path="exports/" />
+    <cache-path name="shared_cache" path="shared/" />
+</paths>

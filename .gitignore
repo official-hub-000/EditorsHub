@@ -1,0 +1,17 @@
+.gradle/
+build/
+*/build/
+local.properties
+*.iml
+.idea/
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Generated at build time from /web + /native-shell + /vendor
+app/src/main/assets/www/
