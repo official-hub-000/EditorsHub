@@ -2,7 +2,8 @@ name: Android CI
 
 on:
   push:
-    branches: [ main ]
+    # Every branch builds, so the APK is always verifiable before merging to main.
+    branches: [ '**' ]
   pull_request:
   workflow_dispatch:
 
