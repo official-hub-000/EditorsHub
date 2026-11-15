@@ -29,7 +29,13 @@ class OpenMotionApplication : Application() {
             private set
 
         const val ASSET_ASSET_HOST = "appassets.androidplatform.net"
-        const val ASSET_ROOT = "/assets/www"
-        const val ASSET_BASE_URL = "https://$ASSET_ASSET_HOST$ASSET_ROOT/index.html"
+
+        /**
+         * Path the asset loader is registered on. `AssetsPathHandler` resolves the URL
+         * suffix *after* this prefix against the APK's `assets/` directory, so
+         * `/assets/www/index.html` is served from `assets/www/index.html`.
+         */
+        const val ASSET_ROOT = "/assets/"
+        const val ASSET_BASE_URL = "https://$ASSET_ASSET_HOST/assets/www/index.html"
     }
 }

@@ -102,7 +102,6 @@ jobs:
           set -e
           apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
           echo "APK: $apk ($(stat -c%s "$apk") bytes)"
-          # `unzip -l` can read an APK; no need for aapt2 here.
           listing=$(unzip -l "$apk")
           for entry in assets/www/index.html assets/www/native-shell.js assets/www/vendor/mediabunny/mediabunny.mjs; do
             if ! grep -q "$entry" <<<"$listing"; then
@@ -110,24 +109,26 @@ jobs:
               exit 1
             fi
           done
-          echo "editor bundle present in APK"
-          unzip -p "$apk" assets/www/index.html | sha256sum | tee ci-logs/apk-index.sha256
+          # The bundled document must carry the native adapter and no CDN module.
+          unzip -p "$apk" assets/www/index.html > /tmp/apk-index.html
+          grep -q 'oms-native-shell' /tmp/apk-index.html
+          ! grep -q 'cdn.jsdelivr.net/npm/mediabunny' /tmp/apk-index.html
+          echo "editor bundle verified inside APK"
 
-          # Publish the installable debug APK to the branch so it can be downloaded
-          # directly from the repository (artifact storage is not always reachable).
-          mkdir -p apk
-          cp "$apk" apk/open-motion-debug.apk
-          if [ -f ci-logs/apk-index.sha256 ]; then cp ci-logs/apk-index.sha256 apk/; fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f apk/open-motion-debug.apk
-          if [ -f apk/apk-index.sha256 ]; then git add -f apk/apk-index.sha256; fi
-          git commit -m "CI: publish debug APK [skip ci]" || echo "nothing to publish"
-          git push origin "HEAD:${{ github.ref_name }}" || true
+      - name: Publish debug APK as a release asset
+        if: github.ref_name == 'main' || github.ref_name == 'arena/2e98b960-editorshub'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
+          tag="android-build-${{ github.run_number }}"
+          cp "$apk" "open-motion-debug.apk"
+          # Keep a stable, always-current download for the latest successful build.
+          gh release create "$tag" "open-motion-debug.apk" \
+            --title "Open Motion Android — build ${{ github.run_number }}" \
+            --notes "Debug APK built from ${{ github.sha }}.
 
-      - name: Upload editor bundle (debugging aid)
-        uses: actions/upload-artifact@v4
-        with:
-          name: open-motion-editor-bundle
-          path: app/src/main/assets/www
-          retention-days: 14
+          Install with: adb install -r open-motion-debug.apk
+          or copy it to the device and tap it (allow install from unknown sources)." \
+            --latest || echo "release publish skipped"

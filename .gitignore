@@ -18,3 +18,7 @@ app/src/main/assets/www/
 
 # Build diagnostics captured by CI on failure
 ci-logs/
+
+# APKs are published as GitHub Release assets, not committed
+apk/
+open-motion-debug.apk
