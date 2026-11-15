@@ -232,13 +232,21 @@
   document.addEventListener(
     'click',
     function (event) {
-      var anchor = event.target && event.target.closest ? event.target.closest('a[download]') : null;
+      var target = event.target;
+      var anchor = target && target.closest ? target.closest('a[download]') : null;
       if (!anchor || !interceptAnchorDownload(anchor)) return;
       event.preventDefault();
       event.stopPropagation();
     },
     true
   );
+
+  /*
+   * A source-level patch in tools/build-web-assets.mjs already retargets the editor's
+   * own download() helper. If upstream changes that line, fall back to watching the
+   * DOM for freshly created export anchors (they are appended and clicked in the same
+   * task, so a MutationObserver alone cannot catch them; the prototype hook above does).
+   */
 
   /*
    * Kept for completeness: assigning window.download cannot shadow the editor's
