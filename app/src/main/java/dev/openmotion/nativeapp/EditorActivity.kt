@@ -377,7 +377,9 @@ class EditorActivity : ComponentActivity() {
                 })();
             """.trimIndent()
             webView.evaluateJavascript(js, null)
-            view.onApplyWindowInsets(insets.toWindowInsets())
+            // The compat insets have been consumed; hand the platform insets back so
+            // children (WebView, custom views) still receive them normally.
+            ViewCompat.onApplyWindowInsets(view, insets)
         }
         ViewCompat.requestApplyInsets(root)
     }

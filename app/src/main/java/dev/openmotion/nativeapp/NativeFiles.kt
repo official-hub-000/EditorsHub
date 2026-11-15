@@ -55,8 +55,8 @@ object NativeFiles {
     /**
      * Builds a picker that satisfies the editor's `<input type="file" accept="..." multiple>`
      * declarations. Multiple types (image, video, audio) cannot be expressed as a single
-     * ACTION_GET_CONTENT filter, so we fall back to `*/*` and keep the editor's own
-     * validation in charge of what it accepts.
+     * ACTION_GET_CONTENT filter, so we fall back to a wildcard MIME type and let the
+     * editor's own validation decide what it accepts.
      */
     fun createChooserIntent(params: WebChromeClient.FileChooserParams): Intent {
         val accepted = params.acceptTypes.filter { it.isNotBlank() }
