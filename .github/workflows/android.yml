@@ -8,7 +8,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # Write is required only so a failing build can publish its Gradle log back into
+  # the repo for debugging; the build steps themselves are read-only.
+  contents: write
 
 concurrency:
   group: android-${{ github.ref }}
