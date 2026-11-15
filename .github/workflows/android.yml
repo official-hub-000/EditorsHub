@@ -70,22 +70,7 @@ jobs:
           restore-keys: gradle-${{ runner.os }}-
 
       - name: Build debug APK
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -o pipefail
-          mkdir -p ci-logs
-          if ./gradlew --no-daemon --stacktrace --warning-mode=all :app:assembleDebug 2>&1 | tee ci-logs/gradle-build.log; then
-            echo "BUILD OK" >> ci-logs/gradle-build.log
-            exit 0
-          fi
-          echo "BUILD FAILED" >> ci-logs/gradle-build.log
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f ci-logs/gradle-build.log
-          git commit -m "CI: capture gradle build log [skip ci]" || true
-          git push origin "HEAD:${{ github.ref_name }}" || true
-          exit 1
+        run: ./gradlew --no-daemon --stacktrace :app:assembleDebug
 
       - name: Build release APK (unsigned)
         run: ./gradlew --no-daemon :app:assembleRelease | tail -40
