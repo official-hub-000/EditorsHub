@@ -1,32 +1,33 @@
 #!/usr/bin/env python3
 """
-Finds every string a user can still see in Indonesian once the published passes are applied.
+Detects strings in the bundled editor that a user can still read in Indonesian.
 
-Three passes have already translated the document (`tools/i18n/parts/`): the runtime
-dictionary, the markup batches and the pass-3 review store. What remains is a tail of
-*visible* copy that none of them classified as a string:
+Why not a hand-written word list
+--------------------------------
+The first version of this scan carried a hand-picked list of Indonesian words. Every time
+the list was trimmed to remove false positives (`minimal`, `panel`, `manual`, `elegan`) it
+lost real signal too — `buat`, `animasi`, `gerak` and `biasa` were all absent while the
+home screen still read *"Buat Animasi Gerak Luar Biasa"*. A curated list cannot keep up
+with a 9.7 MB document.
 
-  * words spliced directly against a `${...}` hole in a template literal
-    (`Hapus ${n} ...` where only `Hapus ` was never extracted),
-  * CSS-generated copy (`content: "Lepaskan media untuk mengimpor"`),
-  * short labels that looked like code to the earlier filters (`>Terapkan Orbit`),
-  * text nodes of markup a script builds as a string, which are never whole literals.
+Instead the vocabulary is *derived from the translations themselves*: every source string
+in `tools/i18n/parts/*.jsonl` is Indonesian, and every `en` value is English. A word that
+occurs on the source side and never on the English side is Indonesian vocabulary. Nothing
+has to be maintained by hand, and the list grows automatically as translations are added.
 
-Review stores are keyed by the *upstream source text*, so this scan runs against
-`web/index.html` (never the shipped bundle, which is already rebranded) and drops any
-candidate whose span is already fully covered by an edit. Candidates that are only partly
-covered stay in the list as their full source, which is exactly the key a translation needs.
+Output
+    tools/i18n/parts/leftovers.jsonl   {"k": kind, "s": indonesian}
+    plus a readable summary on stdout.
 
-Output: `tools/i18n/parts/pass4.jsonl` rows `{"k": kind, "s": indonesian}`. Translate into
-`pass4.en.jsonl` with `tools/i18n/add-translations.py`, which merges instead of overwriting.
-
-Run with: python3 tools/i18n/leftovers.py
+Run with: python3 tools/i18n/leftovers.py [--all]
 """
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -36,50 +37,65 @@ ROOT = Path(__file__).resolve().parents[2]
 PARTS = Path(__file__).resolve().parent / "parts"
 SOURCE = ROOT / "web" / "index.html"
 EDITS = Path(__file__).resolve().parent / "edits.json"
-OUT = PARTS / "pass4.jsonl"
+OUT = PARTS / "leftovers.jsonl"
 
-# Indonesian and Malay function words plus the vocabulary these panels use. Deliberately
-# broad and deliberately free of words that are also ordinary English (`panel`, `menu`,
-# `manual`, `minimal`, …); this is the last sweep, so a miss costs more than a review line.
-WORDS = """
-yang dan tidak dengan untuk dari akan sudah belum bisa pada jika kalau hanya juga lebih semua
-saat adalah telah masih gagal berhasil hapus simpan batal tutup buka proyek projek lapisan
-berkas pengaturan tambahkan pilih ekspor impor putar durasi warna teks gambar suara kamera efek
-tampilan pratinjau unduh bagikan bahasa ukuran kecepatan mulai kembali ubah atur salin
-tempel kosong aktif siap selesai memuat membuat menyimpan menghapus mengubah menambah
-memilih menampilkan memproses mendukung tersedia diperlukan dibutuhkan terpilih terkunci
-terakhir pertama sebelum sesudah selama hingga sampai tanpa mungkin harus perlu sangat paling
-banyak kecil besar cepat lambat mudah benar salah masuk keluar kiri kanan depan
-belakang tengah sekarang waktu detik jumlah daftar hasil pesan kesalahan peringatan coba
-ulang lanjut tunggu segera otomatis asli berbeda lain sendiri umum khusus utama
-maksimal minimal antara bahwa supaya seperti tersebut demikian secara terus seluruh pengguna
-perangkat layar tombol garis sudut posisi rotasi skala tanda
-penanda kompatibilitas struktur ditulis ekstensi kenapa tertarik memakai menjadi sebuah
-ialah tersimpan digunakan terhadap lewat terlalu letakkan diikat terikat lensa optik
-mundur maju memperoleh presisi dibatalkan didekode dirender penyesuaian dikirim terverifikasi
-dihapus disimpan diterapkan dibuat diubah diproses dipakai diganti ditolak dipilih tercatat
-dicatat dihitung ditampilkan dipetakan mengatur membina memerlukan membutuhkan berubah mengikuti
-menempatkan mengecilkan memperbesar menggeser menutup berbasis selain bahkan hampir sedangkan
-beberapa bagian bukan lagi nanti tadi besok hari bulan tahun menit lepaskan ikuti lewati
-ketuk tekan geser seret masukkan pindah perbarui pulihkan terapkan ganti ulangi buatkan
-sembunyikan aturkan orientasi sinkron stabilisasi kemiringan rentang
-guncangan pintasan jendela baharu bahagian ditutup dikemas dikembalikan bawaan kepada
-persekitaran projek susun anda kekunci papan
-""".split()
-ID_RE = re.compile(r"\b(?:" + "|".join(WORDS) + r")\b", re.I)
-CODEY = re.compile(r"(^//|^/\*|\*/$|^\s*\*|=>|\bconst\b|\bfunction\b|--oms-|\[data-)")
+WORD = re.compile(r"[A-Za-z][A-Za-z'-]{2,}")
+
+# Vocabulary that is Indonesian but also appears in English UI copy. Without this the
+# detector flags translated text: `manual`, `minimal` and `panel` are normal English.
+AMBIGUOUS = {
+    "manual", "minimal", "panel", "menu", "total", "normal", "audio", "video", "media",
+    "layer", "layers", "mode", "render", "format", "export", "import", "project",
+    "template", "mask", "alpha", "camera", "blend", "effect", "effects", "frame",
+    "frames", "fps", "keyframe", "keyframes", "text", "shape", "audio", "texture",
+    "shader", "gpu", "cpu", "ram", "url", "api", "web", "app", "code", "file", "font",
+    "size", "speed", "scale", "auto", "animation", "motion", "graphics", "studio",
+    "preview", "render", "cache", "buffer", "track", "tracking", "point", "points",
+    "grid", "snap", "icon", "logo", "item", "data", "model", "preset", "presets",
+    "status", "error", "info", "debug", "log", "logs", "test", "result", "value",
+}
+
+# Words that are code, not copy. A string made only of these is never user-visible text.
+CODE_WORDS = {
+    "const", "let", "var", "function", "return", "true", "false", "null", "undefined",
+    "new", "this", "typeof", "instanceof", "await", "async", "catch", "throw", "class",
+    "extends", "import", "export", "default", "window", "document", "element", "array",
+    "object", "prototype", "length", "push", "slice", "splice", "concat", "string",
+}
 
 
-def visible(text: str) -> bool:
-    stripped = text.strip()
-    if len(stripped) < 3 or not ID_RE.search(stripped):
+def load_vocabulary() -> tuple[set[str], set[str]]:
+    """(indonesian words, english words) learned from the reviewed translation stores."""
+    source_words: Counter[str] = Counter()
+    english_words: set[str] = set()
+    for path in sorted(PARTS.glob("*.jsonl")):
+        if path.name in ("leftovers.jsonl", "pass4.jsonl", "pass3.jsonl", "untranslated.jsonl"):
+            continue
+        for line in path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            source, english = row.get("s"), row.get("en")
+            if isinstance(source, str):
+                source_words.update(w.lower() for w in WORD.findall(source))
+            if isinstance(english, str):
+                english_words.update(w.lower() for w in WORD.findall(english))
+    indonesian = {
+        word for word in source_words
+        if word not in english_words and word not in AMBIGUOUS and word not in CODE_WORDS
+    }
+    return indonesian, english_words
+
+
+def looks_indonesian(text: str, vocabulary: set[str]) -> bool:
+    words = [w.lower() for w in WORD.findall(text)]
+    if not words:
         return False
-    if CODEY.search(stripped) or re.fullmatch(r"[\W\d_]+", stripped):
-        return False
-    # Style sheets and shader source are never translated, whatever vocabulary they contain.
-    if re.search(r"[{};]", stripped) or re.search(r"^\s*[.#@][\w-]", stripped):
-        return False
-    return True
+    return any(word in vocabulary for word in words)
 
 
 def load_spans() -> list[tuple[int, int]]:
@@ -91,6 +107,12 @@ def load_spans() -> list[tuple[int, int]]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--all", action="store_true",
+                        help="also list candidates outside markup text and attributes")
+    args = parser.parse_args()
+
+    vocabulary, _ = load_vocabulary()
     html = SOURCE.read_text(encoding="utf-8")
     covered = sorted(load_spans())
 
@@ -98,7 +120,8 @@ def main() -> int:
         return any(a <= start and end <= b for a, b in covered)
 
     blocks = jsscan.script_blocks(html)
-    styles = [(m.start(1), m.end(1)) for m in re.finditer(r"<style\b[^>]*>(.*?)</style>", html, re.S | re.I)]
+    styles = [(m.start(1), m.end(1))
+              for m in re.finditer(r"<style\b[^>]*>(.*?)</style>", html, re.S | re.I)]
     spans = [(a, a + len(b)) for a, b in blocks] + styles
 
     def inside(pos: int) -> bool:
@@ -108,9 +131,22 @@ def main() -> int:
 
     def offer(text: str, start: int, end: int, kind: str) -> None:
         text = text.strip()
-        if text and text not in found and visible(text) and not is_covered(start, end):
-            found[text] = kind
+        if not text or text in found:
+            return
+        if len(text) < 3 or len(text) > 400 or not looks_indonesian(text, vocabulary):
+            return
+        # Embedded assets and style sheets are matched by the markup scan because a data
+        # URI or a <style> body has no angle brackets; neither is copy.
+        if text.startswith(("data:", "AGFzbQ", "UklGR")) or "base64," in text[:64]:
+            return
+        if text.startswith(("/*", "//", "#", ".", "@")) or re.search(r"[{};]", text):
+            if not re.search(r">\s*[A-Z]", text):
+                return
+        if is_covered(start, end):
+            return
+        found[text] = kind
 
+    # Markup text nodes and attributes are what a user sees on screen.
     for m in re.finditer(r">([^<>]+)<", html):
         if inside(m.start()):
             continue
@@ -125,37 +161,38 @@ def main() -> int:
     for m in re.finditer(r'content\s*:\s*"([^"]{3,})"', html):
         offer(m.group(1), m.start(1), m.end(1), "css-content")
 
-    # Prose inside script literals: text spliced against `${...}` holes, and text nodes of
-    # markup a script builds as a string (those literals are never whole dictionary keys).
-    for body_start, body in blocks:
-        for lit in jsscan.scan(body):
-            text, offsets = jsscan.unescape_map(lit.text)
-            base = body_start + lit.start
-            # (segment text, its offset inside `text`): template prose first, then the whole
-            # literal, which also covers the text nodes of markup built as a plain string.
-            segments: list[tuple[str, int]] = []
-            if lit.template:
-                segments += [(text[part.start:part.end], part.start)
-                             for part in jsscan.template_parts(text)]
-            segments.append((text, 0))
-            for segment, origin in segments:
-                cursor = 0
-                for piece in re.split(r"(<[^>]*>)", segment):
-                    start = cursor
-                    cursor += len(piece)
-                    if piece.startswith("<") or not piece.strip():
-                        continue
-                    lead = len(piece) - len(piece.lstrip())
-                    stop = len(piece.rstrip())
-                    offer(piece,
-                          base + offsets[origin + start + lead],
-                          base + offsets[origin + start + stop],
-                          "template-fragment")
+    if args.all:
+        # Runtime strings: template prose, and text nodes of markup built as a string.
+        for body_start, body in blocks:
+            for lit in jsscan.scan(body):
+                text, offsets = jsscan.unescape_map(lit.text)
+                base = body_start + lit.start
+                segments: list[tuple[str, int]] = []
+                if lit.template:
+                    segments += [(text[p.start:p.end], p.start)
+                                 for p in jsscan.template_parts(text)]
+                segments.append((text, 0))
+                for segment, origin in segments:
+                    cursor = 0
+                    for piece in re.split(r"(<[^>]*>)", segment):
+                        start = cursor
+                        cursor += len(piece)
+                        if piece.startswith("<") or not piece.strip():
+                            continue
+                        lead = len(piece) - len(piece.lstrip())
+                        stop = len(piece.rstrip())
+                        offer(piece,
+                              base + offsets[origin + start + lead],
+                              base + offsets[origin + start + stop],
+                              "script")
 
     rows = sorted(found.items(), key=lambda kv: (-len(kv[0]), kv[0]))
     OUT.write_text("\n".join(json.dumps({"k": kind, "s": text}, ensure_ascii=False)
                              for text, kind in rows) + "\n", encoding="utf-8")
-    print(f"{len(rows)} visible leftovers ({sum(len(t) for t, _ in rows)} chars) -> {OUT}")
+    print(f"vocabulary {len(vocabulary)} words")
+    print(f"{len(rows)} untranslated strings ({sum(len(t) for t, _ in rows)} chars) -> {OUT}")
+    for text, kind in rows[:60]:
+        print(f"  [{kind}] {text[:110]!r}")
     return 0
 
 

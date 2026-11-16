@@ -44,7 +44,10 @@ OUT = Path(__file__).resolve().parent / "edits.json"
 
 STYLE_BLOCK = re.compile(r"<style\b[^>]*>(.*?)</style>", re.S | re.I)
 MARKUP_TEXT = re.compile(r">([^<>]+)<")
-ATTR = re.compile(r'\b(title|placeholder|aria-label|alt|aria-description)="([^"]+)"')
+# `value` is included because form controls render it verbatim: the New Project sheet
+# pre-fills its name field from `value="Project Baru"`, which is user-visible copy.
+ATTR = re.compile(
+    r'\b(title|placeholder|aria-label|alt|aria-description|value)="([^"]+)"')
 
 # Prose detector, mirroring tools/i18n/extract.py so leftovers are comparable.
 ID_WORDS = (

@@ -33,6 +33,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewClientCompat
+import kotlin.math.roundToInt
 
 /**
  * Native Android host for the EditorsHub editor.
@@ -165,12 +166,17 @@ class EditorActivity : ComponentActivity() {
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
             setBackgroundColor(Color.BLACK)
-            setLayerType(View.LAYER_TYPE_HARDWARE, null)
+            // No forced hardware layer: the editor draws into its own WebGL surface, so a
+            // layer here only adds a full-screen composite copy per frame.
             overScrollMode = View.OVER_SCROLL_NEVER
             isVerticalScrollBarEnabled = false
             isHorizontalScrollBarEnabled = false
+            // The editor implements long-press itself (trim holds, keyframe drags, layer
+            // reorder, parameter typing — 80 call sites in the bundle). Swallowing the
+            // gesture here made every one of them dead, so the WebView is left to deliver
+            // it and only the platform's text-selection callout is suppressed.
             isLongClickable = false
-            setOnLongClickListener { true }
+            isHapticFeedbackEnabled = true
 
             settings.apply {
                 javaScriptEnabled = true
@@ -185,7 +191,11 @@ class EditorActivity : ComponentActivity() {
                 // Match the mobile-first viewport the editor is designed for.
                 useWideViewPort = true
                 loadWithOverviewMode = false
-                textZoom = 100
+                // Honour the system font-size setting. Pinning this to 100 ignored a user
+                // who runs Android at 115–130%, which is exactly when the editor's 11–12px
+                // labels become hard to read.
+                textZoom = (resources.configuration.fontScale * 100f).roundToInt()
+                    .coerceIn(85, 160)
                 setGeolocationEnabled(false)
                 builtInZoomControls = false
                 displayZoomControls = false
@@ -227,7 +237,18 @@ class EditorActivity : ComponentActivity() {
                     if (scheme == "blob" || scheme == "data" || scheme == "about") {
                         return false
                     }
-                    if (scheme == "http" || scheme == "https" || scheme == "mailto") {
+                    // Everything off-origin is cancelled in place. Handing these to the
+                    // browser is what threw the user out of the editor into Chrome with a
+                    // URL bar; the app owns its own window and never leaves it.
+                    if (scheme == "http" || scheme == "https") {
+                        Toast.makeText(
+                            this@EditorActivity,
+                            "This link opens outside the editor",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return true
+                    }
+                    if (scheme == "mailto" || scheme == "tel") {
                         openExternally(url)
                         return true
                     }

@@ -70,8 +70,10 @@ android {
         buildConfig = true
     }
 
-    // The editor bundle is ~10 MB of HTML plus modules; ship it uncompressed-safe
-    // by excluding it from resource crunching and letting AAPT store it as-is.
+    // The editor bundle is ~10 MB of HTML. It is left `noCompress` on purpose: the asset
+    // loader serves it to the WebView through a stream, and a stored (uncompressed) entry
+    // avoids a synchronous full-file inflate before the first byte of the document reaches
+    // the parser. Compression only saved ~2 MB of APK size and cost real startup time.
     androidResources {
         noCompress += listOf("html", "mjs", "wasm", "onnx", "json", "webmanifest")
     }

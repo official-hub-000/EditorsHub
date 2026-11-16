@@ -143,11 +143,19 @@ export function forceEnglish(html) {
   if (!setter.test(out)) throw new Error('language: setHomeLanguage not found');
   out = out.replace(setter, "function setHomeLanguage(id){\n  homeLanguage='en';");
 
-  // Keep the picker mount points out of the layout; the modal itself is never reachable
-  // because its trigger is hidden and `openLanguageModal` resolves to English anyway.
+  // The switcher is removed from the document, not just hidden: a later skin rule sets
+  // `.languageBtn{display:inline-flex!important}`, which beat the id selector and left an
+  // "EN" pill on the home screen that opened a picker this build must not have.
+  const trigger =
+    /<button id="homeLanguageBtn"[\s\S]{0,600}?<\/button>/;
+  if (!trigger.test(out)) throw new Error('language: home language button not found');
+  out = out.replace(trigger, '');
+
+  // Everything else that can still reach the picker is hidden as a backstop.
   out = out.replace(
     '</style>',
-    '#homeLanguageBtn,#languageQuickBtn,#settingsLanguageRow{display:none!important}\n</style>'
+    '#homeLanguageBtn,#languageQuickBtn,#settingsLanguageRow,' +
+      '#homeTopActions .languageBtn,#languageModal{display:none!important}\n</style>'
   );
   return out;
 }

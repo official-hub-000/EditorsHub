@@ -1,9 +1,46 @@
 {"k": "css-content", "s": "Lepaskan media untuk mengimpor", "en": "Drop media to import"}
+{"k": "html-attr:aria-label", "s": "Keyframe berikutnya", "en": "Next keyframe"}
+{"k": "html-attr:aria-label", "s": "Keyframe sebelumnya", "en": "Previous keyframe"}
+{"k": "html-attr:aria-label", "s": "Ke akhir timeline", "en": "To the end of the timeline"}
 {"k": "html-attr:aria-label", "s": "Pintasan Keyboard", "en": "Keyboard Shortcuts"}
+{"k": "html-attr:aria-label", "s": "Ke awal timeline", "en": "To the start of the timeline"}
+{"k": "html-attr:aria-label", "s": "Rekam Pre-render", "en": "Record Pre-render"}
+{"k": "html-attr:aria-label", "s": "Aksi Layer", "en": "Layer Actions"}
+{"k": "html-attr:aria-label", "s": "Ruang 3D", "en": "3D Space"}
+{"k": "html-attr:aria-label", "s": "Tutorial", "en": "Tutorials"}
+{"k": "html-attr:aria-label", "s": "Beranda", "en": "Home"}
 {"k": "html-attr:title", "s": "Pintasan Keyboard (F1 / ?)", "en": "Keyboard Shortcuts (F1 / ?)"}
+{"k": "html-attr:title", "s": "Sesuaikan Area Komposisi", "en": "Adjust Composition Area"}
+{"k": "html-attr:title", "s": "Keyframe berikutnya", "en": "Next keyframe"}
+{"k": "html-attr:title", "s": "Keyframe sebelumnya", "en": "Previous keyframe"}
+{"k": "html-attr:title", "s": "Ke akhir timeline", "en": "To the end of the timeline"}
+{"k": "html-attr:title", "s": "Ke awal timeline", "en": "To the start of the timeline"}
+{"k": "html-attr:title", "s": "Rekam Pre-render", "en": "Record Pre-render"}
+{"k": "html-attr:title", "s": "Aksi Layer", "en": "Layer Actions"}
+{"k": "html-attr:title", "s": "Ruang 3D", "en": "3D Space"}
+{"k": "html-attr:value", "s": "Project Baru", "en": "New Project"}
+{"k": "html-text", "s": "Please do not leave Open Motion or lock your screen while export is in progress.", "en": "Please do not leave EditorsHub or lock your screen while export is in progress."}
+{"k": "html-text", "s": "Animasi Keyframe & Kurva Easing", "en": "Keyframe Animation & Easing Curves"}
+{"k": "html-text", "s": "Buat Animasi Gerak Luar Biasa", "en": "Create Amazing Motion Animation"}
+{"k": "html-text", "s": "Menyiapkan Open Motion...", "en": "Preparing EditorsHub..."}
+{"k": "html-text", "s": "Link Share Alight Motion", "en": "Alight Motion Share Link"}
+{"k": "html-text", "s": "Kelola layer &amp; gaya", "en": "Manage layers &amp; style"}
+{"k": "html-text", "s": "Mesin lainnya: Legacy.", "en": "Other engine: Legacy."}
+{"k": "html-text", "s": "LEGACY • rekam canvas", "en": "LEGACY • canvas recording"}
+{"k": "html-text", "s": "Transisi Fade & Scale", "en": "Fade & Scale Transition"}
 {"k": "html-text", "s": "Pintasan Keyboard", "en": "Keyboard Shortcuts"}
+{"k": "html-text", "s": "Rekam Pre-render", "en": "Record Pre-render"}
+{"k": "html-text", "s": "WORKSPACE LOKAL", "en": "LOCAL WORKSPACE"}
 {"k": "html-text", "s": "Ganti Pintasan", "en": "Change Shortcut"}
+{"k": "html-text", "s": "Animasi penuh", "en": "Full animation"}
+{"k": "html-text", "s": "DASAR ANIMASI", "en": "ANIMATION BASICS"}
+{"k": "html-text", "s": "Eksperimental", "en": "Experimental"}
+{"k": "html-text", "s": "Aksi Layer", "en": "Layer Actions"}
+{"k": "html-text", "s": "Ruang 3D", "en": "3D Space"}
+{"k": "html-text", "s": "TRANSISI", "en": "TRANSITION"}
 {"k": "html-text", "s": "berbasis", "en": "based on"}
+{"k": "html-text", "s": "Cancel", "en": "Cancel"}
+{"k": "html-text", "s": "ELEMEN", "en": "ELEMENTS"}
 {"k": "script", "s": "Normal menjaga real-time dan boleh melewatkan cache jika decoder tertinggal. Real-time Mengejar juga menjaga playhead/audio real-time, tetapi pre-render mempertahankan antrean frame berurutan di belakang playhead dan mengejar tanpa sengaja membuat celah. Semi Kuat memberi frame yang hilang waktu singkat untuk masuk cache sehingga playback boleh sedikit melambat. Kuat menunggu setiap frame. Tombol Rekam Pre-render tetap memaksa Mode Kuat selama aktif.", "en": "Normal keeps real time and may skip the cache when the decoder falls behind. Real-time Catch-up also keeps the playhead/audio in real time, but pre-render keeps a sequential frame queue behind the playhead and catches up without accidentally creating gaps. Semi Strong gives a missing frame a short time to enter the cache so playback may slow slightly. Strong waits for every frame. The Pre-render Record button keeps forcing Strong Mode while it is active."}
 {"k": "script", "s": "Urutan kartu efek piksel menentukan pemrosesan piksel. Kontrol Expression mengevaluasi transform setelah keyframe, tanpa pass shader. Particular dan Transform Motion Blur berada pada tahap komposisi akhir. Efek yang belum tersedia tetap disimpan saat diimpor.", "en": "The order of the pixel effect cards determines pixel processing. Expression controls evaluate the transform after keyframes, without a shader pass. Particular and Transform Motion Blur sit at the final compositing stage. Effects that are not available yet are still kept when imported."}
 {"k": "script", "s": "Null 2D merekam proyeksi kamera utama, bukan Editor Camera. Setelah kamera/transform video berubah, buat Null 2D baru. Null 3D tetap mengikuti perubahan transform bidang video. Kedalaman objek di dalam rekaman tidak direkonstruksi oleh Null bidang video.", "en": "Null 2D records the main camera projection, not the Editor Camera. After the camera or the video transform changes, create a new Null 2D. Null 3D keeps following changes to the video plane transform. Object depth inside the footage is not reconstructed by a video-plane Null."}
@@ -103,7 +140,8 @@
 {"k": "script", "s": "source maju saat target mundur pada", "en": "source moves forward while the target moves back at"}
 {"k": "script", "s": "• tekan lama untuk mengetik nilai\">", "en": "• long-press to type a value\">"}
 {"k": "script", "s": ": frame target belum siap dicopy (", "en": ": the target frame is not ready to copy ("}
-{"k": "script", "s": "Jenis lensa<select data-track-shot", "en": "Lens type<select data-track-shot"}
+{"k": "script", "s": "Depth of Field Focus dinonaktifkan", "en": "Depth of Field Focus disabled"}
+{"k": "script", "s": "Encoder Eksperimental menghasilkan", "en": "Experimental encoder produced"}
 {"k": "script", "s": "Jenis lensa<select data-track-shot", "en": "Lens type<select data-track-shot"}
 {"k": "script", "s": ". Hasil ekspor tetap perlu diuji.", "en": ". Export results still need testing."}
 {"k": "script", "s": ">Buat ulang keyframe Waktu preset", "en": ">Rebuild the preset Time keyframes"}
@@ -113,8 +151,10 @@
 {"k": "script", "s": "Bentuk mengikuti alpha layer ini", "en": "The shape follows this layer's alpha"}
 {"k": "script", "s": "Pemilihan beberapa layer ditutup", "en": "Multi-layer selection closed"}
 {"k": "script", "s": "sampel. Bukan verifikasi piksel.", "en": "samples. Not a pixel verification."}
-{"k": "script", "s": "sampel. Bukan verifikasi piksel.", "en": "samples. Not a pixel verification."}
 {"k": "script", "s": ">Ganti seluruh stack efek layer", "en": ">Replace the entire layer effect stack"}
+{"k": "script", "s": "Animasi Keyframe & Kurva Easing", "en": "Keyframe Animation & Easing Curves"}
+{"k": "script", "s": "Depth of Field Focus diaktifkan", "en": "Depth of Field Focus enabled"}
+{"k": "script", "s": "Dimensi inference di luar batas", "en": "Inference dimensions out of range"}
 {"k": "script", "s": "Ekspor frame-by-frame selesai •", "en": "Frame-by-frame export complete •"}
 {"k": "script", "s": "Real-time Mengejar: Tanpa Celah", "en": "Real-time Catch-up: Without Gaps"}
 {"k": "script", "s": "Terapkan stabilisasi + keyframe", "en": "Apply stabilisation + keyframe"}
@@ -125,8 +165,11 @@
 {"k": "script", "s": "disimpan di clipboard internal", "en": "saved to the internal clipboard"}
 {"k": "script", "s": "· Waktu dalam detik komposisi.", "en": "· Time in composition seconds."}
 {"k": "script", "s": "• parameter optik ini terkunci", "en": "• these optical parameters are locked"}
+{"k": "script", "s": "Input tracking melebihi batas", "en": "Tracking input out of range"}
 {"k": "script", "s": "Klasik: RAM Besar, CPU Ringan", "en": "Classic: High RAM, Light CPU"}
+{"k": "script", "s": "Perubahan estimasi sejak awal", "en": "Estimated change since start"}
 {"k": "script", "s": "Template Editor · Ganti Media", "en": "Template Editor · Replace Media"}
+{"k": "script", "s": "Marker layer &amp; komposisi", "en": "Layer &amp; composition markers"}
 {"k": "script", "s": "Tidak ada preset yang cocok.", "en": "No presets match."}
 {"k": "script", "s": "frame • garis sedang = frame", "en": "frame • medium line = frame"}
 {"k": "script", "s": "melewati batas waktu setelah", "en": "timed out after"}
@@ -138,70 +181,152 @@
 {"k": "script", "s": "Ganti acuan transform layer", "en": "Change layer transform reference"}
 {"k": "script", "s": "\" aria-label=\"Waktu marker", "en": "\" aria-label=\"Marker time"}
 {"k": "script", "s": "Fill teks • alpha terpisah", "en": "Text fill • separate alpha"}
+{"k": "script", "s": "Layer disalin beserta gaya", "en": "Layer copied with its style"}
 {"k": "script", "s": "Tidak ada efek yang cocok.", "en": "No effects match."}
+{"k": "script", "s": "Edit Vector Points canvas", "en": "Edit Vector Points canvas"}
 {"k": "script", "s": "FOV optik dikunci sekitar", "en": "Optical FOV locked at around"}
+{"k": "script", "s": "Kontrol playback portrait", "en": "Portrait playback controls"}
 {"k": "script", "s": "Panel otomatis saat error", "en": "Panel opens automatically on error"}
+{"k": "script", "s": "Perubahan heap sejak awal", "en": "Heap change since start"}
+{"k": "script", "s": "Unggah resmi ke server AM", "en": "Official upload to the AM server"}
 {"k": "script", "s": "• garis panjang = 1 detik", "en": "• long line = 1 second"}
+{"k": "script", "s": "Batalkan analisis dahulu", "en": "Cancel the analysis first"}
+{"k": "script", "s": "Kontrol preview portrait", "en": "Portrait preview controls"}
 {"k": "script", "s": "Pindah Ujung ke Playhead", "en": "Move End to Playhead"}
+{"k": "script", "s": "Sampling memori nonaktif", "en": "Memory sampling off"}
+{"k": "script", "s": "Umur lintasan tersambung", "en": "Connected track lifetime"}
 {"k": "script", "s": "dihapus dari Local Fonts", "en": "removed from Local Fonts"}
+{"k": "script", "s": "jalur lama dipertahankan", "en": "old path kept"}
 {"k": "script", "s": "mengikuti keyframe asli.", "en": "follows the original keyframes."}
+{"k": "script", "s": "Ambient Editor nonaktif", "en": "Ambient Editor off"}
 {"k": "script", "s": "FOV optik tetap sekitar", "en": "Optical FOV stays at around"}
 {"k": "script", "s": "Impor Gambar atau Video", "en": "Import Image or Video"}
 {"k": "script", "s": "Kuat: Tanpa Lewat Frame", "en": "Strong: No Skipped Frames"}
 {"k": "script", "s": "layer sampai playhead\">", "en": "layer up to the playhead\">"}
 {"k": "script", "s": "Arti umur dan kualitas", "en": "Age and quality meaning"}
-{"k": "script", "s": "Ikuti Transform Target", "en": "Follow Target Transform"}
+{"k": "script", "s": "Diagnostik Open Motion", "en": "EditorsHub Diagnostics"}
 {"k": "script", "s": "Ikuti Transform Target", "en": "Follow Target Transform"}
 {"k": "script", "s": "Masking dinonactivekan", "en": "Masking disabled"}
 {"k": "script", "s": "Pintasan Papan Kekunci", "en": "Keyboard Shortcuts"}
 {"k": "script", "s": "Tetapkan Semula Bawaan", "en": "Reset to Defaults"}
+{"k": "script", "s": "font lokal ditambahkan", "en": "local font added"}
 {"k": "script", "s": ">FOV tetap (otomatis)", "en": ">Fixed FOV (automatic)"}
+{"k": "script", "s": "AI Background Removal", "en": "AI Background Removal"}
 {"k": "script", "s": "Atur Ulang ke Default", "en": "Reset to Default"}
+{"k": "script", "s": "Bobot melampaui batas", "en": "Weight out of range"}
 {"k": "script", "s": "Khusus layer terpilih", "en": "Selected layer only"}
 {"k": "script", "s": "Khusus selected layer", "en": "Selected layer only"}
-{"k": "script", "s": "Khusus selected layer", "en": "Selected layer only"}
+{"k": "script", "s": "Masking dinonaktifkan", "en": "Masking disabled"}
 {"k": "script", "s": "Pilih satu atau lebih", "en": "Choose one or more"}
 {"k": "script", "s": "Projek & Persekitaran", "en": "Projects & Environment"}
+{"k": "script", "s": "Video HW menghasilkan", "en": "Hardware video produced"}
 {"k": "script", "s": "media belum tersedia.", "en": "media is not available yet."}
+{"k": "script", "s": "Aktifkan Motion Blur", "en": "Enable Motion Blur"}
+{"k": "script", "s": "Encoder menghasilkan", "en": "Encoder produced"}
 {"k": "script", "s": "Galeri preset teks ·", "en": "Text preset gallery ·"}
+{"k": "script", "s": "Keyframe ditambahkan", "en": "Keyframe added"}
 {"k": "script", "s": "Pilih preset kustom…", "en": "Choose a custom preset…"}
+{"k": "script", "s": "Typewriter per Baris", "en": "Typewriter per Row"}
 {"k": "script", "s": "font lokal tersimpan", "en": "saved local fonts"}
 {"k": "script", "s": "layer sedang dipilih", "en": "layer is being selected"}
+{"k": "script", "s": "Buat Flash Keyframe", "en": "Create Flash Keyframe"}
 {"k": "script", "s": "Edit Points ditutup", "en": "Edit Points closed"}
+{"k": "script", "s": "Ekspresi per target", "en": "Per-target expression"}
 {"k": "script", "s": "Hapus data analisis", "en": "Delete analysis data"}
-{"k": "script", "s": "Terapkan + keyframe", "en": "Apply + keyframe"}
+{"k": "script", "s": "Jalur timeline grup", "en": "Group timeline path"}
+{"k": "script", "s": "Pengelompokan pivot", "en": "Pivot grouping"}
 {"k": "script", "s": "Terapkan + keyframe", "en": "Apply + keyframe"}
 {"k": "script", "s": "layer yang dipilih.", "en": "selected layer."}
 {"k": "script", "s": "• Google Fonts siap", "en": "• Google Fonts ready"}
-{"k": "script", "s": "Pulihkan transform", "en": "Restore transform"}
+{"k": "script", "s": "Buat Blur Keyframe", "en": "Create Blur Keyframe"}
+{"k": "script", "s": "Focal Length Dasar", "en": "Base Focal Length"}
+{"k": "script", "s": "Focal Length Tetap", "en": "Fixed Focal Length"}
+{"k": "script", "s": "Instal Open Motion", "en": "Install EditorsHub"}
+{"k": "script", "s": "Intensitas Ambient", "en": "Ambient Intensity"}
+{"k": "script", "s": "Kartu Bergoyang XY", "en": "XY Wobble Card"}
+{"k": "script", "s": "LOKAL NA WORKSPACE", "en": "LOCAL WORKSPACE"}
+{"k": "script", "s": "Lisensi MIT sumber", "en": "Source MIT license"}
 {"k": "script", "s": "Pulihkan transform", "en": "Restore transform"}
 {"k": "script", "s": "RESET HASIL TERUJI", "en": "RESET TESTED RESULTS"}
 {"k": "script", "s": "dari Google Fonts…", "en": "from Google Fonts…"}
 {"k": "script", "s": "font gagal diimpor", "en": "fonts failed to import"}
+{"k": "script", "s": "Bersihkan pilihan", "en": "Clear selection"}
+{"k": "script", "s": "Border & Bayangan", "en": "Border & Shadow"}
+{"k": "script", "s": "Cascade Kedalaman", "en": "Depth Cascade"}
+{"k": "script", "s": "Cincin Mengembang", "en": "Expanding Ring"}
+{"k": "script", "s": "Diagnostik memori", "en": "Memory diagnostics"}
+{"k": "script", "s": "Jenis layer tetap", "en": "Fixed layer type"}
+{"k": "script", "s": "Kualitas lintasan", "en": "Tracking quality"}
+{"k": "script", "s": "Marker berikutnya", "en": "Next marker"}
+{"k": "script", "s": "Marker sebelumnya", "en": "Previous marker"}
+{"k": "script", "s": "Master Diagnostik", "en": "Diagnostics Master"}
 {"k": "script", "s": "Pintasan Keyboard", "en": "Keyboard Shortcuts"}
 {"k": "script", "s": "Pulihkan Media AM", "en": "Restore AM Media"}
 {"k": "script", "s": "Pulihkan Tracking", "en": "Restore Tracking"}
+{"k": "script", "s": "RUANG KERJA LOKAL", "en": "LOCAL WORKSPACE"}
+{"k": "script", "s": "Resolusi analisis", "en": "Analysis resolution"}
 {"k": "script", "s": "Shape + Kamera 3D", "en": "Shape + 3D Camera"}
+{"k": "script", "s": "Sumber bobot ONNX", "en": "ONNX weight source"}
 {"k": "script", "s": "dari Local Fonts…", "en": "from Local Fonts…"}
 {"k": "script", "s": "kamera + keyframe", "en": "camera + keyframes"}
 {"k": "script", "s": "masih tertahan) ·", "en": "still holding) ·"}
 {"k": "script", "s": "• Local Font siap", "en": "• Local Font ready"}
+{"k": "script", "s": "Background badge", "en": "Background badge"}
+{"k": "script", "s": "Batas pengukuran", "en": "Measurement limit"}
+{"k": "script", "s": "Bounce per Baris", "en": "Bounce per Row"}
+{"k": "script", "s": "Heliks Kedalaman", "en": "Depth Helix"}
 {"k": "script", "s": "Ikuti arah jalur", "en": "Follow path direction"}
 {"k": "script", "s": "Impor Trek Audio", "en": "Import Audio Track"}
+{"k": "script", "s": "Kredit & Lisensi", "en": "Credits & Licenses"}
+{"k": "script", "s": "Kualitas Preview", "en": "Preview Quality"}
+{"k": "script", "s": "Kualitas preview", "en": "Preview quality"}
+{"k": "script", "s": "Layer digandakan", "en": "Layer duplicated"}
+{"k": "script", "s": "Marker komposisi", "en": "Composition marker"}
+{"k": "script", "s": "Mengekspor Video", "en": "Exporting Video"}
+{"k": "script", "s": "Opacity bayangan", "en": "Shadow opacity"}
 {"k": "script", "s": "Panduan Pintasan", "en": "Shortcut Guide"}
 {"k": "script", "s": "Rentang analisis", "en": "Analysis range"}
+{"k": "script", "s": "Sampling Adaptif", "en": "Adaptive Sampling"}
+{"k": "script", "s": "Stretch Vertikal", "en": "Vertical Stretch"}
 {"k": "script", "s": "Teks + Kamera 3D", "en": "Text + 3D Camera"}
 {"k": "script", "s": "kategori aktif •", "en": "categories active •"}
 {"k": "script", "s": ">Terapkan Orbit", "en": ">Apply Orbit"}
-{"k": "script", "s": ">Terapkan Orbit", "en": ">Apply Orbit"}
 {"k": "script", "s": ">Terapkan rumus", "en": ">Apply formula"}
-{"k": "script", "s": ">Terapkan rumus", "en": ">Apply formula"}
+{"k": "script", "s": "Batang Simetris", "en": "Symmetric Stem"}
+{"k": "script", "s": "Cincin Dua Sisi", "en": "Two-Sided Ring"}
+{"k": "script", "s": "Copy Background", "en": "Copy Background"}
+{"k": "script", "s": "Flip Bergantian", "en": "Alternating Flip"}
+{"k": "script", "s": "Grup dipisahkan", "en": "Detached group"}
+{"k": "script", "s": "Heliks per Kata", "en": "Helix per Word"}
 {"k": "script", "s": "Kecepatan Layer", "en": "Layer Speed"}
+{"k": "script", "s": "Lipat per Baris", "en": "Fold per Row"}
+{"k": "script", "s": "Lompat ke Akhir", "en": "Jump to End"}
+{"k": "script", "s": "Media pengganti", "en": "Replacement media"}
+{"k": "script", "s": "Muncul Perlahan", "en": "Fade In Slow"}
+{"k": "script", "s": "Napas Kedalaman", "en": "Depth Breath"}
+{"k": "script", "s": "Nilai Transform", "en": "Transform Value"}
+{"k": "script", "s": "Pergi ke marker", "en": "Go to marker"}
+{"k": "script", "s": "Permukaan datar", "en": "Flat surface"}
 {"k": "script", "s": "Reset ke Bawaan", "en": "Reset to Defaults"}
+{"k": "script", "s": "Slide per Baris", "en": "Slide per Row"}
 {"k": "script", "s": "Tetap di Tengah", "en": "Stay Centred"}
+{"k": "script", "s": "Tilt Acak Tetap", "en": "Fixed Random Tilt"}
+{"k": "script", "s": "Typewriter Tepi", "en": "Typewriter Edge"}
 {"k": "script", "s": "event tersimpan", "en": "events saved"}
+{"k": "script", "s": "Analisis video", "en": "Video analysis"}
+{"k": "script", "s": "Cincin Mutiara", "en": "Pearl Ring"}
+{"k": "script", "s": "Debu Frekuensi", "en": "Frequency Dust"}
+{"k": "script", "s": "Duplikat Layer", "en": "Duplicate Layer"}
 {"k": "script", "s": "Ganti Pintasan", "en": "Change Shortcut"}
+{"k": "script", "s": "Grup komposisi", "en": "Composition group"}
+{"k": "script", "s": "Kode & pembuat", "en": "Code & authors"}
+{"k": "script", "s": "Kurva progress", "en": "Progress curve"}
+{"k": "script", "s": "Layer ditempel", "en": "Layer pasted"}
+{"k": "script", "s": "Lisensi sumber", "en": "Source license"}
+{"k": "script", "s": "Lompat ke Awal", "en": "Jump to Start"}
+{"k": "script", "s": "Neon Orbit XYZ", "en": "Neon Orbit XYZ"}
 {"k": "script", "s": "Parameter Efek", "en": "Effect Parameters"}
+{"k": "script", "s": "Pita per Baris", "en": "Ribbon per Row"}
 {"k": "script", "s": "Semua di bawah", "en": "Everything below"}
 {"k": "script", "s": "Semua kategori", "en": "All categories"}
 {"k": "script", "s": "Stabil Presisi", "en": "Precision Stabilisation"}
@@ -212,12 +337,35 @@
 {"k": "script", "s": "layer terpilih", "en": "selected layer"}
 {"k": "script", "s": "proyek dihapus", "en": "projects deleted"}
 {"k": "script", "s": ">Zoom berubah", "en": ">Zoom changed"}
-{"k": "script", "s": ">Zoom berubah", "en": ">Zoom changed"}
+{"k": "script", "s": "Aktifkan Mask", "en": "Enable Mask"}
+{"k": "script", "s": "BERSIHKAN LOG", "en": "CLEAR LOG"}
+{"k": "script", "s": "Batang Klasik", "en": "Classic Stem"}
+{"k": "script", "s": "Batang Lembut", "en": "Soft Stem"}
 {"k": "script", "s": "Bawaan preset", "en": "Preset default"}
+{"k": "script", "s": "Bezier Kustom", "en": "Custom Bezier"}
+{"k": "script", "s": "Bezier kustom", "en": "Custom bezier"}
+{"k": "script", "s": "Bintang Tajam", "en": "Sharp Star"}
+{"k": "script", "s": "Cincin Batang", "en": "Stem Ring"}
+{"k": "script", "s": "Diagonal Naik", "en": "Diagonal Up"}
 {"k": "script", "s": "EASING KELUAR", "en": "EASING OUT"}
+{"k": "script", "s": "Flip Vertikal", "en": "Flip Vertical"}
+{"k": "script", "s": "Gandakan grup", "en": "Duplicate group"}
+{"k": "script", "s": "Gerak kontinu", "en": "Continuous motion"}
+{"k": "script", "s": "Giroskop Emas", "en": "Gold Gyroscope"}
+{"k": "script", "s": "Jalur Menyapu", "en": "Sweep Path"}
+{"k": "script", "s": "Kata di Jalur", "en": "Word on Path"}
+{"k": "script", "s": "Kontur Cincin", "en": "Ring Contour"}
 {"k": "script", "s": "Layer Dipilih", "en": "Layer Selected"}
+{"k": "script", "s": "Opacity akhir", "en": "End opacity"}
 {"k": "script", "s": "PROJEK BAHARU", "en": "NEW PROJECT"}
+{"k": "script", "s": "Padam Pilihan", "en": "Clear Selection"}
+{"k": "script", "s": "Pisahkan grup", "en": "Detach group"}
+{"k": "script", "s": "Pita Lengkung", "en": "Curved Ribbon"}
 {"k": "script", "s": "Projek Baharu", "en": "New Project"}
+{"k": "script", "s": "Putaran Euler", "en": "Euler Rotation"}
+{"k": "script", "s": "Resolusi mask", "en": "Mask resolution"}
+{"k": "script", "s": "Saya Mengerti", "en": "I Understand"}
+{"k": "script", "s": "Sumber marker", "en": "Marker source"}
 {"k": "script", "s": "UNDUH LAPORAN", "en": "DOWNLOAD REPORT"}
 {"k": "script", "s": "diterapkan ke", "en": "applied to"}
 {"k": "script", "s": "gagal setelah", "en": "failed after"}
@@ -226,69 +374,216 @@
 {"k": "script", "s": "titik dipilih", "en": "points selected"}
 {"k": "script", "s": "↔ Ganti media", "en": "↔ Replace media"}
 {"k": "script", "s": ">Ekspor JSON", "en": ">Export JSON"}
+{"k": "script", "s": "Batang Rapat", "en": "Tight Stem"}
+{"k": "script", "s": "Batang Tebal", "en": "Bold Stem"}
+{"k": "script", "s": "Batang Turun", "en": "Descending Stem"}
+{"k": "script", "s": "Batas render", "en": "Render limit"}
 {"k": "script", "s": "Belum diuji.", "en": "Not tested yet."}
+{"k": "script", "s": "Cakupan umur", "en": "Lifetime scope"}
+{"k": "script", "s": "Cincin Rapat", "en": "Tight Ring"}
+{"k": "script", "s": "Delapan Band", "en": "Eight Band"}
 {"k": "script", "s": "Ikuti target", "en": "Follow target"}
+{"k": "script", "s": "Jeda preview", "en": "Pause preview"}
+{"k": "script", "s": "Jenis Render", "en": "Render type"}
+{"k": "script", "s": "Kontur Tipis", "en": "Thin Contour"}
+{"k": "script", "s": "Lepas Ikatan", "en": "Detach Binding"}
+{"k": "script", "s": "Maximum zoom", "en": "Maximum zoom"}
+{"k": "script", "s": "Napas Tinggi", "en": "High Breath"}
+{"k": "script", "s": "Opacity awal", "en": "Start opacity"}
+{"k": "script", "s": "Paket kustom", "en": "Custom package"}
 {"k": "script", "s": "Path ditutup", "en": "Path closed"}
+{"k": "script", "s": "Penyuntingan", "en": "Editing"}
 {"k": "script", "s": "Pilih Segmen", "en": "Select Segment"}
 {"k": "script", "s": "Posisi XYZ •", "en": "XYZ Position •"}
 {"k": "script", "s": "Rotasi Euler", "en": "Euler Rotation"}
+{"k": "script", "s": "Segi Delapan", "en": "Octagon"}
 {"k": "script", "s": "Susun projek", "en": "Arrange projects"}
+{"k": "script", "s": "Tambah layer", "en": "Add layer"}
+{"k": "script", "s": "Tebal Batang", "en": "Stem Thickness"}
 {"k": "script", "s": "Zoom berubah", "en": "Zoom changed"}
 {"k": "script", "s": "diatur ulang", "en": "reset"}
+{"k": "script", "s": "Acuan dasar", "en": "Base reference"}
+{"k": "script", "s": "Balik jalur", "en": "Reverse path"}
+{"k": "script", "s": "Balon Bulat", "en": "Round Bubble"}
+{"k": "script", "s": "Balon Pikir", "en": "Thought Bubble"}
+{"k": "script", "s": "Buat Semula", "en": "Recreate"}
 {"k": "script", "s": "Detail Efek", "en": "Effect Details"}
+{"k": "script", "s": "Frame acuan", "en": "Reference frame"}
 {"k": "script", "s": "Ganti media", "en": "Replace media"}
 {"k": "script", "s": "Grup Kosong", "en": "Empty Group"}
 {"k": "script", "s": "HAPUS LAYER", "en": "DELETE LAYER"}
 {"k": "script", "s": "Jenis lensa", "en": "Lens type"}
+{"k": "script", "s": "Kode sumber", "en": "Source code"}
+{"k": "script", "s": "Main Semula", "en": "Play Again"}
+{"k": "script", "s": "Nonaktifkan", "en": "Disable"}
 {"k": "script", "s": "PILIH AUDIO", "en": "CHOOSE AUDIO"}
 {"k": "script", "s": "PILIH MEDIA", "en": "CHOOSE MEDIA"}
+{"k": "script", "s": "Pita Medali", "en": "Medal Ribbon"}
 {"k": "script", "s": "Projek Anda", "en": "Your Projects"}
 {"k": "script", "s": "SALIN AKTIF", "en": "COPY ACTIVE"}
 {"k": "script", "s": "Sembunyikan", "en": "Hide"}
+{"k": "script", "s": "TANDAI AWAL", "en": "MARK START"}
 {"k": "script", "s": "Tambah Efek", "en": "Add Effect"}
 {"k": "script", "s": "Terapkan ke", "en": "Apply to"}
+{"k": "script", "s": "ditambahkan", "en": "added"}
 {"k": "script", "s": "mm terkunci", "en": "mm locked"}
 {"k": "script", "s": "yang sesuai", "en": "matching"}
+{"k": "script", "s": "Aksi Layer", "en": "Layer Actions"}
+{"k": "script", "s": "Background", "en": "Background"}
+{"k": "script", "s": "Balon Kata", "en": "Speech Bubble"}
+{"k": "script", "s": "Diagnostik", "en": "Diagnostics"}
+{"k": "script", "s": "Grup biasa", "en": "Plain group"}
+{"k": "script", "s": "Halo Tipis", "en": "Thin Halo"}
 {"k": "script", "s": "Impor JSON", "en": "Import JSON"}
+{"k": "script", "s": "Jeda video", "en": "Pause video"}
+{"k": "script", "s": "Jenis grup", "en": "Group type"}
+{"k": "script", "s": "Lepas mask", "en": "Detach mask"}
 {"k": "script", "s": "Mode aktif", "en": "Active mode"}
+{"k": "script", "s": "Pengeditan", "en": "Editing"}
+{"k": "script", "s": "Perspektif", "en": "Perspective"}
+{"k": "script", "s": "Pita Lurus", "en": "Straight Ribbon"}
 {"k": "script", "s": "SEMUA FONT", "en": "ALL FONTS"}
 {"k": "script", "s": "Salin Efek", "en": "Copy Effect"}
+{"k": "script", "s": "Saya Faham", "en": "I Understand"}
 {"k": "script", "s": "Semua Efek", "en": "All Effects"}
 {"k": "script", "s": "Tutup Path", "en": "Close Path"}
+{"k": "script", "s": "background", "en": "background"}
+{"k": "script", "s": "berikutnya", "en": "next"}
+{"k": "script", "s": "digandakan", "en": "duplicated"}
 {"k": "script", "s": "\" dihapus", "en": "\" deleted"}
+{"k": "script", "s": "Area luar", "en": "Outer area"}
+{"k": "script", "s": "BERSIHKAN", "en": "CLEAR"}
+{"k": "script", "s": "Buat Asal", "en": "Create Origin"}
+{"k": "script", "s": "Buat Grup", "en": "Create Group"}
+{"k": "script", "s": "Buat Null", "en": "Create Null"}
+{"k": "script", "s": "Gelombang", "en": "Wave"}
 {"k": "script", "s": "Kecepatan", "en": "Speed"}
+{"k": "script", "s": "Kombinasi", "en": "Combination"}
+{"k": "script", "s": "Komposisi", "en": "Composition"}
+{"k": "script", "s": "Lingkaran", "en": "Circle"}
+{"k": "script", "s": "Melingkar", "en": "Circular"}
+{"k": "script", "s": "Mengimpor", "en": "Importing"}
+{"k": "script", "s": "Mengunduh", "en": "Downloading"}
+{"k": "script", "s": "Proses AI", "en": "AI Process"}
+{"k": "script", "s": "Roda Gigi", "en": "Gear"}
+{"k": "script", "s": "Semi Kuat", "en": "Semi Strong"}
 {"k": "script", "s": "Tampilkan", "en": "Show"}
+{"k": "script", "s": "UJI VIDEO", "en": "TEST VIDEO"}
+{"k": "script", "s": "komposisi", "en": "composition"}
 {"k": "script", "s": "penanda ·", "en": "markers ·"}
 {"k": "script", "s": "← Kembali", "en": "← Back"}
+{"k": "script", "s": "Aktifkan", "en": "Enable"}
+{"k": "script", "s": "Ayunan X", "en": "Swing X"}
+{"k": "script", "s": "Ayunan Y", "en": "Swing Y"}
+{"k": "script", "s": "Ayunan Z", "en": "Swing Z"}
+{"k": "script", "s": "Batalkan", "en": "Cancel"}
+{"k": "script", "s": "Bayangan", "en": "Shadow"}
+{"k": "script", "s": "Distorsi", "en": "Distortion"}
+{"k": "script", "s": "Ekspresi", "en": "Expression"}
+{"k": "script", "s": "Gandakan", "en": "Duplicate"}
+{"k": "script", "s": "Kekuatan", "en": "Strength"}
+{"k": "script", "s": "Kelajuan", "en": "Velocity"}
+{"k": "script", "s": "Maksimum", "en": "Maximum"}
+{"k": "script", "s": "Nonaktif", "en": "Off"}
 {"k": "script", "s": "Otomatis", "en": "Automatic"}
+{"k": "script", "s": "Pengaruh", "en": "Influence"}
 {"k": "script", "s": "Perbarui", "en": "Update"}
 {"k": "script", "s": "Skala 3D", "en": "3D Scale"}
 {"k": "script", "s": "Terapkan", "en": "Apply"}
+{"k": "script", "s": "Transisi", "en": "Transition"}
+{"k": "script", "s": "analisis", "en": "analysis"}
+{"k": "script", "s": "bayangan", "en": "shadow"}
 {"k": "script", "s": "berbasis", "en": "based on"}
+{"k": "script", "s": "diagonal", "en": "diagonal"}
+{"k": "script", "s": "ditempel", "en": "pasted"}
+{"k": "script", "s": "mm tetap", "en": "fixed mm"}
 {"k": "script", "s": ">Mundur", "en": ">Back"}
-{"k": "script", "s": ">Mundur", "en": ">Back"}
+{"k": "script", "s": "Animasi", "en": "Animation"}
+{"k": "script", "s": "Bendera", "en": "Flag"}
+{"k": "script", "s": "Bintang", "en": "Star"}
+{"k": "script", "s": "Centang", "en": "Tick"}
 {"k": "script", "s": "Dipilih", "en": "Selected"}
+{"k": "script", "s": "Gerakan", "en": "Movement"}
+{"k": "script", "s": "Lainnya", "en": "Other"}
+{"k": "script", "s": "Melacak", "en": "Tracking"}
+{"k": "script", "s": "Menguji", "en": "Testing"}
+{"k": "script", "s": "Mutiara", "en": "Pearl"}
+{"k": "script", "s": "Pecahan", "en": "Fraction"}
+{"k": "script", "s": "Pilihan", "en": "Selection"}
+{"k": "script", "s": "Terbaru", "en": "Newest"}
+{"k": "script", "s": "Terlama", "en": "Oldest"}
+{"k": "script", "s": "UJI RAM", "en": "TEST RAM"}
+{"k": "script", "s": "Unduhan", "en": "Downloads"}
 {"k": "script", "s": "dipilih", "en": "selected"}
+{"k": "script", "s": "pilihan", "en": "selection"}
 {"k": "script", "s": "px pada", "en": "px at"}
 {"k": "script", "s": "• geser", "en": "• drag"}
 {"k": "script", "s": ">Hapus", "en": ">Delete"}
+{"k": "script", "s": "Batang", "en": "Stem"}
+{"k": "script", "s": "Cahaya", "en": "Light"}
+{"k": "script", "s": "Cincin", "en": "Ring"}
+{"k": "script", "s": "Elemen", "en": "Elements"}
+{"k": "script", "s": "Instal", "en": "Install"}
 {"k": "script", "s": "Kamera", "en": "Camera"}
+{"k": "script", "s": "Kustom", "en": "Custom"}
+{"k": "script", "s": "Metode", "en": "Method"}
 {"k": "script", "s": "Mundur", "en": "Back"}
 {"k": "script", "s": "Posisi", "en": "Position"}
+{"k": "script", "s": "Rendah", "en": "Low"}
 {"k": "script", "s": "Rotasi", "en": "Rotation"}
+{"k": "script", "s": "Sisi A", "en": "Side A"}
+{"k": "script", "s": "Sisi B", "en": "Side B"}
+{"k": "script", "s": "TAMBAH", "en": "ADD"}
 {"k": "script", "s": "TEMPEL", "en": "PASTE"}
+{"k": "script", "s": "Tinggi", "en": "Height"}
 {"k": "script", "s": "Ulangi", "en": "Repeat"}
+{"k": "script", "s": "Vektor", "en": "Vector"}
 {"k": "script", "s": "efek\">", "en": "effect\">"}
+{"k": "script", "s": "kredit", "en": "credit"}
 {"k": "script", "s": ">Maju", "en": ">Forward"}
-{"k": "script", "s": ">Maju", "en": ">Forward"}
+{"k": "script", "s": "AKHIR", "en": "END"}
+{"k": "script", "s": "Acuan", "en": "Reference"}
+{"k": "script", "s": "Baris", "en": "Row"}
+{"k": "script", "s": "Batas", "en": "Limit"}
+{"k": "script", "s": "Bebas", "en": "Freehand"}
+{"k": "script", "s": "Cukup", "en": "Enough"}
+{"k": "script", "s": "Dasar", "en": "Base"}
+{"k": "script", "s": "Gerak", "en": "Motion"}
 {"k": "script", "s": "Hapus", "en": "Delete"}
+{"k": "script", "s": "Hijau", "en": "Green"}
+{"k": "script", "s": "Huruf", "en": "Letter"}
+{"k": "script", "s": "Jalur", "en": "Path"}
+{"k": "script", "s": "Kotak", "en": "Box"}
+{"k": "script", "s": "Latar", "en": "Background"}
+{"k": "script", "s": "Lebar", "en": "Width"}
+{"k": "script", "s": "Lokal", "en": "Local"}
 {"k": "script", "s": "MULAI", "en": "START"}
+{"k": "script", "s": "NILAI", "en": "VALUE"}
+{"k": "script", "s": "Nilai", "en": "Value"}
 {"k": "script", "s": "PILIH", "en": "CHOOSE"}
 {"k": "script", "s": "Putar", "en": "Play"}
+{"k": "script", "s": "Rasio", "en": "Ratio"}
+{"k": "script", "s": "Rumus", "en": "Formula"}
 {"k": "script", "s": "Tutup", "en": "Close"}
 {"k": "script", "s": "Warna", "en": "Colour"}
+{"k": "script", "s": "akhir", "en": "end"}
 {"k": "script", "s": "aktif", "en": "active"}
+{"k": "script", "s": "AWAL", "en": "START"}
+{"k": "script", "s": "Arah", "en": "Direction"}
 {"k": "script", "s": "BUKA", "en": "OPEN"}
+{"k": "script", "s": "Baik", "en": "Good"}
+{"k": "script", "s": "Biru", "en": "Blue"}
+{"k": "script", "s": "Buat", "en": "Create"}
+{"k": "script", "s": "Emas", "en": "Gold"}
+{"k": "script", "s": "Foto", "en": "Photo"}
+{"k": "script", "s": "Grup", "en": "Group"}
+{"k": "script", "s": "Jeda", "en": "Pause"}
+{"k": "script", "s": "Kuat", "en": "Strong"}
+{"k": "script", "s": "Luar", "en": "Outside"}
 {"k": "script", "s": "Maju", "en": "Forward"}
+{"k": "script", "s": "Sisi", "en": "Side"}
 {"k": "script", "s": "Teks", "en": "Text"}
+{"k": "script", "s": "awal", "en": "start"}
+{"k": "script", "s": "foto", "en": "photo"}
+{"k": "script", "s": "halo", "en": "halo"}
 {"k": "script", "s": "pada", "en": "at"}

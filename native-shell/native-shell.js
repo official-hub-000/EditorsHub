@@ -414,6 +414,54 @@
     flushDocuments(0);
   };
 
+
+  /* ---------------------------------------------------------------------
+   * External links stay inside the app.
+   *
+   * The editor renders credits, license and "read more" links with
+   * target="_blank" and a few window.open calls. Inside a WebView every one of
+   * those used to hand the page to Chrome, so tapping a credit or a help link
+   * threw the user out of the editor into a browser tab with an address bar.
+   * The app is self-contained: any off-origin navigation is cancelled, and the
+   * few links that genuinely point at a project page are surfaced as a toast
+   * instead of a browser jump.
+   * ------------------------------------------------------------------ */
+  var SELF_HOST = location.host;
+
+  function isExternal(href) {
+    if (!href) return false;
+    try {
+      var url = new URL(href, location.href);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+      return url.host !== SELF_HOST;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /* target="_blank" never gets a chance to open a new window. */
+  document.addEventListener('click', function (event) {
+    var anchor = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+    if (!anchor) return;
+    var href = anchor.getAttribute('href') || '';
+    if (href.charAt(0) === '#') return;
+    if (isExternal(href)) {
+      event.preventDefault();
+      event.stopPropagation();
+      toast('This link opens outside the editor');
+      log('blocked external link', href);
+    }
+  }, true);
+
+  /* window.open is used for the same links from script. */
+  window.open = function (url) {
+    if (url && isExternal(String(url))) {
+      toast('This link opens outside the editor');
+      log('blocked window.open', String(url));
+    }
+    return null;
+  };
+
   /* PWA service worker is pointless inside the APK (assets already local). */
   if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
     navigator.serviceWorker.getRegistrations().then(function (registrations) {
