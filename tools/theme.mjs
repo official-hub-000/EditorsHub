@@ -195,3 +195,74 @@ export function enlargeTinyText(html) {
   console.log(`  tiny type ${bumped} declarations raised to a 10px floor`);
   return out;
 }
+
+/**
+ * Kills the 300 ms tap delay.
+ *
+ * Chromium holds a tap for ~300 ms before firing `click` unless it is told the page
+ * does not need double-tap-to-zoom. With the delay in place every control in the app
+ * feels broken: you tap, nothing happens for a third of a second, so you tap again and
+ * the second tap lands somewhere else. It also makes the whole UI read as "laggy" even
+ * when the processor is idle.
+ *
+ * `touch-action: manipulation` is the platform's documented opt-out. It is applied to
+ * the leaf controls only, never to containers: containers that pan or zoom (viewport,
+ * timeline, canvas) must keep their own touch handling, and a broad rule would break
+ * dragging.
+ */
+export function removeTapDelay(html) {
+  const css = `
+/* --- Tap responsiveness ------------------------------------------------- */
+/* Chromium waits ~300ms after a tap before firing click unless the page opts out.
+   Without this every control feels dead and a second tap lands elsewhere. */
+button,input,select,textarea,label,summary,a[href],[role="button"],[role="tab"],
+[role="menuitem"],[role="option"],.insBtn,.homeTab,.mNavTab,.amMenuRow{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+/* Range/colour/scrub controls need their own gesture handling. */
+input[type="range"],input[type="color"],.trim,.playhead,.ruler,.zoomTrack{
+  touch-action:none;
+}`;
+  return html.replace('</head>', `<style id="editorshub-touch">${css}</style>\n</head>`);
+}
+
+/**
+ * Moves the embedded graph textures out of the document.
+ *
+ * Six `<script type="text/plain">` blocks hold 2.82 MB of base64 WebP (bump maps and
+ * grunge overlays for the Alight-Motion-graph effects). They are not inlined for
+ * performance: the upstream file embeds them so the bundle is one file. Inside the APK
+ * that is pure cost — the WebView has to read, decode and hold 2.82 MB of base64 (about
+ * 2.1 MB of raw image) as part of the document before the editor can start, on a device
+ * that then has to keep the whole 9.1 MB document alive.
+ *
+ * The images are written to `www/res252/` and the document keeps only a URL. The lookup
+ * is already lazy — `oms-res252-N` is read through a getter the first time an effect
+ * needs the texture — so redirecting it to a file keeps the lazy behaviour and simply
+ * stops paying for the payload up front.
+ *
+ * `assets` is a `{id: dataUri}` map; the caller writes the files.
+ */
+export function externaliseGraphTextures() {
+  return (html) => {
+    const assets = new Map();
+    const pattern = /<script type="text\/plain" id="(oms-res252-\d)">(data:[^<]+)<\/script>/g;
+    let out = html.replace(pattern, (match, id, uri) => {
+      const extension = /image\/webp/.test(uri) ? 'webp' : 'bin';
+      assets.set(id, { uri, file: `${id}.${extension}` });
+      return `<script type="text/plain" id="${id}" data-src="./res252/${id}.${extension}"></script>`;
+    });
+
+    // The getter reads `textContent`; read the file URL instead when the payload is gone.
+    const getter =
+      "const el=document.getElementById(m.id);cache=el?(el.textContent.trim()||el.dataset.src||''):'';";
+    if (out.includes("const el=document.getElementById(m.id);cache=el?el.textContent.trim():'';")) {
+      out = out.replace("const el=document.getElementById(m.id);cache=el?el.textContent.trim():'';", getter);
+    } else {
+      console.warn('! externaliseGraphTextures: getter not found');
+    }
+    console.log(`  textures    ${assets.size} moved out of the document`);
+    return { html: out, assets };
+  };
+}

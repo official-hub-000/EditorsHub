@@ -20,7 +20,9 @@ What is verified here
      guaranteed uncaught TypeError at startup.
   2. No `id` is referenced by such a binding more than the document provides.
   3. No `id="…"` collides with a function the bundle calls through `window`.
-  4. The document contains no half-translated Bahasa Indonesia UI text.
+  4. The mobile tab router accepts the key the markup actually uses.
+  5. The graph textures stayed out of the document.
+  6. The document contains no half-translated Bahasa Indonesia UI text.
 
 Exit code 1 on any failure, so CI fails instead of publishing an APK that cannot boot.
 
@@ -87,6 +89,19 @@ def main() -> int:
               file=sys.stderr)
         for name in shadowed:
             print(f"  #{name}", file=sys.stderr)
+
+    # The bottom bar ships `data-tab="proyek"`, but the router branched on 'projects',
+    # so it returned at its guard and every tab tap was ignored.
+    if 'data-tab="proyek"' in html and "targetTab === 'proyek'" not in html:
+        ok = False
+        print("\nThe mobile tab router does not accept the 'proyek' key the markup uses.",
+              file=sys.stderr)
+
+    # 2.82 MB of base64 belongs in files, not in the parsed document.
+    if 'data:image/webp;base64' in html:
+        ok = False
+        print("\nInline base64 images are back in the document (~2.8 MB of parse cost).",
+              file=sys.stderr)
 
     return 0 if ok else 1
 

@@ -633,6 +633,23 @@
   window.__omsDialog = omsDialog;
 
   /**
+   * Read-only informational sheet, used by the tutorial cards.
+   *
+   * The body is a numbered list separated by newlines, and the dialog CSS preserves
+   * them (`white-space:pre-wrap`), so the steps stay on their own lines instead of
+   * collapsing into one paragraph the way the native alert did.
+   */
+  window.omsInfo = function (title, body) {
+    if (!document.body) return;
+    return omsDialog({
+      title: String(title == null ? '' : title),
+      message: String(body == null ? '' : body),
+      acceptLabel: 'Got it',
+      cancelable: false,
+    });
+  };
+
+  /**
    * Promise-based confirm used by the two patched call sites (project deletion
    * and the legacy AM project warning). Falls back to the native dialog when the
    * themed one is somehow unavailable, so a destructive action is never taken

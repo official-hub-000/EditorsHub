@@ -32,7 +32,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { patchBranding } from './branding.mjs';
-import { applyTheme, replaceSplash, replaceHeaderMark, enlargeTinyText } from './theme.mjs';
+import {
+  applyTheme,
+  replaceSplash,
+  replaceHeaderMark,
+  enlargeTinyText,
+  removeTapDelay,
+  externaliseGraphTextures,
+} from './theme.mjs';
 import { markSvg, splashMarkup } from './brand-art.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -235,7 +242,19 @@ async function main() {
   html = replaceHeaderMark(markSvg('header', 38))(html);
   html = replaceSplash(splashMarkup())(html);
   html = enlargeTinyText(html);
+  html = removeTapDelay(html);
   html = applyTheme(html);
+
+  // The graph textures are the single largest lump in the document; they are written as
+  // files and referenced by URL so startup does not decode 2.8 MB of base64.
+  const textures = externaliseGraphTextures()(html);
+  html = textures.html;
+  const res252 = path.join(outDir, 'res252');
+  await mkdir(res252, { recursive: true });
+  for (const [, asset] of textures.assets) {
+    const comma = asset.uri.indexOf(',');
+    await writeFile(path.join(res252, asset.file), Buffer.from(asset.uri.slice(comma + 1), 'base64'));
+  }
   await writeFile(path.join(outDir, 'index.html'), html, 'utf8');
 
   // PWA extras (icon set, manifest, service worker) are kept so the bundle is a complete

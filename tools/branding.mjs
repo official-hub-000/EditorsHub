@@ -239,10 +239,56 @@ export function finishEnglish(html) {
   return out;
 }
 
+/**
+ * Turns the tutorial cards' `alert()` into the app's own sheet.
+ *
+ * Tapping a tutorial card opened the platform's single-paragraph text box, prefixed
+ * with a literal `=== Title ===` header — the one the screenshots show. The dialog
+ * renders `\n` properly, so the numbered steps read as steps.
+ */
+export function fixTutorialCards(html) {
+  const from = "alert('=== ' + tut.title + ' ===\\n\\n' + tut.body);";
+  const to =
+    "if (typeof window.omsInfo === 'function') { window.omsInfo(tut.title, tut.body); } " +
+    "else { alert(tut.title + '\\n\\n' + tut.body); }";
+  if (!html.includes(from)) {
+    console.warn('! fixTutorialCards: pattern not found');
+    return html;
+  }
+  return html.replace(from, to);
+}
+
 export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
-  const out = finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed))));
+  const out = fixTutorialCards(
+    fixMobileTabs(finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed)))))
+  );
   await writeFile(indexPath, out, 'utf8');
   return { html: out, renamed: count };
+}
+
+/**
+ * Repairs the mobile tab router.
+ *
+ * The bottom bar's views are keyed `beranda / tutorial / proyek / template` (the upstream
+ * author's Indonesian), but the handler branches on `projects`:
+ *
+ *     if (targetTab === 'projects') { ui.loadProjectList(); }
+ *
+ * `switchMobileTab('projects')` is also what "View All" calls, so that button was dead
+ * too. The tab keys themselves are identifiers, not user-visible text, and are left
+ * alone — only the comparison is widened to accept both spellings.
+ *
+ * Note: do *not* add a `projects:` alias to the views map. Two keys pointing at the same
+ * element makes the toggle loop turn the project view on and then straight back off again.
+ */
+export function fixMobileTabs(html) {
+  const from = "if (targetTab === 'projects') {";
+  const to = "if (targetTab === 'projects' || targetTab === 'proyek') {";
+  if (!html.includes(from)) {
+    console.warn('! fixMobileTabs: pattern not found');
+    return html;
+  }
+  return html.replace(from, to);
 }
