@@ -122,7 +122,7 @@ class EditorActivity : ComponentActivity() {
         setContentView(root)
 
         assetLoader = WebViewAssetLoader.Builder()
-            .setDomain(EditorsHubApplication.ASSET_ASSET_HOST)
+            .setDomain(EditorsHubApplication.ASSET_HOST)
             .addPathHandler(
                 EditorsHubApplication.ASSET_ROOT,
                 WebViewAssetLoader.AssetsPathHandler(this)
@@ -221,7 +221,7 @@ class EditorActivity : ComponentActivity() {
                 ): Boolean {
                     val url = request.url ?: return false
                     val scheme = url.scheme ?: return false
-                    if (scheme == "https" && url.host == EditorsHubApplication.ASSET_ASSET_HOST) {
+                    if (scheme == "https" && url.host == EditorsHubApplication.ASSET_HOST) {
                         return false
                     }
                     if (scheme == "blob" || scheme == "data" || scheme == "about") {

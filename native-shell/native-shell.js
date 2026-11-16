@@ -1,8 +1,8 @@
 /*
- * Open Motion — Android native shell adapter.
+ * EditorsHub — Android native shell adapter.
  *
- * Injected into the bundled editor document after load. The upstream application is
- * written for a browser tab, so this file bridges the handful of browser-only paths
+ * Injected into the bundled editor document after load. The editor engine is written
+ * for a browser tab, so this file bridges the handful of browser-only paths
  * (downloads, share sheet, install banner, fullscreen, wake lock, Android Back) onto
  * the native hosts exposed by NativeBridge.kt.
  *
@@ -15,7 +15,7 @@
   if (window.__omsNativeShellLoaded) return;
   window.__omsNativeShellLoaded = true;
 
-  var Native = window.OpenMotionNative;
+  var Native = window.EditorsHubNative || window.OpenMotionNative;
   var isNative = !!Native;
 
   function log() {
