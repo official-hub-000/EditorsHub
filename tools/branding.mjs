@@ -143,20 +143,28 @@ export function forceEnglish(html) {
   if (!setter.test(out)) throw new Error('language: setHomeLanguage not found');
   out = out.replace(setter, "function setHomeLanguage(id){\n  homeLanguage='en';");
 
-  // The switcher is removed from the document, not just hidden: a later skin rule sets
-  // `.languageBtn{display:inline-flex!important}`, which beat the id selector and left an
-  // "EN" pill on the home screen that opened a picker this build must not have.
-  const trigger =
-    /<button id="homeLanguageBtn"[\s\S]{0,600}?<\/button>/;
-  if (!trigger.test(out)) throw new Error('language: home language button not found');
-  out = out.replace(trigger, '');
-
-  // Everything else that can still reach the picker is hidden as a backstop.
+  // The switcher is hidden, never removed. Deleting the element looked cleaner but broke
+  // startup: the editor binds `$('#homeLanguageBtn').onclick = ...` in a long block of
+  // direct assignments, and a null there threw `Cannot set properties of null` at 5% load,
+  // which stopped every binding after it and left the app on the splash screen.
+  //
+  // Hiding it needs `!important` and a selector that outranks the skin rule
+  // `.simpleHome .languageBtn{display:inline-flex!important}`: that rule is a class
+  // selector, so it ties on !important and loses only to a more specific one. The app root
+  // id plus the element id plus the class is enough.
   out = out.replace(
     '</style>',
-    '#homeLanguageBtn,#languageQuickBtn,#settingsLanguageRow,' +
-      '#homeTopActions .languageBtn,#languageModal{display:none!important}\n</style>'
+    'html body #home .homeTopActions #homeLanguageBtn.languageBtn,' +
+      '#languageQuickBtn,#settingsLanguageRow,#languageModal{display:none!important}\n</style>'
   );
+
+  // Belt and braces: the picker must never open, whatever reaches it.
+  const openModal =
+    /function openLanguageModal\([^)]*\)\{/;
+  if (openModal.test(out)) {
+    out = out.replace(openModal, (match) => match + '\n  return;');
+  }
+
   return out;
 }
 
