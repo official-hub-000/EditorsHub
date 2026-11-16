@@ -1,4 +1,4 @@
-package dev.openmotion.nativeapp
+package com.editorhub
 
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
@@ -23,6 +23,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.Toast
+import com.editorhub.R
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,10 +35,10 @@ import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewClientCompat
 
 /**
- * Native Android host for the Open Motion editor.
+ * Native Android host for the EditorsHub editor.
  *
- * The editor itself is the upstream Open Motion application (vendored in /web and
- * bundled into the APK). It is served over `https://appassets.androidplatform.net`
+ * The editor engine is the open-source Open Motion application (vendored in /web and
+ * bundled into the APK), presented as EditorsHub. It is served over `https://appassets.androidplatform.net`
  * through [WebViewAssetLoader] so it runs fully offline while keeping the secure
  * origin the app needs for Workers, IndexedDB and WebCodecs.
  *
@@ -46,7 +47,7 @@ import androidx.webkit.WebViewClientCompat
  *  - edge-to-edge drawing with real insets mapped into the editor's CSS safe areas
  *  - native import/export through the Storage Access Framework
  *  - Android share sheet for exported videos and project bundles
- *  - hardware Back routed into Open Motion's own in-app back router
+ *  - hardware Back routed into the editor's own in-app back router
  *  - screen wake lock during long exports, immersive preview, renderer recovery
  */
 class EditorActivity : ComponentActivity() {
@@ -121,14 +122,15 @@ class EditorActivity : ComponentActivity() {
         setContentView(root)
 
         assetLoader = WebViewAssetLoader.Builder()
-            .setDomain(OpenMotionApplication.ASSET_ASSET_HOST)
+            .setDomain(EditorsHubApplication.ASSET_ASSET_HOST)
             .addPathHandler(
-                OpenMotionApplication.ASSET_ROOT,
+                EditorsHubApplication.ASSET_ROOT,
                 WebViewAssetLoader.AssetsPathHandler(this)
             )
             .build()
 
         webView = createWebView()
+        webView.id = R.id.editor_webview
         root.addView(
             webView,
             FrameLayout.LayoutParams(
@@ -140,18 +142,19 @@ class EditorActivity : ComponentActivity() {
         webView.addJavascriptInterface(NativeBridge(this, webView), NativeBridge.NAME)
 
         applySafeAreaInsets()
+        applyImmersiveMode(true)
         installBackHandler()
 
         val restored = savedInstanceState != null && webView.restoreState(savedInstanceState) != null
         if (!restored) {
-            webView.loadUrl(OpenMotionApplication.ASSET_BASE_URL, nativeHeaders())
+            webView.loadUrl(EditorsHubApplication.ASSET_BASE_URL, nativeHeaders())
         }
     }
 
     /** Extra request headers so the editor can detect the native shell. */
     private fun nativeHeaders(): Map<String, String> = mapOf(
-        "X-OpenMotion-Shell" to "android",
-        "X-OpenMotion-Shell-Version" to BuildConfig.VERSION_NAME
+        "X-EditorsHub-Shell" to "android",
+        "X-EditorsHub-Shell-Version" to BuildConfig.VERSION_NAME
     )
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -162,6 +165,7 @@ class EditorActivity : ComponentActivity() {
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
             setBackgroundColor(Color.BLACK)
+            setLayerType(View.LAYER_TYPE_HARDWARE, null)
             overScrollMode = View.OVER_SCROLL_NEVER
             isVerticalScrollBarEnabled = false
             isHorizontalScrollBarEnabled = false
@@ -189,6 +193,13 @@ class EditorActivity : ComponentActivity() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     safeBrowsingEnabled = true
                 }
+                // The editor is self-themed; never let the platform re-tint canvas or
+                // media. Also keeps the black backdrop behind the status bar invisible.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    @Suppress("DEPRECATION")
+                    forceDark = WebSettings.FORCE_DARK_OFF
+                    isAlgorithmicDarkeningAllowed = false
+                }
                 // Keep media/user data on the device profile and out of any sync path.
                 setSupportZoom(false)
             }
@@ -210,7 +221,7 @@ class EditorActivity : ComponentActivity() {
                 ): Boolean {
                     val url = request.url ?: return false
                     val scheme = url.scheme ?: return false
-                    if (scheme == "https" && url.host == OpenMotionApplication.ASSET_ASSET_HOST) {
+                    if (scheme == "https" && url.host == EditorsHubApplication.ASSET_ASSET_HOST) {
                         return false
                     }
                     if (scheme == "blob" || scheme == "data" || scheme == "about") {
@@ -242,6 +253,7 @@ class EditorActivity : ComponentActivity() {
                     root.removeView(view)
                     view.destroy()
                     webView = createWebView()
+                    webView.id = R.id.editor_webview
                     webView.addJavascriptInterface(
                         NativeBridge(this@EditorActivity, webView),
                         NativeBridge.NAME
@@ -258,7 +270,8 @@ class EditorActivity : ComponentActivity() {
                         "Renderer restarted — your projects are safe",
                         Toast.LENGTH_LONG
                     ).show()
-                    webView.loadUrl(OpenMotionApplication.ASSET_BASE_URL, nativeHeaders())
+                    webView.loadUrl(EditorsHubApplication.ASSET_BASE_URL, nativeHeaders())
+                    applyImmersiveMode(true)
                     return true
                 }
             }
@@ -339,7 +352,15 @@ class EditorActivity : ComponentActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) applySafeAreaInsets()
+        if (hasFocus) {
+            applySafeAreaInsets()
+            applyImmersiveMode(true)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        applyImmersiveMode(true)
     }
 
     /**
@@ -433,17 +454,39 @@ class EditorActivity : ComponentActivity() {
         }
     }
 
-    /** Hidden system bars for the editor / fullscreen preview. */
-    internal fun applyImmersiveMode(enabled: Boolean) {
+    /**
+     * EditorsHub is edge-to-edge and full-screen at all times.
+     *
+     * The status bar used to come back whenever the window regained focus or the WebView
+     * took a new inset pass, which put an unreachable ~24dp strip over the editor's top
+     * toolbar. The bar is now hidden on every relevant lifecycle event, and swiping near
+     * an edge reveals it only transiently (Android's standard immersive behaviour).
+     */
+    internal fun applyImmersiveMode(enabled: Boolean = true) {
         runOnUiThread {
             WindowCompat.getInsetsController(window, root).apply {
+                systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 if (enabled) {
-                    systemBarsBehavior =
-                        WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     hide(WindowInsetsCompat.Type.systemBars())
+                    hide(WindowInsetsCompat.Type.displayCutout())
                 } else {
                     show(WindowInsetsCompat.Type.systemBars())
                 }
+            }
+            // Belt and braces for OEM skins that ignore the insets controller for the
+            // status bar specifically. IMMERSIVE_STICKY is deprecated on API 30+ but is
+            // harmless there: WindowInsetsController above already did the real work.
+            @Suppress("DEPRECATION")
+            if (enabled) {
+                window.decorView.systemUiVisibility =
+                    window.decorView.systemUiVisibility or
+                        View.SYSTEM_UI_FLAG_FULLSCREEN or
+                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
             }
         }
     }

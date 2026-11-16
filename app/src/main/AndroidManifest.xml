@@ -14,7 +14,7 @@
     <uses-feature android:glEsVersion="0x00030000" android:required="false" />
 
     <application
-        android:name=".OpenMotionApplication"
+        android:name=".EditorsHubApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -24,7 +24,7 @@
         android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.OpenMotion"
+        android:theme="@style/Theme.EditorsHub"
         android:usesCleartextTraffic="false">
 
         <activity
@@ -34,7 +34,7 @@
             android:launchMode="singleTop"
             android:resizeableActivity="true"
             android:screenOrientation="fullSensor"
-            android:theme="@style/Theme.OpenMotion"
+            android:theme="@style/Theme.EditorsHub"
             android:windowSoftInputMode="adjustResize">
 
             <intent-filter>

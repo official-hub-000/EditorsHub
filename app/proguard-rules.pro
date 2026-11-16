@@ -1,5 +1,5 @@
 # WebView hosts the whole editor, so keep the view layer unobfuscated.
--keep class dev.openmotion.nativeapp.** { *; }
+-keep class com.editorhub.** { *; }
 -keep class androidx.webkit.** { *; }
 
 # JavascriptInterface surface is called by name from the bundled editor.

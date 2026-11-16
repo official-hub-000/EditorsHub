@@ -25,3 +25,7 @@ open-motion-debug.apk
 
 # Local Gradle/IDE output
 .kotlin/
+
+# Python bytecode from the translation tools
+__pycache__/
+*.pyc

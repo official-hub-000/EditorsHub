@@ -1,4 +1,4 @@
-package dev.openmotion.nativeapp
+package com.editorhub
 
 import android.content.Intent
 import android.net.Uri
@@ -27,7 +27,7 @@ class NativeBridge(
     internal val webView: WebView
 ) {
     private val main = Handler(Looper.getMainLooper())
-    private val tag = "OpenMotionBridge"
+    private val tag = "EditorsHubBridge"
 
     /** Root for user-visible editor artefacts (exports, preview frames, bundles). */
     private val exportsDir: File
@@ -107,7 +107,7 @@ class NativeBridge(
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 activity.startActivity(
-                    Intent.createChooser(share, "Open Motion exports")
+                    Intent.createChooser(share, "EditorsHub exports")
                 )
             }
             target.absolutePath
@@ -297,7 +297,7 @@ class NativeBridge(
                 putExtra(Intent.EXTRA_STREAM, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            activity.startActivity(Intent.createChooser(share, "Open Motion exports"))
+            activity.startActivity(Intent.createChooser(share, "EditorsHub exports"))
         }
         return file.absolutePath
     }
@@ -367,7 +367,7 @@ class NativeBridge(
     }
 
     companion object {
-        /** Name the page reaches the shell through: `window.OpenMotionNative`. */
-        const val NAME = "OpenMotionNative"
+        /** Name the page reaches the shell through: `window.EditorsHubNative`. */
+        const val NAME = "EditorsHubNative"
     }
 }

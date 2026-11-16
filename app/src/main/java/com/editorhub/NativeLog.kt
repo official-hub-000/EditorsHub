@@ -1,10 +1,10 @@
-package dev.openmotion.nativeapp
+package com.editorhub
 
 import android.util.Log
 
 /** Thin logging shim so JS console output shows up in `adb logcat`. */
 object NativeLog {
-    private const val TAG = "OpenMotion"
+    private const val TAG = "EditorsHub"
 
     fun log(level: String, message: String?, source: String?, line: Int) {
         val text = buildString {

@@ -1,4 +1,4 @@
-package dev.openmotion.nativeapp
+package com.editorhub
 
 import android.content.ActivityNotFoundException
 import android.content.Context

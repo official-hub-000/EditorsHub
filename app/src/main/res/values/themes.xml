@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.OpenMotion" parent="android:Theme.Material.NoActionBar">
-        <item name="android:windowBackground">@color/om_background</item>
+    <!--
+      EditorsHub is a full-screen creative tool: the status bar and navigation bar are
+      never part of the chrome. They are hidden for the whole session and only revealed
+      transiently by a swipe (Android's standard immersive behaviour).
+    -->
+    <style name="Theme.EditorsHub" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/editorshub_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
@@ -10,6 +15,9 @@
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
-        <item name="android:colorAccent">@color/om_theme</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowDisablePreview">false</item>
+        <item name="android:colorAccent">@color/editorshub_theme</item>
     </style>
 </resources>

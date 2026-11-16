@@ -1,0 +1,328 @@
+{"s": "Lossless memakai Hot ImageBitmap + PNG lossless. Klasik menyimpan ImageBitmap mentah dengan CPU paling ringan. Video HW memakai WebCodecs prefer-hardware untuk kompresi preview berkualitas tinggi: RAM jauh lebih hemat tanpa biaya PNG yang berat; ekspor tidak terpengaruh. ⚠️ Kompatibilitas Video HW bergantung pada browser, SoC, dan driver codec; prefer-hardware tidak menjamin encoder hardware benar-benar dipakai. Jika jalur video tidak didukung atau gagal, Open Motion akan fallback ke Cache Klasik.", "en": "Lossless keeps hot frames as ImageBitmap + lossless PNG. Classic stores raw ImageBitmap with the lightest CPU cost. Video HW uses WebCodecs prefer-hardware for high-quality preview compression: far less RAM without the heavy PNG cost, and export is unaffected. ⚠️ Video HW compatibility depends on the browser, SoC and codec driver; prefer-hardware does not guarantee that a hardware encoder is actually used. If the video path is unsupported or fails, EditorsHub falls back to the Classic Cache."}
+{"s": "Normal menjaga real-time dan boleh melewatkan cache jika decoder tertinggal. Real-time Mengejar juga menjaga playhead/audio real-time, tetapi pre-render mempertahankan antrean frame berurutan di belakang playhead dan mengejar tanpa sengaja membuat celah. Semi Kuat memberi frame yang hilang waktu singkat untuk masuk cache sehingga playback boleh sedikit melambat. Kuat menunggu setiap frame. Tombol Rekam Pre-render tetap memaksa Mode Kuat selama aktif.", "en": "Normal keeps real time and may skip the cache if the decoder falls behind. Realtime Catch-Up also keeps the playhead/audio real-time, but pre-render keeps a sequential frame queue behind the playhead and catches up without intentionally leaving gaps. Semi Strong gives missing frames a short window to enter the cache so playback may slow slightly. Strong waits for every frame. The Record Pre-render button still forces Strong mode while active."}
+{"s": "Animator: simpan efek ini saja. Paket stack: simpan seluruh urutan efek native pada layer, beberapa animator, Text Style, efek pendukung, status aktif dan keyframe/easing. Tidak menyimpan isi teks, font, media, transform layer atau referensi luar. Efek AM impor/Expression layer/marker/matte/Particular belum portabel dan akan ditolak, bukan dihilangkan. Nama sama memperbarui preset; waktu keyframe relatif terhadap durasi layer tujuan.", "en": "Animator: saves just this effect. Stack package: saves the whole native effect order on the layer, several animators, Text Style, supporting effects, enabled state and keyframes/easing. It does not save text content, fonts, media, layer transforms or external references. Imported AM effects/layer Expressions/markers/mattes/Particular are not portable yet and are rejected rather than dropped. The same name updates a preset; keyframe times are relative to the destination layer duration."}
+{"s": "Kompatibilitas AE bertahap: if/else, fungsi, loop terbatas, marker, key(), nearestKey(), valueAtTime(), loopIn/Out, ease dan seedRandom didukung. Wiggle memakai noise deterministik Open Motion, belum identik numerik dengan Adobe. DOM, jaringan, eval, prototype, async, class dan destructuring tidak tersedia. Batas 16384 operasi per evaluasi; kegagalan kembali ke keyframe asli dan dicatat di diagnostik Render.", "en": "Gradual AE compatibility: if/else, functions, limited loops, markers, key(), nearestKey(), valueAtTime(), loopIn/Out, ease and seedRandom are supported. Wiggle uses EditorsHub deterministic noise and is not yet numerically identical to Adobe. DOM, network, eval, prototypes, async, classes and destructuring are unavailable. The limit is 16384 operations per evaluation; failures fall back to the original keyframes and are logged in the Render diagnostics."}
+{"s": "Satu shot tanpa cut. Blur kuat, area polos, objek bergerak dominan dan distorsi lensa dapat membuat solve gagal. Koreksi distorsi lensa belum disertakan. Analisis tidak berjalan saat playback; hasil tersimpan bersama proyek. Titik baru ditambahkan otomatis saat ada ruang kosong; titik yang benar-benar tertutup tidak dipalsukan. Kepadatan tinggi meningkatkan waktu analisis. Batas ", "en": "A single shot with no cuts. Heavy blur, flat areas, dominant moving objects and lens distortion can make the solve fail. Lens distortion correction is not included yet. Analysis does not run during playback; results are stored with the project. New points are added automatically when space is free; fully occluded points are not faked. High density increases analysis time. Limit "}
+{"s": "Pre-render Timeline nonaktif secara default agar preview live mendapat prioritas penuh. Jika diaktifkan manual, pilihan disimpan di perangkat. Pada mobile/touch, Mode Normal dan Real-time Mengejar tidak menjalankan decoder pre-render kedua selama Play; Semi Kuat, Kuat, dan Rekam tetap tersedia sebagai mode eksplisit. Garis hijau menunjukkan frame yang benar-benar masih tersedia.", "en": "Timeline pre-render is off by default so the live preview gets full priority. If enabled manually, the choice is stored on the device. On mobile/touch, Normal mode and Realtime Catch-Up do not start a second pre-render decoder during Play; Semi Strong, Strong and Record stay available as explicit modes. The green line shows frames that are genuinely still available."}
+{"s": "Aktifkan Ekspresi per target dan pilih hasil di parameter. textIndex/textTotal mengikuti target (1-based); wordIndex/lineIndex mengikuti layout. time = waktu komposisi, localTime = waktu preset. Gunakan Math.sin, Math.cos, random(), clamp(), linear(). Vektor XYZ: [x,y,z]; scale: [x,y]; opacity/amount: satu angka. Bukan JavaScript browser atau seluruh API After Effects.", "en": "Enable the per-target Expression and choose the result in the parameter. textIndex/textTotal follow the target (1-based); wordIndex/lineIndex follow the layout. time = composition time, localTime = preset time. Use Math.sin, Math.cos, random(), clamp(), linear(). XYZ vectors: [x,y,z]; scale: [x,y]; opacity/amount: a single number. This is not browser JavaScript or the full After Effects API."}
+{"s": "Posisi menerima [x,y] pada layer 2D atau [x,y,z]; layer 3D wajib [x,y,z]. Scale/skew [x,y]. Tersedia linear, ease, clamp, random, Math, thisComp, thisLayer, keyframe, marker dan referensi controller. Random Seed membuat hasil konsisten pada waktu yang sama. Color Control menyediakan RGBA 0–1 sebagai data rumus, bukan efek fill.", "en": "Position accepts [x,y] on a 2D layer or [x,y,z]; 3D layers require [x,y,z]. Scale/skew [x,y]. linear, ease, clamp, random, Math, thisComp, thisLayer, keyframes, markers and controller references are available. Random Seed keeps results consistent at the same time. Color Control provides RGBA 0–1 as formula data, not a fill effect."}
+{"s": "Secara sederhana, Opus menyediakan fondasi untuk membuat aplikasi yang berhubungan dengan video dan motion graphics. Framework ini dirancang untuk menangani video, audio, gambar, teks, compositing, animasi, efek visual, timeline multimedia, preview, rendering, export, serta berbagai kebutuhan media lainnya.", "en": "In short, the engine provides the foundation for building video and motion graphics apps. It is designed to handle video, audio, images, text, compositing, animation, visual effects, multimedia timelines, preview, rendering, export and other media needs."}
+{"s": "Preset bawaan membuat keyframe Waktu preset. Edit nilai, waktu dan easing melalui ruler/diamond native; 0% awal, 100% akhir. Animasi kontinu bergerak sepanjang layer, dapat dipercepat, ditahan atau dibalik melalui keyframe Waktu preset. 3D memakai kartu datar XYZ dengan perspektif, bukan extrusion.", "en": "The built-in presets create a preset Time keyframe. Edit values, timing and easing with the native ruler/diamond; 0% is the start, 100% the end. Continuous animations move across the layer and can be sped up, held or reversed with the preset Time keyframe. 3D uses flat XYZ cards with perspective, not extrusion."}
+{"s": "Kualitas KLT memakai rata-rata error maju–mundur dan residual patch yang diukur saat analisis; skor warna adalah indikator relatif, bukan peluang pasti benar. Data lama diberi estimasi dari kesinambungan dan jumlah sampel. Error solve kamera 3D tidak dipakai untuk menilai titik objek bergerak.", "en": "KLT quality uses the mean forward–backward error and patch residual measured during analysis; the colour score is a relative indicator, not a guaranteed probability of being correct. Legacy data is estimated from continuity and sample count. 3D camera solve error is not used to score moving object points."}
+{"s": "Pilih satu tanda + saat pause. Keyframe X/Y bisa diedit melalui Transform atau Keyframes; parent-kan teks/shape ke Null untuk mengikuti gerakannya. Durasi Null hanya sepanjang lintasan tersambung. Keyframe adalah salinan posisi saat dibuat; perubahan transform video sesudahnya perlu Null baru.", "en": "Pick a single + mark while paused. X/Y keyframes can be edited through Transform or Keyframes; parent text/shape to the Null to follow its motion. The Null only lasts as long as the connected track. Keyframes are copies of the position when created; later video transform changes need a new Null."}
+{"s": "Pilih satu tanda + saat pause. Null 3D mengikuti bidang footage, termasuk rotasi, posisi Z, parent dan perspektif kamera. Parent-kan teks/shape ke Null ini; Ruang 3D diwarisi otomatis. Keyframe X/Y bisa diedit melalui Transform atau Keyframes. Durasi Null hanya sepanjang lintasan tersambung.", "en": "Pick a single + mark while paused. A 3D Null follows the footage plane, including rotation, Z position, parent and camera perspective. Parent text/shape to this Null; 3D Space is inherited automatically. X/Y keyframes can be edited through Transform or Keyframes. The Null only lasts as long as the connected track."}
+{"s": "Target: huruf, kata, baris, atau seluruh teks. Preset 3D adalah kartu teks datar dengan perspektif, bukan extrude. Range Selector setiap Text Animator independen. Parameter numerik memakai ruler/diamond dan easing native; gabungkan beberapa animator lalu simpan preset kustom.", "en": "Target: letter, word, line or the whole text. 3D presets are flat text cards with perspective, not extrusion. Each Text Animator's Range Selector is independent. Numeric parameters use the native ruler/diamond and easing; combine several animators then save a custom preset."}
+{"s": "AI portrait/manusia, diproses lokal. Model 25,9 MB + runtime diunduh saat Proses ditekan; runtime perlu internet/cache browser. Video memakai interpolasi mask 6/12 sampel/detik, bukan AI realtime. Mask diproses sebelum semua efek piksel/geometri. Audio asli tetap ada.", "en": "AI portrait/human, processed locally. The 25.9 MB model + runtime download when Process is pressed; the runtime needs internet/browser cache. Video uses mask interpolation at 6/12 samples per second, not realtime AI. The mask is processed before all pixel/geometry effects. The original audio is kept."}
+{"s": "Aktif secara default dengan intensitas 100%. Cahaya memakai lapisan latar terpisah; sampling mengikuti frame baru dan berkurang saat playback berat. Intensitas 0% menghentikan sampling. Efek hanya pada UI editor, bukan hasil ekspor. Pilihan disimpan di perangkat.", "en": "On by default at 100% intensity. Lighting uses a separate backdrop layer; sampling follows new frames and drops during heavy playback. 0% intensity stops sampling. The effect only appears in the editor UI, never in the export. The choice is stored on the device."}
+{"s": "Urutan kartu efek piksel menentukan pemrosesan piksel. Kontrol Expression mengevaluasi transform setelah keyframe, tanpa pass shader. Particular dan Transform Motion Blur berada pada tahap komposisi akhir. Efek yang belum tersedia tetap disimpan saat diimpor.", "en": "The order of the pixel effect cards determines pixel processing. The Expression control evaluates the transform after keyframes, with no shader pass. Particular and Transform Motion Blur sit at the final compositing stage. Effects that are not available yet are still kept when imported."}
+{"s": "Null 2D merekam proyeksi kamera utama, bukan Editor Camera. Setelah kamera/transform video berubah, buat Null 2D baru. Null 3D tetap mengikuti perubahan transform bidang video. Kedalaman objek di dalam rekaman tidak direkonstruksi oleh Null bidang video.", "en": "A 2D Null records the main camera projection, not the Editor Camera. After the camera/video transform changes, create a new 2D Null. A 3D Null keeps following changes to the video plane transform. Depth of objects inside the footage is not reconstructed by a video-plane Null."}
+{"s": "Opus berbasis Kotlin Multiplatform dan dirancang untuk digunakan di beberapa platform. Pada materi pengembangnya, iPhone, iPad, dan macOS sudah didukung, sementara Android dan Windows masih dalam pengembangan. Dukungan Web dan backend juga direncanakan.", "en": "The engine is built on Kotlin Multiplatform and is designed to run on multiple platforms. Its developer material already covers iPhone, iPad and macOS, while Android and Windows are still in development. Web and backend support are planned."}
+{"s": "Secara ringkas, Opus menyediakan asas untuk membina aplikasi video dan motion graphics. Ia direka untuk mengendalikan video, audio, imej, teks, compositing, animasi, kesan visual, timeline multimedia, preview, rendering, export dan keperluan media lain.", "en": "In short, the engine provides the foundation for building video and motion graphics apps. It is designed to handle video, audio, images, text, compositing, animation, visual effects, multimedia timelines, preview, rendering, export and other media needs."}
+{"s": "Ho maneira simples, Opus fó fundasaun atu harii aplikasaun video no motion graphics. Nia dezenhu atu trata video, audio, imajen, testu, compositing, animation, visual effects, multimedia timeline, preview, rendering, export no nesesidade media seluk.", "en": "In short, the engine provides the foundation for building video and motion graphics apps. It is designed to handle video, audio, images, text, compositing, animation, visual effects, multimedia timelines, preview, rendering, export and other media needs."}
+{"s": "Laporan JSON disimpan lokal, tidak dikirim ke server. URL dan email disamarkan; periksa nama layer/proyek dalam log sebelum membagikan. UJI RAM hanya mengaktifkan kategori diagnostik, tidak mengubah pre-render, kualitas preview, media atau cache.", "en": "The JSON report is stored locally and never sent to a server. URLs and emails are masked; check layer/project names in the log before sharing. TEST RAM only enables diagnostic categories and does not change pre-render, preview quality, media or the cache."}
+{"s": "Adaptive N-Source mempertahankan sebanyak mungkin video pada decoder native. Saat beban melewati kapasitas terukur, Open Motion menurunkan cadence upload texture layer berprioritas rendah secara progresif sebelum memakai fallback WebCodecs.", "en": "Adaptive N-Source keeps as many videos as possible on the native decoder. When load exceeds measured capacity, EditorsHub progressively lowers the texture upload cadence of low-priority layers before using the WebCodecs fallback."}
+{"s": "Hasil menjadi keyframe yang dapat diedit. Penerapan mengganti keyframe properti terkait hanya pada rentang analisis. Frame hilang tidak dibuatkan keyframe; interpolasi antarframe valid tetap berjalan. Tidak melacak saat playback.", "en": "The result becomes editable keyframes. Applying replaces the keyframes of the related property only within the analysis range. Missing frames get no keyframes; interpolation between valid frames still runs. Nothing is tracked during playback."}
+{"s": "Tanpa marker tidak ada gerak. Flash/Blur membuat efek tambahan dengan keyframe biasa; setelah marker diubah, buat ulang lalu hapus hasil lama jika tidak diperlukan. Beat Motion diproses sebelum Expression, tanpa shader tambahan.", "en": "Without markers there is no motion. Flash/Blur creates extra effects with ordinary keyframes; after changing markers, regenerate and remove the old result if it is no longer needed. Beat Motion is processed before Expressions, with no extra shader."}
+{"s": "Opus berasaskan Kotlin Multiplatform dan direka untuk beberapa platform. Dalam bahan pembangunnya, iPhone, iPad dan macOS sudah disokong, manakala Android dan Windows masih dibangunkan. Sokongan Web dan backend juga dirancang.", "en": "The engine is built on Kotlin Multiplatform and is designed to run on multiple platforms. Its developer material already covers iPhone, iPad and macOS, while Android and Windows are still in development. Web and backend support are planned."}
+{"s": "Umur memakai satu segmen yang tersambung, bukan gabungan titik sebelum/sesudah hilang. Awal–akhir layer harus mencakup awal dan frame akhir layer (toleransi akhir satu frame proyek), bukan hanya rentang analisis pendek.", "en": "Age uses one connected segment, not points combined across a disappearance. The layer start–end must cover the layer start and last frame (one project frame tolerance at the end), not just a short analysis range."}
+{"s": "Mode Otomatis hanya dapat memeriksa salinan yang pernah disimpan Open Motion di data proyek atau penyimpanan browser. Browser tidak dapat menelusuri seluruh penyimpanan perangkat tanpa pilihan file dari pengguna.", "en": "Automatic mode can only check copies that EditorsHub already stored in project data or browser storage. A browser cannot scan the whole device storage without the user picking a file."}
+{"s": "Kamera solve lama tidak diterapkan ke footage yang sudah berada di Ruang 3D agar transform kamera tidak terhitung dua kali. Gunakan Null bidang video di sini; opsi kamera solve tersedia pada footage 2D.", "en": "The legacy camera solve is not applied to footage that is already in 3D Space, so the camera transform is not applied twice. Use a video-plane Null here; camera solve options are available on 2D footage."}
+{"s": "Tahap 1 memakai satu layout engine untuk preview Canvas, WebGL texture, dan ekspor. Google Fonts dimuat hanya saat family dipakai; bila jaringan tidak tersedia, browser memakai fallback font sementara.", "en": "Stage 1 uses a single layout engine for the Canvas preview, WebGL textures and export. Google Fonts load only when a family is used; if the network is unavailable the browser falls back to a temporary font."}
+{"s": "Opus bazeia ba Kotlin Multiplatform no dezenha ba platform barak. Iha materiál desenvolvedór, iPhone, iPad no macOS suporta ona, Android no Windows sei dezenvolve hela. Web no backend mos planeadu.", "en": "The engine is built on Kotlin Multiplatform and is designed to run on multiple platforms. Its developer material already covers iPhone, iPad and macOS, while Android and Windows are still in development. Web and backend support are planned."}
+{"s": "Kalau Opus nantinya memang cocok, Open Motion tidak perlu membangun seluruh engine multimedia dari nol. Pengembangan bisa lebih fokus pada bagian yang benar-benar membentuk identitas Open Motion: ", "en": "If Opus really is a good fit, EditorsHub will not have to build the entire multimedia engine from nothing. Development can concentrate on what makes EditorsHub itself: "}
+{"s": "Mode virtual non-fisik. FOV mengatur framing, Focal Length mengatur compression/expansion depth di sekitar Focus, dan Zoom melakukan crop canvas. Ketiganya independen dan dapat diberi keyframe.", "en": "A non-physical virtual mode. FOV controls framing, Focal Length controls depth compression/expansion around Focus, and Zoom crops the canvas. All three are independent and can be keyframed."}
+{"s": "Lacak fitur dari video asli, baik footage 2D maupun footage di Ruang 3D. Pilih tanda + untuk membuat Null dengan keyframe yang bisa diedit. Titik pada footage 3D mengikuti perspektif kamera.", "en": "Track features from the original video, whether 2D footage or footage in 3D Space. Pick a + mark to create a Null with editable keyframes. Points on 3D footage follow the camera perspective."}
+{"s": "Layer gambar, video, teks, dan shape yang nonaktif tetap dirender sebagai komposit 2D dan tidak dipengaruhi kamera. Saat diaktifkan, layer menjadi textured plane 3D dengan depth test WebGL.", "en": "Disabled image, video, text and shape layers are still rendered as 2D composites and are not affected by the camera. When enabled, the layer becomes a textured 3D plane with a WebGL depth test."}
+{"s": "Point: satu detail. Two Points: posisi, rotasi dan scale. Planar: area bertekstur. Corner Pin: empat detail. Untuk empat titik pilih kiri atas → kanan atas → kanan bawah → kiri bawah.", "en": "Point: one detail. Two Points: position, rotation and scale. Planar: a textured area. Corner Pin: four details. For four points pick top left → top right → bottom right → bottom left."}
+{"s": "Diagnostik modular untuk Timeline, Playback, Video, Audio, Render, Export, GPU Fast, Cache, Memory, dan UI. Semua nonaktif secara default; aktifkan hanya kategori yang sedang diuji.", "en": "Modular diagnostics for Timeline, Playback, Video, Audio, Render, Export, GPU Fast, Cache, Memory and UI. All are off by default; enable only the category you are testing."}
+{"s": "Default: ganti animator terpilih/paket sebelumnya, efek lain tetap. Mode Ganti seluruh stack hanya untuk paket; teks, font dan transform layer tidak diganti. Undo tersedia.", "en": "Default: replaces the selected animator/previous package, other effects stay. Replace whole stack only applies to packages; text, fonts and layer transforms are not replaced. Undo is available."}
+{"s": " Setelah framework-nya benar-benar dirilis, baru bisa dilihat apakah performa, fitur, kompatibilitas, lisensi, dan arah pengembangannya cocok dengan kebutuhan Open Motion.", "en": " Once the framework is actually released, we can judge whether its performance, features, compatibility, licensing and development direction fit the needs of EditorsHub."}
+{"s": "Axis yang tidak dicentang dibekukan pada nilai saat ikatan diterapkan. Rotasi mengikuti perubahan relatif target dari titik ikat sehingga tidak meloncat saat diaktifkan.", "en": "Unchecked axes are frozen at their value when the binding is applied. Rotation follows the target's relative change from the binding point, so nothing jumps when it is enabled."}
+{"s": "Kualitas preview hanya memengaruhi editor. Ekspor tetap memakai kualitas penuh. Scrub video memakai WebCodecs bila tersedia dan fallback otomatis jika tidak didukung.", "en": "Preview quality only affects the editor. Export still uses full quality. Video scrubbing uses WebCodecs when available and falls back automatically when it is not supported."}
+{"s": "Untuk sekarang, Open Motion dikembangkan sebagai aplikasi berbasis web karena lebih cepat untuk melakukan eksperimen, mencoba fitur baru, dan mengubah sistem editor.", "en": "For now, EditorsHub is built as a web-based app because that makes it faster to experiment, try new features and change the editor system."}
+{"s": "Jika Opus benar-benar sesuai, Open Motion tidak perlu membina keseluruhan enjin multimedia dari kosong. Pembangunan boleh lebih tertumpu pada identiti Open Motion: ", "en": "If Opus really is a good fit, EditorsHub will not have to build the entire multimedia engine from nothing. Development can concentrate on what makes EditorsHub itself: "}
+{"s": "Buat masa ini, Open Motion dibangunkan sebagai aplikasi berasaskan web kerana lebih cepat untuk bereksperimen, menguji ciri baharu dan mengubah sistem editor.", "en": "For now, EditorsHub is built as a web-based app because that makes it faster to experiment, test new features and change the editor system."}
+{"s": " Selepas framework itu benar-benar dilancarkan, prestasi, ciri, keserasian, lesen dan hala tuju pembangunannya akan dinilai mengikut keperluan Open Motion.", "en": " Once that framework is actually released, its performance, features, compatibility, licence and development direction will be judged against the needs of EditorsHub."}
+{"s": "Mengatur kekuatan warna ambient tanpa mengubah tampilan dasar UI. Piksel putih/abu terang otomatis diberi bobot lebih kecil agar tidak mendominasi ambient.", "en": "Controls the ambient colour strength without changing the base UI look. White/bright grey pixels are weighted down automatically so they do not dominate the ambient light."}
+{"s": "Open Motion akan berkembang secara bertahap dengan fokus membangun editor motion graphics yang fleksibel, ringan, dan punya workflow yang nyaman digunakan.", "en": "EditorsHub grows step by step, focused on becoming a flexible, lightweight motion graphics editor with a comfortable workflow."}
+{"s": "Open Motion akan berkembang secara berperingkat dengan fokus membina editor motion graphics yang fleksibel, ringan dan mempunyai aliran kerja yang selesa.", "en": "EditorsHub grows step by step, focused on becoming a flexible, lightweight motion graphics editor with a comfortable workflow."}
+{"s": " untuk menangani timeline, decoding video/audio, playback, compositing, animasi, efek, filter, GPU rendering, export video, serta sistem 3D dan kamera.", "en": " to handle timelines, video/audio decoding, playback, compositing, animation, effects, filters, GPU rendering, video export, plus the 3D and camera systems."}
+{"s": " Depois framework sai duni, foin bele avalia performance, funsaun, compatibility, lisensa no direksaun dezenvolvimentu tuir nesesidade Open Motion.", "en": " Once that framework is released, its performance, features, compatibility, licence and development direction will be judged against the needs of EditorsHub."}
+{"s": "Hasil kamera lama tetap tersedia. Penempatan 3D membutuhkan titik + yang valid untuk solve; tanda + lain tetap dapat digunakan sebagai lintasan 2D.", "en": "The old camera result stays available. 3D placement needs valid + points to solve; other + marks can still be used as 2D tracks."}
+{"s": "Se Opus duni apropriadu, Open Motion la presiza harii multimedia engine tomak husi zero. Dezenvolvimentu bele fokus liu ba identidade Open Motion: ", "en": "If Opus really is a good fit, EditorsHub will not have to build the entire multimedia engine from nothing. Development can concentrate on what makes EditorsHub itself: "}
+{"s": "Tersimpan lokal di browser ini. Ekspor JSON sebagai cadangan. File v1 lama tetap dapat diimpor; paket gabungan memerlukan V5.227 atau lebih baru.", "en": "Stored locally in this browser. Export JSON as a backup. Legacy v1 files can still be imported; combined packages need V5.227 or newer."}
+{"s": "Camera Motion Blur memakai temporal sampling Open Motion sendiri. Saat OFF, renderer kamera tetap memakai jalur V5.167 tanpa temporal sampling.", "en": "Camera Motion Blur uses EditorsHub's own temporal sampling. When OFF, the camera renderer keeps using the V5.167 path without temporal sampling."}
+{"s": "Open Motion sei dezenvolve etapa ba etapa ho fokus atu harii editor motion graphics ne'ebé fleksível, kmaan no iha workflow ne'ebé komfortável.", "en": "EditorsHub grows step by step, focused on becoming a flexible, lightweight motion graphics editor with a comfortable workflow."}
+{"s": " untuk timeline, decoding video/audio, playback, compositing, animasi, kesan, penapis, GPU rendering, export video serta sistem 3D dan kamera.", "en": " for timelines, video/audio decoding, playback, compositing, animation, effects, filters, GPU rendering, video export plus the 3D and camera systems."}
+{"s": "Agora daudaun Open Motion dezenvolve hanesan aplikasaun web tanba fasil liu atu halo esperimentu, testa funsaun foun no muda sistema editor.", "en": "For now, EditorsHub is built as a web-based app because that makes it faster to experiment, test new features and change the editor system."}
+{"s": "Lensa fisik tetap. Zoom memperbesar/crop seluruh canvas hasil kamera dari titik tengah; FOV, Focal Length, dan posisi kamera tidak berubah.", "en": "The physical lens stays fixed. Zoom enlarges/crops the whole camera result from the centre point; FOV, Focal Length and camera position do not change."}
+{"s": "Satu slot mengganti semua layer dengan aset yang sama. Keyframe, efek, trim dan tata letak tetap dipertahankan. Pilih jenis file yang sama.", "en": "One slot replaces every layer that uses the same asset. Keyframes, effects, trims and layout are preserved. Pick the same file type."}
+{"s": " ba timeline, video/audio decoding, playback, compositing, animation, effects, filters, GPU rendering, video export, sistema 3D no kamera.", "en": " for timelines, video/audio decoding, playback, compositing, animation, effects, filters, GPU rendering, video export, the 3D system and the camera."}
+{"s": " yang sedang dikembangkan oleh The Prismatic Company, yang juga melibatkan pengembang yang sebelumnya pernah mengerjakan Alight Motion.", "en": " being developed by The Prismatic Company, which also involves developers who previously worked on Alight Motion."}
+{"s": ", atualmente desenvolvido pela The Prismatic Company, que também envolve programadores que anteriormente trabalharam no Alight Motion.", "en": " being developed by The Prismatic Company, which also involves developers who previously worked on Alight Motion."}
+{"s": "Text Style terakhir yang aktif menentukan styling. Preset mengganti parameter/keyframe efek ini. Styling diproses sebelum efek piksel.", "en": "The last active Text Style determines styling. The preset replaces this effect's parameters/keyframes. Styling is processed before pixel effects."}
+{"s": "<input type=\"search\" data-text-preset-search maxlength=\"120\" placeholder=\"Cari preset…\" aria-label=\"Cari preset animasi teks\" value=\"", "en": "<input type=\"search\" data-text-preset-search maxlength=\"120\" placeholder=\"Search presets…\" aria-label=\"Search text animation presets\" value=\""}
+{"s": "Blending dihitung terhadap seluruh layer di bawahnya. Opacity dapat diberi keyframe dan tetap digunakan pada preview maupun ekspor.", "en": "Blending is computed against every layer below. Opacity can be keyframed and is used in both preview and export."}
+{"s": "Untuk sekarang, Open Motion akan tetap berkembang sebagai proyek eksperimen sambil terus membangun fitur dan mencoba berbagai ide.", "en": "For now, EditorsHub keeps growing as an experimental project while features are built and ideas are tried out."}
+{"s": "Editor Camera hanya mengubah sudut pandang kerja. PNG dan video selalu dirender melalui Main Camera tanpa grid atau gizmo editor.", "en": "The Editor Camera only changes the working viewpoint. PNG and video are always rendered through the Main Camera without the editor grid or gizmo."}
+{"s": ", sehingga timeline dan elemen media dapat bereaksi terhadap perubahan state secara real-time saat pengguna melakukan editing.", "en": ", so timelines and media elements can react to state changes in real time while the user edits."}
+{"s": " yang sedang dibangunkan oleh The Prismatic Company, yang turut melibatkan pembangun yang pernah mengerjakan Alight Motion.", "en": " being built by The Prismatic Company, which also involves developers who have worked on Alight Motion."}
+{"s": "Transform child mengikuti posisi, skala, rotasi, opacity dan Z dari parent. Gunakan Null sebagai controller beberapa layer.", "en": "Child transforms follow the parent's position, scale, rotation, opacity and Z. Use a Null as a controller for several layers."}
+{"s": "Buat masa ini, Open Motion akan terus berkembang sebagai projek eksperimen sambil membina ciri dan mencuba pelbagai idea.", "en": "For now, EditorsHub keeps growing as an experimental project while features are built and ideas are tried out."}
+{"s": ", supaya timeline dan elemen media boleh bertindak balas terhadap perubahan state secara masa nyata semasa penyuntingan.", "en": ", so timelines and media elements can react to state changes in real time while editing."}
+{"s": "Efek asli AM. Mengubah angka mengganti animasi parameter itu dengan nilai tetap; Pulihkan mengembalikan keyframe asli.", "en": "Original AM effect. Changing a number replaces that parameter's animation with a fixed value; Restore brings back the original keyframes."}
+{"s": "<input data-text-preset-name maxlength=\"60\" placeholder=\"Nama preset kustom…\" aria-label=\"Nama preset kustom\" value=\"", "en": "<input data-text-preset-name maxlength=\"60\" placeholder=\"Custom preset name…\" aria-label=\"Custom preset name\" value=\""}
+{"s": "Karena tujuan Open Motion bukan hanya menjadi editor video biasa. Open Motion direncanakan berkembang menjadi editor ", "en": "EditorsHub is not meant to be just another video editor. EditorsHub is planned to grow into an editor "}
+{"s": "Agora Open Motion sei kontinua dezenvolve hanesan projetu esperimentál hodi harii funsaun no testa ideia foun sira.", "en": "For now, EditorsHub keeps growing as an experimental project while features are built and new ideas are tried out."}
+{"s": "Arahkan playhead di antara dua keyframe. Easing akan tetap terbuka dan mengikuti segmen saat playhead menemukannya.", "en": "Place the playhead between two keyframes. Easing stays open and follows the segment as the playhead finds it."}
+{"s": " ne'ebé The Prismatic Company dezenvolve hela, ho desenvolvedór sira ne'ebé uluk mos servisu iha Alight Motion.", "en": " being developed by The Prismatic Company, with developers who also worked on Alight Motion."}
+{"s": "Hanya kategori yang dipilih yang mencatat log. Jalur berfrekuensi tinggi memakai sampling agar overhead rendah.", "en": "Only the selected categories are logged. High-frequency paths are sampled to keep overhead low."}
+{"s": "Mask / Exclude menggunakan layer paling atas dalam grup sebagai sumber alpha. Semua layer tetap dapat diedit.", "en": "Mask / Exclude uses the topmost layer in the group as the alpha source. Every layer stays editable."}
+{"s": "\" aria-label=\"Buka menu Orbit Kamera 360 derajat\" title=\"Orbit Kamera 360° • shortcut Ikat kamera ke layer\">", "en": "\" aria-label=\"Open the 360° Camera Orbit menu\" title=\"360° Camera Orbit • shortcut to bind the camera to a layer\">"}
+{"s": "Unduh XML dan media proyek AM, lalu buka Template Editor untuk mengganti media sebelum masuk ke timeline.", "en": "Download the AM project XML and media, then open the Template Editor to replace the media before adding it to the timeline."}
+{"s": "Koordinat sudut dalam piksel proyek. Keyframe berada pada ruler/timeline yang sama dengan properti lain.", "en": "Corner coordinates are in project pixels. Keyframes sit on the same ruler/timeline as every other property."}
+{"s": "Native HTMLVideo + WebGL • synthetic 1920×1080 • hasil adalah perkiraan; codec file nyata dapat berbeda.", "en": "Native HTMLVideo + WebGL • synthetic 1920×1080 • results are estimates; the real file codec may differ."}
+{"s": "Versaun ne'ebé ita uza agora sei prototype inisiál. Funsaun sira seidauk barak no bug balu bele sei iha.", "en": "This build is still an early prototype. Features are limited and some bugs may still be present."}
+{"s": "UJI RAM → putar proyek berulang → UNDUH LAPORAN. TANDAI AWAL membandingkan mulai titik yang Anda pilih.", "en": "TEST RAM → play the project repeatedly → DOWNLOAD REPORT. MARK START compares from the point you choose."}
+{"s": "Focal Length fisik dikunci. Zoom, Focal Length, dan FOV optik tidak dapat dianimasikan atau digeser.", "en": "The physical Focal Length is locked. Zoom, Focal Length and optical FOV cannot be animated or dragged."}
+{"s": " seperti posisi X, Y, Z, kamera, parallax, dan rotasi tiga dimensi, serta API tingkat rendah untuk ", "en": " such as X, Y, Z position, cameras, parallax and three-dimensional rotation, plus low-level APIs for "}
+{"s": ", nune'e timeline no elementu media bele responde ba mudansa state iha real-time durante editing.", "en": ", so timelines and media elements can react to state changes in real time during editing."}
+{"s": "Justify hanya meratakan baris yang masih berlanjut dalam paragraf; baris terakhir tetap natural.", "en": "Justify only aligns lines that continue inside a paragraph; the last line stays natural."}
+{"s": "Tanba objetivu Open Motion la'os deit editor video normal. Planu atu dezenvolve sai editor ba ", "en": "Because EditorsHub is not designed to be just another video editor. It is planned to grow into an editor for "}
+{"s": " termasuk posisi X, Y, Z, kamera, parallax, putaran tiga dimensi serta API aras rendah untuk ", "en": " including X, Y, Z position, cameras, parallax, three-dimensional rotation plus low-level APIs for "}
+{"s": "editor UI, keyframe, timeline, animation workflow, tools, effects no creative features seluk.", "en": "editor UI, keyframes, timeline, animation workflow, tools, effects and other creative features."}
+{"s": "Focal Length variabel. Zoom, Focal Length, dan FOV bergerak sebagai satu sistem lensa optik.", "en": "Variable Focal Length. Zoom, Focal Length and FOV move together as one optical lens system."}
+{"s": "Terima kasih kerana mencuba Open Motion dan mengikuti perkembangannya sejak peringkat awal.", "en": "Thank you for trying EditorsHub and following its progress since the early stage."}
+{"s": "Buka sebuah efek lalu sentuh slider, nilai, toggle, atau diamond yang ingin diberi easing.", "en": "Open an effect, then touch the slider, value, toggle or diamond you want to ease."}
+{"s": "Terima kasih sudah mencoba Open Motion dan ikut melihat perkembangannya dari tahap awal.", "en": "Thank you for trying EditorsHub and watching it grow from the early stage."}
+{"s": "UI editor, keyframe, timeline, workflow animasi, tools, efek, dan fitur kreatif lainnya.", "en": "the editor UI, keyframes, timeline, animation workflow, tools, effects and other creative features."}
+{"s": "Khusus komposisi 9:16 atau lebih tinggi pada mobile. Pilihan ini disimpan di perangkat.", "en": "For 9:16 or taller compositions on mobile only. This choice is stored on the device."}
+{"s": "; ketuk untuk memilih, tekan lama untuk mengedit angka\" title=\"Ketuk untuk memilih ", "en": "; tap to select, press and hold to edit the number\" title=\"Tap to select "}
+{"s": "Geser untuk menempatkan titik baru, lalu ketuk sekali touchpad untuk mengonfirmasi.", "en": "Drag to place a new point, then tap the touchpad once to confirm."}
+{"s": "UI editor, keyframe, timeline, workflow animasi, tools, efek dan ciri kreatif lain.", "en": "the editor UI, keyframes, timeline, animation workflow, tools, effects and other creative features."}
+{"s": "Obrigadu tanba koko Open Motion no acompanha dezenvolvimentu husi etapa inisiál.", "en": "Thank you for trying EditorsHub and following its progress since the early stage."}
+{"s": " hanesan pozisaun X, Y, Z, kamera, parallax, rotasaun 3D no API nivel ki'ik ba ", "en": " such as X, Y, Z position, cameras, parallax, 3D rotation and low-level APIs for "}
+{"s": "Preset warna cepat. Alpha tetap terpisah dan tidak berubah saat memilih swatch.", "en": "A quick colour preset. Alpha stays separate and does not change when you pick a swatch."}
+{"s": " như vị trí X, Y, Z, camera, parallax, xoay ba chiều, cùng API cấp thấp cho ", "en": " such as X, Y, Z position, cameras, parallax, 3D rotation and low-level APIs for "}
+{"s": "X kamera tetap mengatur azimuth 360°, Y elevation 360°, dan Z panjang tali.", "en": "Camera X keeps controlling the 360° azimuth, Y the 360° elevation and Z the tether length."}
+{"s": "Nilai ditahan sampai keyframe berikutnya lalu berpindah tanpa interpolasi.", "en": "The value is held until the next keyframe, then switches without interpolation."}
+{"s": "Shortcut untuk fitur Ikat kamera ke layer • memakai sistem orbit yang sama", "en": "Shortcut for Bind camera to layer • uses the same orbit system"}
+{"s": "\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"Cari nama font…\">", "en": "\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"Search font name…\">"}
+{"s": "Waktu dalam detik komposisi. Marker layer mengikuti perpindahan layer.", "en": "Time in composition seconds. Layer markers follow the layer as it moves."}
+{"s": "Belum ada foto, video atau audio. Tambahkan media di timeline dahulu.", "en": "No photos, video or audio yet. Add media in the timeline first."}
+{"s": "Ruler memakai unit project dan tetap konsisten di semua aspect ratio.", "en": "The ruler uses project units and stays consistent at every aspect ratio."}
+{"s": ", tetapi saat ini masih dipersiapkan sebelum dirilis secara publik.", "en": ", but is currently still being prepared before its public release."}
+{"s": "Opacity dan mode komposit kini tersedia di menu Blending & Opacity.", "en": "Opacity and blend modes are now in the Blending & Opacity menu."}
+{"s": "Pilih cara Camera Optics memperlakukan FOV, Focal Length, dan Zoom.", "en": "Choose how Camera Optics treats FOV, Focal Length and Zoom."}
+{"s": "playback, timeline, sistema 3D, performance no funsaun editor seluk", "en": "playback, the 3D system, performance and other editing features"}
+{"s": "<button type=\"button\" data-marker-remove aria-label=\"Hapus marker ", "en": "<button type=\"button\" data-marker-remove aria-label=\"Delete marker "}
+{"s": "playback, timeline, sistem 3D, performa, dan fitur editor lainnya", "en": "playback, the 3D system, performance and other editing features"}
+{"s": "Nama referensi<input data-expression-name maxlength=\"80\" value=\"", "en": "Reference name<input data-expression-name maxlength=\"80\" value=\""}
+{"s": "Khusus error yang memiliki trace diagnostik, misalnya GPU Fast.", "en": "Only errors that have a diagnostic trace, such as GPU Fast."}
+{"s": "Easing hanya berlaku pada interval yang dibatasi dua keyframe.", "en": "Easing only applies to the interval bounded by two keyframes."}
+{"s": "Seidauk garantidu katak Opus sei sai engine final Open Motion.", "en": "There is no guarantee that Opus will become the final EditorsHub engine."}
+{"s": "Geser ke atas untuk memperbesar • ke bawah untuk mengecilkan", "en": "Drag up to enlarge • drag down to shrink"}
+{"s": "Layer di dalamnya tidak dihapus. Mask / Exclude tetap aktif.", "en": "The layers inside are not deleted. Mask / Exclude stays active."}
+{"s": "playback, timeline, sistem 3D, prestasi dan ciri editor lain", "en": "playback, the 3D system, performance and other editor features"}
+{"s": " dirilis dan kondisinya sudah cukup matang untuk digunakan.", "en": " released and mature enough to use."}
+{"s": " mulai dari awal layer. Scale dan opacity memakai persen.", "en": " starts from the beginning of the layer. Scale and opacity use percent."}
+{"s": "\" style=\"margin-top:8px\">Pulihkan parameter/keyframe asli", "en": "\" style=\"margin-top:8px\">Restore original parameters/keyframes"}
+{"s": "Cari salinan media yang masih tersimpan oleh Open Motion.", "en": "Search for media copies that EditorsHub still has stored."}
+{"s": "Pada masa hadapan, terdapat rancangan untuk menghasilkan ", "en": "Going forward, there are plans to produce "}
+{"s": " menjadi sumber mask dan tidak ikut dicat sebagai warna.", "en": " becomes the mask source and is not painted as colour."}
+{"s": "Dari (detik)<input data-track-start type=\"number\" min=\"", "en": "From (seconds)<input data-track-start type=\"number\" min=\""}
+{"s": "Sampai (detik)<input data-track-end type=\"number\" min=\"", "en": "To (seconds)<input data-track-end type=\"number\" min=\""}
+{"s": "Arahkan playhead di antara dua keyframe parameter ini.", "en": "Place the playhead between two keyframes of this parameter."}
+{"s": "Nama<input data-marker-comment maxlength=\"256\" value=\"", "en": "Name<input data-marker-comment maxlength=\"256\" value=\""}
+{"s": "Opus bisa menjadi fondasi mesin multimedia Open Motion", "en": "Opus can become the multimedia engine foundation of EditorsHub"}
+{"s": "Pilih sumbu X/Y/Z, lalu putar roda atau masukkan angka", "en": "Choose the X/Y/Z axis, then turn the wheel or type a number"}
+{"s": "Opus bele sai fundasaun multimedia engine Open Motion", "en": "Opus can become the multimedia engine foundation of EditorsHub"}
+{"s": ", tetapi masih dipersiapkan sebelum pelancaran awam.", "en": ", but is still being prepared before its public release."}
+{"s": "Porque é que o Open Motion está interessado no Opus?", "en": "Why is EditorsHub interested in Opus?"}
+{"s": "Animasi tetap · Ganti dengan jenis media yang sama.", "en": "Animation is kept · replace with the same media type."}
+{"s": "Cara kerjanya memakai pendekatan yang mirip dengan ", "en": "It works with an approach similar to "}
+{"s": "Pilih sendiri file asli dari penyimpanan perangkat.", "en": "Pick the original file from the device storage yourself."}
+{"s": "Geser horizontal pada masing-masing rel untuk skew", "en": "Drag horizontally on each rail to skew"}
+{"s": "Opus belum tentu menjadi engine final Open Motion.", "en": "Opus may not become the final EditorsHub engine."}
+{"s": "Opus belum tentu menjadi enjin akhir Open Motion.", "en": "Opus may not become the final EditorsHub engine."}
+{"s": "Orbit Kamera 360° • shortcut Ikat kamera ke layer", "en": "360° Camera Orbit • shortcut to bind the camera to a layer"}
+{"s": "Waktu<input data-marker-time type=\"number\" step=\"", "en": "Time<input data-marker-time type=\"number\" step=\""}
+{"s": " • tekan lama untuk mengetik nilai\"><span id=\"tv", "en": " • press and hold to type a value\"><span id=\"tv"}
+{"s": "\" data-transformmode=\"position\" title=\"Posisi\">✥", "en": "\" data-transformmode=\"position\" title=\"Position\">✥"}
+{"s": "\" aria-label=\"Nama controller atau expression\">", "en": "\" aria-label=\"Controller or expression name\">"}
+{"s": "motion graphics, animation, compositing, dan 3D", "en": "motion graphics, animation, compositing and 3D"}
+{"s": " dilancarkan dan cukup matang untuk digunakan.", "en": " released and mature enough to use."}
+{"s": "Opus juga sudah memperlihatkan dukungan untuk ", "en": "Opus has also shown support for "}
+{"s": "motion graphics, animation, compositing dan 3D", "en": "motion graphics, animation, compositing and 3D"}
+{"s": "motion graphics, animation, compositing no 3D", "en": "motion graphics, animation, compositing and 3D"}
+{"s": " masih terus dikembangkan dan disempurnakan.", "en": " are still being developed and refined."}
+{"s": ", maibé agora sei prepara molok sai publiku.", "en": ", but it is now being prepared before it goes public."}
+{"s": " title=\"Tempel efek yang terakhir disalin\">", "en": " title=\"Paste the most recently copied effect\">"}
+{"s": "Kepadatan titik<select data-track-features ", "en": "Point density<select data-track-features "}
+{"s": "Opus juga telah menunjukkan sokongan untuk ", "en": "Opus has also shown support for "}
+{"s": " masih sedang dibangunkan dan diperhalusi.", "en": " are still being built and refined."}
+{"s": "Nilai ditahan hingga keyframe berikutnya.", "en": "The value is held until the next keyframe."}
+{"s": "Ke depannya, ada rencana untuk membuat ", "en": "Going forward, there are plans to make "}
+{"s": "Nama grup<input data-group-name value=\"", "en": "Group name<input data-group-name value=\""}
+{"s": "No futuro, existe o plano de criar uma ", "en": "In the future there are plans to create a "}
+{"s": " sai publiku no maduru natoon atu uza.", "en": " go public and is mature enough to use."}
+{"s": "Tanba sa Open Motion interesa ba Opus?", "en": "Why is EditorsHub interested in Opus?"}
+{"s": "Akun premium AM (mendukung &gt; 5 MB)", "en": "AM premium account (supports &gt; 5 MB)"}
+{"s": "Font lokal tersimpan di perangkat ini", "en": "Local font stored on this device"}
+{"s": "Open Motion sei iha faze esperimentál", "en": "EditorsHub is in an experimental phase"}
+{"s": "Sampel / detik<select data-track-fps ", "en": "Samples / second<select data-track-fps "}
+{"s": " • tekan lama untuk mengetik nilai\">", "en": " • press and hold to type a value\">"}
+{"s": " sei kontinua dezenvolve no hadi'a.", "en": " keeps being developed and refined."}
+{"s": "Kamera dan penempatan 3D (opsional)", "en": "Camera and 3D placement (optional)"}
+{"s": "Buka menu Orbit Kamera 360 derajat", "en": "Open the 360° Camera Orbit menu"}
+{"s": ">Buat ulang keyframe Waktu preset", "en": ">Recreate the preset Time keyframe"}
+{"s": ">Penempatan 3D · titik yang valid", "en": ">3D placement · valid points"}
+{"s": "Transparansi layer pada frame ini", "en": "Layer transparency on this frame"}
+{"s": ">Null 2D · proyeksi kamera utama", "en": ">2D Null · main camera projection"}
+{"s": ">Pertahankan efek lain (default)", "en": ">Keep other effects (default)"}
+{"s": "Bentuk mengikuti alpha layer ini", "en": "The shape follows this layer's alpha"}
+{"s": " disimpan di clipboard internal", "en": " saved to the internal clipboard"}
+{"s": " layer diperpanjang ke playhead", "en": " layer extended to the playhead"}
+{"s": " · Waktu dalam detik komposisi.", "en": " · Time in composition seconds."}
+{"s": " • parameter optik ini terkunci", "en": " • this optical parameter is locked"}
+{"s": ">Ganti seluruh stack efek layer", "en": ">Replace the whole layer effect stack"}
+{"s": "Nama controller atau expression", "en": "Controller or expression name"}
+{"s": "Opus juga direncanakan menjadi ", "en": "Opus is also planned to become "}
+{"s": "Real-time Mengejar: Tanpa Celah", "en": "Realtime Catch-Up: No Gaps"}
+{"s": " layer dipindahkan ke playhead", "en": " layer moved to the playhead"}
+{"s": ">Simpan / perbarui paket stack", "en": ">Save / update stack package"}
+{"s": "Iha futuru iha planu atu halo ", "en": "In the future there are plans to make "}
+{"s": "Saat menerapkan paket gabungan", "en": "When applying a combined package"}
+{"s": "Klasik: RAM Besar, CPU Ringan", "en": "Classic: plenty of RAM, light on CPU"}
+{"s": "Teks animasi dan bumper judul", "en": "Animated text and title bumpers"}
+{"s": "Memuat katalog Google Fonts…", "en": "Loading the Google Fonts catalogue…"}
+{"s": "Opus juga dirancang menjadi ", "en": "Opus is also designed to become "}
+{"s": "Tidak ada preset yang cocok.", "en": "No matching presets."}
+{"s": " Warna berdasarkan kualitas", "en": " Colour by quality"}
+{"s": "\" aria-label=\"Waktu marker ", "en": "\" aria-label=\"Marker time "}
+{"s": ">Simpan / perbarui animator", "en": ">Save / update animator"}
+{"s": "Centang channel yang diikat", "en": "Check the channels to bind"}
+{"s": "Opus mos hatudu suporte ba ", "en": "Opus has also shown support for "}
+{"s": " memakai detik komposisi; ", "en": " uses composition seconds; "}
+{"s": " mengikuti keyframe asli. ", "en": " follows the original keyframes. "}
+{"s": "\" aria-label=\"Nama marker ", "en": "\" aria-label=\"Marker name "}
+{"s": "Beberapa bahagian seperti ", "en": "Some areas such as "}
+{"s": "Fill teks • alpha terpisah", "en": "Text fill • separate alpha"}
+{"s": "Tidak ada efek yang cocok.", "en": "No matching effects."}
+{"s": ">Null 2D · lintasan titik", "en": ">2D Null · point track"}
+{"s": "Multiline • wrap otomatis", "en": "Multiline • auto wrap"}
+{"s": "Panel otomatis saat error", "en": "Panel opens automatically on error"}
+{"s": "Ruang Null hasil tracking", "en": "Tracking result Null space"}
+{"s": "Unduh &amp; buka template", "en": "Download &amp; open template"}
+{"s": " layer sampai playhead\">", "en": " layer to the playhead\">"}
+{"s": "Beberapa bagian seperti ", "en": "Some areas such as "}
+{"s": "Belum keputusan muktamad", "en": "Not a final decision"}
+{"s": "Impor link Alight Motion", "en": "Import an Alight Motion link"}
+{"s": "Pilih jenis lensa kamera", "en": "Choose the camera lens type"}
+{"s": "Pindah Ujung ke Playhead", "en": "Move End to Playhead"}
+{"s": "Apa itu Opus Framework?", "en": "What is the Opus Framework?"}
+{"s": "Gerakan kamera dramatis", "en": "Dramatic camera motion"}
+{"s": "Impor Gambar atau Video", "en": "Import Image or Video"}
+{"s": "Kembali ke Easing biasa", "en": "Back to regular Easing"}
+{"s": "Kuat: Tanpa Lewat Frame", "en": "Strong: No Skipped Frames"}
+{"s": "Arti umur dan kualitas", "en": "Age and quality meaning"}
+{"s": "Kamera akan diikat ke ", "en": "The camera will be bound to "}
+{"s": "Perpanjang ke Playhead", "en": "Extend to Playhead"}
+{"s": "Tidak ada segmen aktif", "en": "No active segment"}
+{"s": "Tutup kontrol keyframe", "en": "Close keyframe controls"}
+{"s": "Ubah ujung kanan layer", "en": "Change the layer's right edge"}
+{"s": ">FOV tetap (otomatis)", "en": ">FOV fixed (automatic)"}
+{"s": "Atur Ulang ke Default", "en": "Reset to Default"}
+{"s": "Belum keputusan final", "en": "Not a final decision"}
+{"s": "Galeri preset teks · ", "en": "Text preset gallery · "}
+{"s": "Ganti ke Curve Editor", "en": "Switch to Curve Editor"}
+{"s": "Ganti ke Easing biasa", "en": "Switch to regular Easing"}
+{"s": "Gunakan titik + untuk", "en": "Use + points to"}
+{"s": "Keyframe dipindah ke ", "en": "Keyframes moved to "}
+{"s": "Pilih media pengganti", "en": "Choose replacement media"}
+{"s": "Pilih satu atau lebih", "en": "Pick one or more"}
+{"s": "Posisi waktu template", "en": "Template time position"}
+{"s": "Rancangan akan datang", "en": "The road ahead"}
+{"s": "Selesai memilih layer", "en": "Finish selecting layers"}
+{"s": "Ubah ujung kiri layer", "en": "Change the layer's left edge"}
+{"s": " tepat di playhead\">", "en": " exactly on the playhead\">"}
+{"s": "Hapus layer terpilih", "en": "Delete selected layers"}
+{"s": "Lintasan titik video", "en": "Video point track"}
+{"s": "Open Motion saat ini", "en": "EditorsHub today"}
+{"s": "Open Motion sekarang", "en": "EditorsHub now"}
+{"s": "Panduan &amp; contoh", "en": "Guide &amp; examples"}
+{"s": "Pilih preset kustom…", "en": "Choose a custom preset…"}
+{"s": "Hapus data analisis", "en": "Delete analysis data"}
+{"s": "⌾ AMBIL DARI CANVAS", "en": "⌾ TAKE FROM CANVAS"}
+{"s": " adalah framework ", "en": " is a framework "}
+{"s": " kamera + keyframe", "en": " camera + keyframes"}
+{"s": "Baik + sangat baik", "en": "Good + excellent"}
+{"s": "Jenis Lensa Kamera", "en": "Camera Lens Type"}
+{"s": "Kamera terikat ke ", "en": "Camera bound to "}
+{"s": "RESET HASIL TERUJI", "en": "RESET TEST RESULTS"}
+{"s": "Buka Curve Editor", "en": "Open Curve Editor"}
+{"s": "Cari Media Manual", "en": "Find Media Manually"}
+{"s": "Orbit Kamera 360°", "en": "360° Camera Orbit"}
+{"s": "Shape + Kamera 3D", "en": "Shape + 3D Camera"}
+{"s": "Smoothing (detik)", "en": "Smoothing (seconds)"}
+{"s": ">Bersihkan titik", "en": ">Clear points"}
+{"s": "Impor Trek Audio", "en": "Import Audio Track"}
+{"s": "Rencana ke depan", "en": "The road ahead"}
+{"s": "Rotasi layer XYZ", "en": "XYZ layer rotation"}
+{"s": "Sangat baik saja", "en": "Excellent only"}
+{"s": "Teks + Kamera 3D", "en": "Text + 3D Camera"}
+{"s": " diterapkan ke ", "en": " applied to "}
+{"s": " layer terpilih", "en": " selected layer"}
+{"s": "Pengaturan grup", "en": "Group settings"}
+{"s": "Pergi ke marker", "en": "Go to marker"}
+{"s": "Pilih Parameter", "en": "Choose Parameter"}
+{"s": "Pilih parameter", "en": "Choose parameter"}
+{"s": ">＋ di playhead", "en": ">＋ at the playhead"}
+{"s": "Filter titik +", "en": "Filter + points"}
+{"s": "Parameter Efek", "en": "Effect Parameters"}
+{"s": "Samping (Baru)", "en": "Side (New)"}
+{"s": "Semua di bawah", "en": "Everything below"}
+{"s": "Semua kategori", "en": "All categories"}
+{"s": "Semua kualitas", "en": "All quality"}
+{"s": "Buka Timeline", "en": "Open Timeline"}
+{"s": "EASING KELUAR", "en": "EASE OUT"}
+{"s": "Posisi XYZ • ", "en": "XYZ Position • "}
+{"s": "UNDUH LAPORAN", "en": "DOWNLOAD REPORT"}
+{"s": " titik 3D · ", "en": " 3D points · "}
+{"s": ">Ekspor JSON", "en": ">Export JSON"}
+{"s": "Belum diuji.", "en": "Not tested yet."}
+{"s": "Durasi layer", "en": "Layer duration"}
+{"s": "Memuat font…", "en": "Loading fonts…"}
+{"s": "Pilih Segmen", "en": "Choose Segment"}
+{"s": "Planu ba oin", "en": "Plans ahead"}
+{"s": " bazeia ba ", "en": " is based on "}
+{"s": "Detail Efek", "en": "Effect Details"}
+{"s": "Easing Efek", "en": "Effect Easing"}
+{"s": "Kunci Rasio", "en": "Lock Ratio"}
+{"s": "Minimal 50%", "en": "Minimum 50%"}
+{"s": "Minimal 75%", "en": "Minimum 75%"}
+{"s": "Minimal 90%", "en": "Minimum 90%"}
+{"s": "PILIH AUDIO", "en": "SELECT AUDIO"}
+{"s": "PILIH MEDIA", "en": "SELECT MEDIA"}
+{"s": "SALIN AKTIF", "en": "COPY ACTIVE"}
+{"s": "Terapkan ke", "en": "Apply to"}
+{"s": "Impor JSON", "en": "Import JSON"}
+{"s": "Mode aktif", "en": "Active mode"}
+{"s": "SEMUA FONT", "en": "ALL FONTS"}
+{"s": "Salin Efek", "en": "Copy Effect"}
+{"s": "Semua umur", "en": "All ages"}
+{"s": "Tutup Path", "en": "Close Path"}
+{"s": " px pada ", "en": " px on "}
+{"s": "← Kembali", "en": "← Back"}
+{"s": "Isi Teks", "en": "Text Content"}
+{"s": "Memilih ", "en": "Selecting "}
+{"s": " efek\">", "en": " effects\">"}
+{"s": "Ekspor ", "en": "Export "}
+{"s": "ID Efek", "en": "Effect ID"}
+{"s": ">Hapus", "en": ">Delete"}
+{"s": "Ekspor", "en": "Export"}
+{"s": "Sudut ", "en": "Angle "}
+{"s": "TEMPEL", "en": "PASTE"}
+{"s": "Hasil", "en": "Result"}
+{"s": "WAKTU", "en": "TIME"}
+{"s": "BUKA", "en": "OPEN"}

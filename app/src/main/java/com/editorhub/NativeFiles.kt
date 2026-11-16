@@ -1,4 +1,4 @@
-package dev.openmotion.nativeapp
+package com.editorhub
 
 import android.app.Activity
 import android.content.ContentResolver

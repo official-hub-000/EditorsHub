@@ -9,7 +9,7 @@
  * Output: app/src/main/assets/www/  (generated, not committed)
  *
  * The build is deliberately non-destructive: upstream files are copied byte for byte
- * except for two surgical, clearly marked rewrites:
+ * except for these surgical, clearly marked rewrites:
  *
  *  1. `<meta charset>` is moved before the (very large) inline scripts so the document
  *     is decoded as UTF-8 before any of them stream in.
@@ -27,8 +27,11 @@
  */
 import { createHash } from 'node:crypto';
 import { cp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { patchBranding } from './branding.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const webDir = path.join(root, 'web');
@@ -112,6 +115,92 @@ function injectShell(html) {
   return html.slice(0, anchor) + tag + html.slice(anchor);
 }
 
+/**
+ * Maps code-point offsets to JavaScript (UTF-16) offsets.
+ *
+ * The edit list is produced by Python, which counts code points; `String.prototype.slice`
+ * counts UTF-16 code units, so every astral character before an edit (emoji in the UI)
+ * would shift it by one. `codepoints` holds the code-point index of each such character.
+ */
+function makeIndexMapper(html) {
+  const codepoints = [];
+  const astral = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
+  let match;
+  let seen = 0;
+  while ((match = astral.exec(html)) !== null) {
+    codepoints.push(match.index - seen);
+    seen += 1;
+  }
+  if (codepoints.length === 0) return (i) => i;
+  return (cp) => {
+    let lo = 0;
+    let hi = codepoints.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (codepoints[mid] < cp) lo = mid + 1;
+      else hi = mid;
+    }
+    return cp + lo;
+  };
+}
+
+/**
+ * Applies tools/i18n/edits.json to the document.
+ *
+ * The edit list was computed against one exact revision of web/index.html; the recorded
+ * SHA-256 is verified first so a drifted document fails the build instead of silently
+ * getting translations spliced into the wrong offsets.
+ */
+function applyTranslations(html) {
+  const editsPath = path.join(root, 'tools', 'i18n', 'edits.json');
+  let payload;
+  try {
+    payload = JSON.parse(readFileSync(editsPath, 'utf8'));
+  } catch (error) {
+    console.warn(`! translations skipped: ${error.message} (run python3 tools/i18n/build-edits.py)`);
+    return html;
+  }
+  const digest = createHash('sha256').update(html, 'utf8').digest('hex');
+  if (digest !== payload.source_sha256) {
+    throw new Error(
+      'translations: edits.json was built against a different web/index.html\n' +
+        `  recorded ${payload.source_sha256}\n  current  ${digest}\n` +
+        '  re-run: python3 tools/i18n/build-edits.py'
+    );
+  }
+  if (payload.offsets === 'codepoints') {
+    const toUtf16 = makeIndexMapper(html);
+    const out = [];
+    let cursor = 0;
+    for (const [start, end, replacement] of payload.edits) {
+      const from = toUtf16(start);
+      const to = toUtf16(end);
+      out.push(html.slice(cursor, from), replacement);
+      cursor = to;
+    }
+    out.push(html.slice(cursor));
+    const result = out.join('');
+    console.log(
+      `  translations ${payload.stats.edits.toLocaleString()} edits ` +
+        `(${payload.stats.dictionary_markup} markup + ${payload.stats.dictionary_script} runtime entries)`
+    );
+    return result;
+  }
+  const out = [];
+  let cursor = 0;
+  for (const [start, end, replacement] of payload.edits) {
+    out.push(html.slice(cursor, start), replacement);
+    cursor = end;
+  }
+  out.push(html.slice(cursor));
+  const result = out.join('');
+  console.log(
+    `  translations ${payload.stats.edits.toLocaleString()} edits ` +
+      `(${payload.stats.dictionary_markup} markup + ${payload.stats.dictionary_script} runtime entries)`
+  );
+  return result;
+}
+
 async function main() {
   const started = Date.now();
   const indexPath = path.join(webDir, 'index.html');
@@ -125,7 +214,9 @@ async function main() {
     console.warn('! vendor/mediabunny missing — export will fall back to the CDN');
   }
 
-  let html = hoistCharset(raw);
+  // Translations are applied to the raw document first: their offsets were computed
+  // against this exact revision, so any earlier rewrite would invalidate them.
+  let html = hoistCharset(applyTranslations(raw));
   html = localiseVendorImports(html, { vendoredMediabunny });
   html = patchEditorScope(html);
   html = injectShell(html);
@@ -134,6 +225,8 @@ async function main() {
   await mkdir(outDir, { recursive: true });
 
   await writeFile(path.join(outDir, 'index.html'), html, 'utf8');
+  const branding = await patchBranding(path.join(outDir, 'index.html'));
+  html = branding.html;
 
   // PWA extras (icon set, manifest, service worker) are kept so the bundle is a complete
   // web build too, even though the native shell supersedes the install surface.

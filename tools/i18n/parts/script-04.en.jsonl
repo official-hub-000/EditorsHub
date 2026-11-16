@@ -1,0 +1,120 @@
+{"s":"GPU Fast engine failed:"}
+{"s":"GPU Fast failed/incompatible; falling back to Legacy Video HW"}
+{"s":"Video HW fallback failed:"}
+{"s":"Legacy Video HW failed; falling back to Legacy Precision Stable"}
+{"s":"Precision Stable fallback failed:"}
+{"s":"Video HW engine failed:"}
+{"s":"Video HW failed/unsupported; falling back to Precision Stable"}
+{"s":"Video HW and Precision Stable both failed on this device/media."}
+{"s":"Experimental engine failed:"}
+{"s":"The Experimental engine failed on this media/device. Precision Stable is still available."}
+{"s":"Primary offline export failed:"}
+{"s":"The primary encoder is failing; trying the safe VP9 encoder"}
+{"s":"safe VP9"}
+{"s":"Safe offline export also failed:"}
+{"s":"The Precision Stable engine failed on this device. Try Fast Realtime if needed."}
+{"s":"No matching WebCodecs encoder"}
+{"s":"Experimental audio encoder is unavailable:"}
+{"s":"The encoder produced no buffer"}
+{"s":"WebCodecs is unavailable"}
+{"s":"No matching WebCodecs codec"}
+{"s":"The offline audio encoder is unavailable:"}
+{"s":"MediaRecorder is not supported by this browser"}
+{"s":"Realtime cleanup failed ["}
+{"s":"Realtime editor recovery failed:"}
+{"s":"An error occurred while encoding "}
+{"s":"Realtime export failed:"}
+{"s":"The Realtime export result is empty"}
+{"s":"Finishing the Realtime export failed:"}
+{"s":"An error occurred while encoding "}
+{"s":"Fast Realtime"}
+{"s":"Previewing the Realtime result failed:"}
+{"s":"Export finished: "}
+{"s":"The export audio mix failed:"}
+{"s":"The export audio clock failed:"}
+{"s":"The selected codec failed; using the WebM fallback"}
+{"s":"No video encoder is available on this device"}
+{"s":"This project still uses the legacy AM conversion. Rotation/effect curves that were lost cannot be recovered just by opening the new HTML. Back up your work, then re-import the link/XML as a new project for the latest accuracy. Export the legacy project unchanged anyway?"}
+{"s":"Keep Awake is not supported by this browser/protocol. Keep the screen on during the export."}
+{"s":"Keep Awake Active: the screen stays on while the export runs."}
+{"s":"Indonesian"}
+{"s":"Malay"}
+{"s":"IMPORT"}
+{"s":"Your Projects"}
+{"s":"Sort projects"}
+{"s":"Name"}
+{"s":"NEW PROJECT"}
+{"s":"Language"}
+{"s":"Choose the EditorsHub interface language."}
+{"s":"Your choice is saved on this device and can be changed anytime from Home."}
+{"s":"No projects yet"}
+{"s":"Tap New Project to start building a composition."}
+{"s":"Not saved yet"}
+{"s":"Today"}
+{"s":"Untitled"}
+{"s":"Choose the EditorsHub interface language."}
+{"s":"Your choice is saved on this device and can be changed anytime from the home screen."}
+{"s":"No projects yet"}
+{"s":"Tap New Project to start building a composition."}
+{"s":"Show top bar"}
+{"s":"Hide top bar"}
+{"s":"Enable 3D Space on the layer or show the camera layer"}
+{"s":"Project package opened"}
+{"s":"The project/XML file is invalid"}
+{"s":">Working: 50%</option><option value="}
+{"s":">Preview quality only affects the editor. Export still uses full quality. Video scrubbing uses WebCodecs when available and falls back automatically when it is not.</div><div class="}
+{"s":">On by default at 100% intensity. Lighting uses a separate backdrop layer; sampling follows new frames and reduces under heavy playback. 0% intensity stops sampling. The effect is editor UI only, not part of the export. The choice is saved on this device.</div><div class="}
+{"s":">Controls the ambient colour strength without changing the base UI look. White/light-grey pixels are weighted down automatically so they do not dominate the ambient.</div><div class="}
+{"s":">OPEN</button><span id="}
+{"s":">Modular diagnostics for Timeline, Playback, Video, Audio, Render, Export, GPU Fast, Cache, Memory and UI. All are off by default; enable only the category you are testing.</div><div class="}
+{"s":">Adaptive N-Source keeps as many videos as possible on the native decoder. When load exceeds measured capacity, EditorsHub progressively lowers the texture upload cadence of low-priority layers before using the WebCodecs fallback.</div><div class="}
+{"s":">Realtime Catch-Up: No Gaps</option><option value="}
+{"s":">Strong: No Skipped Frames</option></select><span></span></div><div class="}
+{"s":"Stay Centered: the playhead stays still and the timeline moves during playback/scrubbing."}
+{"s":"Moving (Legacy Mode): the timeline stays at its scroll position and the playhead moves with time."}
+{"s":"Active • the workspace follows the composition colours with ±2 second sampling and ±2.4 second transitions. Editor UI only; export is unaffected."}
+{"s":"Editor Ambient is off. Turn it on to make the workspace colours follow the composition with periodic sampling and slow transitions; the effect is editor UI only and never enters the export. The choice is saved on this device."}
+{"s":"Editor Ambient active"}
+{"s":"Timeline pre-render active"}
+{"s":"Strong: every frame must enter the cache before the timeline advances. Uncached areas may slow down and go silent so audio does not drift; when the playhead returns to a ready cached area, audio plays in sync automatically."}
+{"s":"Semi Strong: every missing frame gets a short window for an exact seek + capture. Playback may slow slightly and audio may pause briefly, but a single heavy frame cannot stall playback indefinitely."}
+{"s":"Realtime Catch-Up: the playhead and audio stay real-time. B-frame-safe pre-render runs as a sequential cursor behind the playhead; on a slow device the green line falls behind instead of jumping ahead and leaving gaps. The worker keeps catching up to the part of the timeline already passed."}
+{"s":"Normal: playback and audio stay real-time, but frames entering pre-render are decoded through the same sequential presentation-order pipeline as Strong/Record so B-frame video is safe. If the decoder cannot keep up, cached frames may be skipped without slowing playback."}
+{"s":"Strong pre-render active"}
+{"s":"Semi Strong pre-render active"}
+{"s":"Realtime Catch-Up pre-render active"}
+{"s":"Normal pre-render active"}
+{"s":"Classic: every cached frame stays a raw ImageBitmap. Lightest on CPU, but far heavier on RAM and old frames are evicted once the limit is reached."}
+{"s":"Lossless: frames near the playhead stay ImageBitmap, distant frames are compressed as lossless PNG. Cached FPS/pixel quality stays the same, using less RAM at the cost of extra CPU."}
+{"s":"Classic Cache active • lightest on CPU"}
+{"s":"Video HW Cache active • saves RAM & CPU"}
+{"s":"Lossless Cache active • saves RAM"}
+{"s":"manual"}
+{"s":"Customize key combinations to speed up your editing workflow."}
+{"s":"Timeline & Navigation"}
+{"s":"Play / Pause"}
+{"s":"Save Project"}
+{"s":"Delete Selection"}
+{"s":"Open Shortcut Guide"}
+{"s":"Press a new key combination on your keyboard..."}
+{"s":"Save"}
+{"s":"Keyboard shortcuts updated"}
+{"s":"Customize key combinations to speed up your editing workflow."}
+{"s":"Timeline & Navigation"}
+{"s":"Back 1 Frame"}
+{"s":"Forward 1 Frame"}
+{"s":"Back 10 Frames"}
+{"s":"Forward 10 Frames"}
+{"s":"Save Project"}
+{"s":"Duplicate Layer"}
+{"s":"Press a new key combination on your keyboard..."}
+{"s":"DELETE LAYER"}
+{"s":"Speed"}
+{"s":"Trim Start"}
+{"s":"Trim End"}
+{"s":"Layer Speed"}
+{"s":"Selected layers only"}
+{"s":"Full 3D camera"}
+{"s":"Bind the camera to a layer"}
+{"s":"XYZ Position"}
+{"s":"Euler Rotation"}

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Open Motion</string>
-    <string name="shared_file_provider">Open Motion exports</string>
-    <string name="app_tagline">Motion graphics &amp; video editor</string>
+    <string name="app_name">EditorsHub</string>
+    <string name="shared_file_provider">EditorsHub exports</string>
 </resources>

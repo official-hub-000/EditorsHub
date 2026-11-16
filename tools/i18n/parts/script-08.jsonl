@@ -1,0 +1,120 @@
+{"s": " Kontinu; edit Kecepatan/sumbu dan Waktu preset."}
+{"s": " efek, keyframe dapat diedit."}
+{"s": "Putar X Terus"}
+{"s": "Huruf berputar penuh pada X."}
+{"s": "Putar Y Terus"}
+{"s": "Huruf berputar penuh pada Y."}
+{"s": "Putar Z Terus"}
+{"s": "Setiap huruf berputar pada pusatnya."}
+{"s": "Putar XYZ Terus"}
+{"s": "Tumble tiga sumbu dengan laju berbeda."}
+{"s": "Putar Y Mundur"}
+{"s": "Rotasi Y berlawanan arah."}
+{"s": "Satu kartu per baris, pivot tengah."}
+{"s": "Seluruh Teks XYZ"}
+{"s": "Seluruh teks berputar sebagai satu kartu."}
+{"s": "Ayunan pada engsel atas."}
+{"s": "Huruf mengayun ke kiri dan kanan."}
+{"s": "Tilt tiga sumbu dengan fase berbeda."}
+{"s": "Huruf mendekat dan menjauh berulang."}
+{"s": "Gelombang vertikal dengan kedalaman."}
+{"s": "Orbit kecil di sekitar posisi setiap huruf."}
+{"s": "Distribusi fase satu putaran sepanjang teks."}
+{"s": "Huruf berkibar dari pivot bawah."}
+{"s": "Putaran penuh dan precession Y."}
+{"s": "Huruf ganjil dan genap berlawanan arah."}
+{"s": "Gelombang tiga sumbu berjalan ke kanan."}
+{"s": "Fase acak deterministik, hasil ekspor stabil."}
+{"s": "Gerak kecil horizontal dan maju-mundur."}
+{"s": "Tilt, orbit kedalaman dan neon biru."}
+{"s": "Putaran tiga sumbu, depth dan outline emas."}
+{"s": "Baris melambai seperti pita dalam kedalaman."}
+{"s": "Melayang Seluruh Teks"}
+{"s": "Satu kartu teks melayang dan mengayun."}
+{"s": "Gelombang Warna 3D"}
+{"s": "Tilt kontinu dan highlight warna berfase."}
+{"s": "Kedalaman, scale pulse dan glow ringan."}
+{"s": "Teks satu kartu mengayun dengan bayangan lembut."}
+{"s": "Jalur melingkar berkeyframe dan tilt per huruf."}
+{"s": "DNA Teks 3D"}
+{"s": "Posisi heliks, rotasi XYZ dan outline hangat."}
+{"s": "Ekspresi teks maksimal 2048 karakter."}
+{"s": "Ekspresi harus mengembalikan vektor "}
+{"s": "Ekspresi harus mengembalikan satu angka."}
+{"s": "Atlas teks melebihi batas aman. Kurangi jumlah/ukuran teks."}
+{"s": "VAO tidak tersedia; memakai renderer kompatibilitas."}
+{"s": "Framebuffer teks tidak lengkap."}
+{"s": " tidak valid."}
+{"s": "Easing preset tidak dikenal."}
+{"s": "Format easing tidak valid."}
+{"s": "Easing ini belum dapat disimpan; gunakan Linear, Hold, Bezier atau Spring."}
+{"s": "Efek tidak portabel: "}
+{"s": "tidak dikenal"}
+{"s": ". Simpan satu animator atau lepaskan dependensi terlebih dahulu."}
+{"s": "Format parameter efek tidak portabel: "}
+{"s": "Efek paket tidak valid."}
+{"s": "Parameter/keyframe preset tidak valid."}
+{"s": "Parameter preset tidak dikenal: "}
+{"s": "Jalur/keyframe preset tidak valid."}
+{"s": "Maksimal 2048 keyframe per preset/paket."}
+{"s": "Keyframe tidak valid."}
+{"s": "waktu keyframe"}
+{"s": "Dua keyframe berada di waktu yang sama."}
+{"s": "Status efek paket tidak valid."}
+{"s": "Ekspresi teks hanya untuk Text Animator."}
+{"s": "Nama controller tidak valid."}
+{"s": "Paket berisi 1–32 efek."}
+{"s": "Paket harus memiliki Text Animator."}
+{"s": "ID preset kustom tidak valid."}
+{"s": "Nama preset harus 1–60 karakter."}
+{"s": "Jenis preset tidak dikenal."}
+{"s": " efek: animator, styling, keyframe dan easing. Waktu relatif terhadap layer."}
+{"s": "Parameter, keyframe, easing dan ekspresi teks tersimpan. Waktu mengikuti durasi layer."}
+{"s": "JSON preset tidak valid."}
+{"s": "Format file bukan preset teks Open Motion v1/v2."}
+{"s": "ID/nama preset kustom duplikat."}
+{"s": "Preset lokal belum terbaca: "}
+{"s": " Data lama tidak ditimpa."}
+{"s": "Preset tidak tersimpan: penyimpanan browser tidak tersedia/penuh."}
+{"s": "Pilih Text Animator pada layer teks."}
+{"s": "Durasi layer tidak valid."}
+{"s": "Preset kustom tidak ditemukan."}
+{"s": "Seluruh teks"}
+{"s": "Otomatis IN / OUT"}
+{"s": "Waktu preset keyframe"}
+{"s": "Waktu preset"}
+{"s": "Durasi acuan preset (s; 0 = layer)"}
+{"s": "Masuk"}
+{"s": "Tidak ada"}
+{"s": "Dari kiri"}
+{"s": "Dari kanan"}
+{"s": "Dari atas"}
+{"s": "Durasi total masuk (s)"}
+{"s": "Urutan masuk"}
+{"s": "Dari tengah"}
+{"s": "Dari tepi"}
+{"s": "Keluar"}
+{"s": "Ke kiri"}
+{"s": "Ke kanan"}
+{"s": "Ke atas"}
+{"s": "Durasi total keluar (s)"}
+{"s": "Urutan keluar"}
+{"s": "Amplitude × ukuran font"}
+{"s": "Kecepatan wave / glitch"}
+{"s": "Posisi X (px)"}
+{"s": "Posisi Y (px)"}
+{"s": "Rotasi Z (°)"}
+{"s": "Teks Lanjutan"}
+{"s": "Posisi Z (px)"}
+{"s": "Rotasi X (°)"}
+{"s": "Rotasi Y (°)"}
+{"s": "Atas"}
+{"s": "Bawah"}
+{"s": "Tampilkan sisi belakang"}
+{"s": "Tracking tambahan (px)"}
+{"s": "Outline tambahan (px)"}
+{"s": "Warna per target"}
+{"s": "Jalur Teks"}
+{"s": "Ekspresi Teks"}
+{"s": "Hasil ekspresi"}
+{"s": "Rotasi XYZ (°)"}

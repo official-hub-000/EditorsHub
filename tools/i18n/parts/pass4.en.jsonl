@@ -1,0 +1,294 @@
+{"k": "css-content", "s": "Lepaskan media untuk mengimpor", "en": "Drop media to import"}
+{"k": "html-attr:aria-label", "s": "Pintasan Keyboard", "en": "Keyboard Shortcuts"}
+{"k": "html-attr:title", "s": "Pintasan Keyboard (F1 / ?)", "en": "Keyboard Shortcuts (F1 / ?)"}
+{"k": "html-text", "s": "Pintasan Keyboard", "en": "Keyboard Shortcuts"}
+{"k": "html-text", "s": "Ganti Pintasan", "en": "Change Shortcut"}
+{"k": "html-text", "s": "berbasis", "en": "based on"}
+{"k": "script", "s": "Normal menjaga real-time dan boleh melewatkan cache jika decoder tertinggal. Real-time Mengejar juga menjaga playhead/audio real-time, tetapi pre-render mempertahankan antrean frame berurutan di belakang playhead dan mengejar tanpa sengaja membuat celah. Semi Kuat memberi frame yang hilang waktu singkat untuk masuk cache sehingga playback boleh sedikit melambat. Kuat menunggu setiap frame. Tombol Rekam Pre-render tetap memaksa Mode Kuat selama aktif.", "en": "Normal keeps real time and may skip the cache when the decoder falls behind. Real-time Catch-up also keeps the playhead/audio in real time, but pre-render keeps a sequential frame queue behind the playhead and catches up without accidentally creating gaps. Semi Strong gives a missing frame a short time to enter the cache so playback may slow slightly. Strong waits for every frame. The Pre-render Record button keeps forcing Strong Mode while it is active."}
+{"k": "script", "s": "Urutan kartu efek piksel menentukan pemrosesan piksel. Kontrol Expression mengevaluasi transform setelah keyframe, tanpa pass shader. Particular dan Transform Motion Blur berada pada tahap komposisi akhir. Efek yang belum tersedia tetap disimpan saat diimpor.", "en": "The order of the pixel effect cards determines pixel processing. Expression controls evaluate the transform after keyframes, without a shader pass. Particular and Transform Motion Blur sit at the final compositing stage. Effects that are not available yet are still kept when imported."}
+{"k": "script", "s": "Null 2D merekam proyeksi kamera utama, bukan Editor Camera. Setelah kamera/transform video berubah, buat Null 2D baru. Null 3D tetap mengikuti perubahan transform bidang video. Kedalaman objek di dalam rekaman tidak direkonstruksi oleh Null bidang video.", "en": "Null 2D records the main camera projection, not the Editor Camera. After the camera or the video transform changes, create a new Null 2D. Null 3D keeps following changes to the video plane transform. Object depth inside the footage is not reconstructed by a video-plane Null."}
+{"k": "script", "s": "Adaptive N-Source mempertahankan sebanyak mungkin video pada decoder native. Saat beban melewati kapasitas terukur, Open Motion menurunkan cadence upload texture layer berprioritas rendah secara progresif sebelum memakai fallback WebCodecs.", "en": "Adaptive N-Source keeps as many videos as possible on the native decoder. When load exceeds the measured capacity, Open Motion progressively lowers the texture upload cadence of low-priority layers before falling back to WebCodecs."}
+{"k": "script", "s": "Umur memakai satu segmen yang tersambung, bukan gabungan titik sebelum/sesudah hilang. Awal–akhir layer harus mencakup awal dan frame akhir layer (toleransi akhir satu frame proyek), bukan hanya rentang analisis pendek.", "en": "Lifetime uses one connected segment, not a union of points before and after a loss. The start and end of the layer must cover the first and last frame of the layer (end tolerance of one project frame), not just a short analysis range."}
+{"k": "script", "s": "Mode Otomatis hanya dapat memeriksa salinan yang pernah disimpan Open Motion di data proyek atau penyimpanan browser. Browser tidak dapat menelusuri seluruh penyimpanan perangkat tanpa pilihan file dari pengguna.", "en": "Automatic mode can only check copies that Open Motion has saved in project data or browser storage. A browser cannot scan the whole device storage without a file chosen by the user."}
+{"k": "script", "s": "Lacak fitur dari video asli, baik footage 2D maupun footage di Ruang 3D. Pilih tanda + untuk membuat Null dengan keyframe yang bisa diedit. Titik pada footage 3D mengikuti perspektif kamera.", "en": "Track features from the original video, both 2D footage and footage in 3D Space. Choose the + sign to create a Null with editable keyframes. Points on 3D footage follow the camera perspective."}
+{"k": "script", "s": "Layer gambar, video, teks, dan shape yang nonaktif tetap dirender sebagai komposit 2D dan tidak dipengaruhi kamera. Saat diaktifkan, layer menjadi textured plane 3D dengan depth test WebGL.", "en": "Image, video, text and shape layers that are disabled are still rendered as a 2D composite and are not affected by the camera. When enabled, the layer becomes a 3D textured plane with WebGL depth testing."}
+{"k": "script", "s": "The editor preview quality is currently ${omsPreviewQualityPercent()}%. Export tetap kualitas penuh. Scrub video memakai WebCodecs bila tersedia dan fallback otomatis jika tidak didukung.", "en": "The editor preview quality is currently ${omsPreviewQualityPercent()}%. Export still uses full quality. Video scrubbing uses WebCodecs when available and falls back automatically when it is not supported."}
+{"k": "script", "s": "Point: satu detail. Two Points: posisi, rotasi dan scale. Planar: area bertekstur. Corner Pin: empat detail. Untuk empat titik pilih kiri atas → kanan atas → kanan bawah → kiri bawah.", "en": "Point: one detail. Two Points: position, rotation and scale. Planar: a textured area. Corner Pin: four details. For four points pick top left → top right → bottom right → bottom left."}
+{"k": "script", "s": "Axis yang tidak dicentang dibekukan pada nilai saat ikatan diterapkan. Rotasi mengikuti perubahan relatif target dari titik ikat sehingga tidak meloncat saat diaktifkan.", "en": "Axes that are not checked are frozen at their value when the binding is applied. Rotation follows the target's relative change from the binding point, so it does not jump when enabled."}
+{"k": "script", "s": "Kualitas preview hanya memengaruhi editor. Ekspor tetap memakai kualitas penuh. Scrub video memakai WebCodecs bila tersedia dan fallback otomatis jika tidak didukung.", "en": "Preview quality only affects the editor. Export always uses full quality. Video scrubbing uses WebCodecs when available and falls back automatically when it is not supported."}
+{"k": "script", "s": "Optical FOV stays around ${fov.toFixed(1)}°. Hanya Zoom digital yang dapat berubah dan ber-keyframe; crop applied to seluruh canvas setelah proyeksi kamera.", "en": "Optical FOV stays around ${fov.toFixed(1)}°. Only digital Zoom can change and be keyframed; the crop is applied to the whole canvas after the camera projection."}
+{"k": "script", "s": ". Ukuran, trim, keyframe, transform, dan durasi layer lama tetap dipertahankan, sehingga media pengganti akan menyesuaikan ke bingkai layer yang sudah ada.", "en": ". The size, trim, keyframes, transform and duration of the old layer are all kept, so the replacement media fits into the layer's existing frame."}
+{"k": "script", "s": "Mengatur kekuatan warna ambient tanpa mengubah tampilan dasar UI. Piksel putih/abu terang otomatis diberi bobot lebih kecil agar tidak mendominasi ambient.", "en": "Sets the strength of the ambient colour without changing the basic look of the UI. Bright white/grey pixels are automatically weighted less so they do not dominate the ambient light."}
+{"k": "script", "s": "${tracker.on()?'Active':'Nonaktif'} · ${tracker.events.length} event · ${tracker.markers.length} markers · ${signalText}. Bukan pengukuran speaker.", "en": "${tracker.on()?'Active':'Inactive'} · ${tracker.events.length} events · ${tracker.markers.length} markers · ${signalText}. Not a speaker measurement."}
+{"k": "script", "s": "Camera Motion Blur memakai temporal sampling Open Motion sendiri. Saat OFF, renderer kamera tetap memakai jalur V5.167 tanpa temporal sampling.", "en": "Camera Motion Blur uses Open Motion's own temporal sampling. When OFF, the camera renderer keeps using the V5.167 path without temporal sampling."}
+{"k": "script", "s": "Text Style terakhir yang aktif menentukan styling. Preset mengganti parameter/keyframe efek ini. Styling diproses sebelum efek piksel.", "en": "The last active Text Style determines the styling. Presets replace this effect's parameters and keyframes. Styling is processed before pixel effects."}
+{"k": "script", "s": "Blending dihitung terhadap seluruh layer di bawahnya. Opacity dapat diberi keyframe dan tetap digunakan pada preview maupun ekspor.", "en": "Blending is computed against every layer below it. Opacity can be keyframed and is used in both preview and export."}
+{"k": "script", "s": "Editor Camera hanya mengubah sudut pandang kerja. PNG dan video selalu dirender melalui Main Camera tanpa grid atau gizmo editor.", "en": "The Editor Camera only changes the working viewpoint. PNGs and videos are always rendered through the Main Camera without the editor grid or gizmos."}
+{"k": "script", "s": "Transform child mengikuti posisi, skala, rotasi, opacity dan Z dari parent. Gunakan Null sebagai controller beberapa layer.", "en": "The child transform follows the parent's position, scale, rotation, opacity and Z. Use a Null as the controller for several layers."}
+{"k": "script", "s": "%. Ekspor tetap kualitas penuh. Scrub video memakai WebCodecs bila tersedia dan fallback otomatis jika tidak didukung.", "en": "%. Export still uses full quality. Video scrubbing uses WebCodecs when available and falls back automatically when it is not supported."}
+{"k": "script", "s": "%. Export tetap kualitas penuh. Scrub video memakai WebCodecs bila tersedia dan fallback otomatis jika tidak didukung.", "en": "%. Export still uses full quality. Video scrubbing uses WebCodecs when available and falls back automatically when it is not supported."}
+{"k": "script", "s": "°. Hanya Zoom digital yang dapat berubah dan ber-keyframe; crop applied to seluruh canvas setelah proyeksi kamera.", "en": "°. Only digital Zoom can change and be keyframed; the crop is applied to the whole canvas after the camera projection."}
+{"k": "script", "s": "Hanya kategori yang dipilih yang mencatat log. Jalur berfrekuensi tinggi memakai sampling agar overhead rendah.", "en": "Only the selected categories are logged. High-frequency paths use sampling to keep overhead low."}
+{"k": "script", "s": "Confirmed up to ${max.preset.label} (${max.width}×${max.height}) • ${source}. Result ekspor tetap perlu diuji.", "en": "Confirmed up to ${max.preset.label} (${max.width}×${max.height}) • ${source}. Export results still need testing."}
+{"k": "script", "s": "Mask / Exclude menggunakan layer paling atas dalam grup sebagai sumber alpha. Semua layer tetap dapat diedit.", "en": "Mask / Exclude uses the topmost layer in the group as the alpha source. Every layer stays editable."}
+{"k": "script", "s": "\" aria-label=\"Buka menu Orbit Kamera 360 derajat\" title=\"Orbit Kamera 360° • shortcut Ikat kamera ke layer\">", "en": "\" aria-label=\"Open the 360 degree Camera Orbit menu\" title=\"360° Camera Orbit • shortcut to bind the camera to a layer\">"}
+{"k": "script", "s": "${active.label.toUpperCase()}${focusSelectedOff?' • OFF':active.disabled?' • LOCKED':' • geser '+direction}", "en": "${active.label.toUpperCase()}${focusSelectedOff?' • OFF':active.disabled?' • LOCKED':' • drag '+direction}"}
+{"k": "script", "s": "UJI RAM → putar proyek berulang → UNDUH LAPORAN. TANDAI AWAL membandingkan mulai titik yang Anda pilih.", "en": "TEST RAM → play the project repeatedly → DOWNLOAD REPORT. MARK START compares from the point you choose."}
+{"k": "script", "s": "${l.name}: layer penyesuaian disimpan, preview dinonactivekan karena efek AM belum didukung.", "en": "${l.name}: adjustment layer saved, preview disabled because AM effects are not supported yet."}
+{"k": "script", "s": "layer media belum dapat dibuka. Layer, keyframe, efek dan potongan waktu tidak akan diganti.", "en": "layer media could not be opened. The layer, keyframes, effects and time slices will not be replaced."}
+{"k": "script", "s": "percobaan karena gangguan jaringan/layanan. Coba impor lagi. Media belum dinyatakan hilang.", "en": "attempts because of a network/service interruption. Try importing again. The media is not yet declared missing."}
+{"k": "script", "s": "Khusus komposisi 9:16 atau lebih tinggi pada mobile. Pilihan ini disimpan di perangkat.", "en": "For 9:16 or taller compositions on mobile. This choice is saved on the device."}
+{"k": "script", "s": ": layer penyesuaian disimpan, preview dinonactivekan karena efek AM belum didukung.", "en": ": adjustment layer saved, preview disabled because AM effects are not supported yet."}
+{"k": "script", "s": "Geser untuk menempatkan titik baru, lalu ketuk sekali touchpad untuk mengonfirmasi.", "en": "Drag to place the new point, then tap the touchpad once to confirm."}
+{"k": "script", "s": ": layer penyesuaian disimpan, preview dinonaktifkan karena efek AM belum didukung.", "en": ": adjustment layer saved, preview disabled because AM effects are not supported yet."}
+{"k": "script", "s": "percobaan. Ini bukan bukti media hilang. Periksa koneksi lalu coba impor lagi.", "en": "attempts. This is not proof that the media is missing. Check the connection and try importing again."}
+{"k": "script", "s": "media proyek belum tersedia. Pilih layer lalu gunakan “Tautkan ulang media”.", "en": "project media is not available yet. Select the layer and use “Relink media”."}
+{"k": "script", "s": "X kamera tetap mengatur azimuth 360°, Y elevation 360°, dan Z panjang tali.", "en": "The camera X still sets the 360° azimuth, Y sets the 360° elevation, and Z sets the rope length."}
+{"k": "script", "s": "media sudah diunduh tetapi belum dapat didekode. Periksa format file asli.", "en": "media has been downloaded but cannot be decoded yet. Check the original file format."}
+{"k": "script", "s": "Tetap di Tengah: playhead diam dan timeline bergerak saat playback/scrub.", "en": "Stay Centred: the playhead stays still and the timeline moves during playback/scrub."}
+{"k": "script", "s": ". X kamera mengatur azimuth 360°, Y elevation 360°, dan Z panjang tali.", "en": ". Camera X sets the 360° azimuth, Y sets the 360° elevation, and Z sets the rope length."}
+{"k": "script", "s": "Waktu dalam detik komposisi. Marker layer mengikuti perpindahan layer.", "en": "Time in composition seconds. Layer markers follow the layer when it moves."}
+{"k": "script", "s": "Opacity dan mode komposit kini tersedia di menu Blending & Opacity.", "en": "Opacity and blend modes are now available in the Blending & Opacity menu."}
+{"k": "script", "s": ". Pilihan hingga 4K tersedia untuk dicoba, bukan jaminan dukungan.", "en": ". Options up to 4K are available to try, not a guarantee of support."}
+{"k": "script", "s": "${l.cameraTracking.cameraId?'Perbarui':'Buat'} camera + keyframes", "en": "${l.cameraTracking.cameraId?'Update':'Create'} camera + keyframes"}
+{"k": "script", "s": "Khusus error yang memiliki trace diagnostik, misalnya GPU Fast.", "en": "Only for errors that carry a diagnostic trace, such as GPU Fast."}
+{"k": "script", "s": "Easing hanya berlaku pada interval yang dibatasi dua keyframe.", "en": "Easing only applies to the interval bounded by two keyframes."}
+{"k": "script", "s": "Geser ke atas untuk memperbesar • ke bawah untuk mengecilkan", "en": "Drag up to zoom in • down to zoom out"}
+{"k": "script", "s": "Layer di dalamnya tidak dihapus. Mask / Exclude tetap aktif.", "en": "The layers inside are not deleted. Mask / Exclude stays active."}
+{"k": "script", "s": "Hapus ${ids.length} projects? This action cannot be undone.", "en": "Delete ${ids.length} projects? This action cannot be undone."}
+{"k": "script", "s": "\" style=\"margin-top:8px\">Pulihkan parameter/keyframe asli", "en": "\" style=\"margin-top:8px\">Restore the original parameters/keyframes"}
+{"k": "script", "s": "Cari salinan media yang masih tersimpan oleh Open Motion.", "en": "Search for a media copy that Open Motion still has saved."}
+{"k": "script", "s": "mulai dari awal layer. Scale dan opacity memakai persen.", "en": "starts from the beginning of the layer. Scale and opacity use percentages."}
+{"k": "script", "s": "Dari (detik)<input data-track-start type=\"number\" min=\"", "en": "From (seconds)<input data-track-start type=\"number\" min=\""}
+{"k": "script", "s": "Sampai (detik)<input data-track-end type=\"number\" min=\"", "en": "To (seconds)<input data-track-end type=\"number\" min=\""}
+{"k": "script", "s": "menjadi sumber mask dan tidak ikut dicat sebagai warna.", "en": "becomes the mask source and is not painted as a colour."}
+{"k": "script", "s": ", rotasi tiga sumbu, projection matrix, dan mode lensa", "en": ", three-axis rotation, projection matrix, and lens mode"}
+{"k": "script", "s": "Arahkan playhead di antara dua keyframe parameter ini.", "en": "Place the playhead between two keyframes of this parameter."}
+{"k": "script", "s": "Pilih sumbu X/Y/Z, lalu putar roda atau masukkan angka", "en": "Choose the X/Y/Z axis, then turn the wheel or enter a number"}
+{"k": "script", "s": "${l.hidden?'Tampilkan':'Sembunyikan'} layer ${l.name}", "en": "${l.hidden?'Show':'Hide'} layer ${l.name}"}
+{"k": "script", "s": "Bukan pustaka preset Audio Spectrum Open Motion v1.", "en": "Not from the Open Motion v1 Audio Spectrum preset library."}
+{"k": "script", "s": "FPS • garis pendek = 1 frame • garis sedang = frame", "en": "FPS • short line = 1 frame • medium line = frame"}
+{"k": "script", "s": "Pilih sendiri file asli dari penyimpanan perangkat.", "en": "Choose the original file yourself from device storage."}
+{"k": "script", "s": "Geser horizontal pada masing-masing rel untuk skew", "en": "Drag horizontally on each rail to skew"}
+{"k": "script", "s": "Pintasan papan kekunci dikembalikan kepada bawaan", "en": "Keyboard shortcuts restored to defaults"}
+{"k": "script", "s": "Waktu<input data-marker-time type=\"number\" step=\"", "en": "Time<input data-marker-time type=\"number\" step=\""}
+{"k": "script", "s": "\" data-transformmode=\"position\" title=\"Posisi\">✥", "en": "\" data-transformmode=\"position\" title=\"Position\">✥"}
+{"k": "script", "s": "Marker berikutnya · Tekan lama ke akhir timeline", "en": "Next marker · Long-press to go to the end of the timeline"}
+{"k": "script", "s": "detik, sedangkan layer membutuhkan sumber hingga", "en": "seconds, while the layer needs a source up to"}
+{"k": "script", "s": "°. Touchpad Zoom/Focal Length/FOV akan terkunci.", "en": "°. Touchpad Zoom/Focal Length/FOV will be locked."}
+{"k": "script", "s": "Marker sebelumnya · Tekan lama ke awal timeline", "en": "Previous marker · Long-press to go to the start of the timeline"}
+{"k": "script", "s": "• tekan lama untuk mengetik nilai\"><span id=\"tv", "en": "• long-press to type a value\"><span id=\"tv"}
+{"k": "script", "s": "layer dipilih • klik layer lain untuk menambah", "en": "layer selected • click another layer to add"}
+{"k": "script", "s": ": decoder tidak mempresentasikan frame target", "en": ": the decoder did not present the target frame"}
+{"k": "script", "s": "ZOOM LENS • FOV + Focal Length + Zoom sinkron", "en": "ZOOM LENS • FOV + Focal Length + Zoom synced"}
+{"k": "script", "s": "• fallback browser (font jaringan belum siap)", "en": "• browser fallback (web font not ready yet)"}
+{"k": "script", "s": "proyek? Tindakan ini tidak dapat dibatalkan.", "en": "projects? This action cannot be undone."}
+{"k": "script", "s": ": frame decoder tidak dapat dicopy ke cache", "en": ": the decoder frame could not be copied to the cache"}
+{"k": "script", "s": "layer di bawah posisi sumber pada timeline.", "en": "layer below the source position on the timeline."}
+{"k": "script", "s": "Geser horizontal • X mengorbit target 360°", "en": "Horizontal drag • X orbits the target 360°"}
+{"k": "script", "s": "Indikasi berakhir; bukan verifikasi piksel", "en": "Endpoint indication; not a pixel verification"}
+{"k": "script", "s": "title=\"Tempel efek yang terakhir disalin\">", "en": "title=\"Paste the last copied effect\">"}
+{"k": "script", "s": "Kenapa Open Motion tertarik memakai Opus?", "en": "Why is Open Motion interested in Opus?"}
+{"k": "script", "s": "Nilai ditahan hingga keyframe berikutnya.", "en": "The value is held until the next keyframe."}
+{"k": "script", "s": "Geser vertikal • Y mengorbit target 360°", "en": "Vertical drag • Y orbits the target 360°"}
+{"k": "script", "s": "Pintasan keyboard dikembalikan ke bawaan", "en": "Keyboard shortcuts restored to defaults"}
+{"k": "script", "s": "FPS • zoom diperkecil: garis pendek =", "en": "FPS • zoomed out: short line ="}
+{"k": "script", "s": "layer 1080p • headroom adaptif hingga", "en": "layer 1080p • adaptive headroom up to"}
+{"k": "script", "s": "GPU rendering dan custom shader GLSL", "en": "GPU rendering and custom GLSL shaders"}
+{"k": "script", "s": "Sampel / detik<select data-track-fps", "en": "Samples / second<select data-track-fps"}
+{"k": "script", "s": "detik yang tidak tersedia akan diisi", "en": "seconds that are unavailable will be filled with"}
+{"k": "script", "s": "Depth of Field Focus dinonactivekan", "en": "Depth of Field Focus disabled"}
+{"k": "script", "s": "Kamera dan penempatan 3D (opsional)", "en": "Camera and 3D placement (optional)"}
+{"k": "script", "s": "Pintasan papan kekunci dikemas kini", "en": "Keyboard shortcuts updated"}
+{"k": "script", "s": "source maju saat target mundur pada", "en": "source moves forward while the target moves back at"}
+{"k": "script", "s": "• tekan lama untuk mengetik nilai\">", "en": "• long-press to type a value\">"}
+{"k": "script", "s": ": frame target belum siap dicopy (", "en": ": the target frame is not ready to copy ("}
+{"k": "script", "s": "Jenis lensa<select data-track-shot", "en": "Lens type<select data-track-shot"}
+{"k": "script", "s": "Jenis lensa<select data-track-shot", "en": "Lens type<select data-track-shot"}
+{"k": "script", "s": ". Hasil ekspor tetap perlu diuji.", "en": ". Export results still need testing."}
+{"k": "script", "s": ">Buat ulang keyframe Waktu preset", "en": ">Rebuild the preset Time keyframes"}
+{"k": "script", "s": ">Penempatan 3D · titik yang valid", "en": ">3D placement · valid points"}
+{"k": "script", "s": ">Null 2D · proyeksi kamera utama", "en": ">Null 2D · main camera projection"}
+{"k": "script", "s": ">Pertahankan efek lain (default)", "en": ">Keep other effects (default)"}
+{"k": "script", "s": "Bentuk mengikuti alpha layer ini", "en": "The shape follows this layer's alpha"}
+{"k": "script", "s": "Pemilihan beberapa layer ditutup", "en": "Multi-layer selection closed"}
+{"k": "script", "s": "sampel. Bukan verifikasi piksel.", "en": "samples. Not a pixel verification."}
+{"k": "script", "s": "sampel. Bukan verifikasi piksel.", "en": "samples. Not a pixel verification."}
+{"k": "script", "s": ">Ganti seluruh stack efek layer", "en": ">Replace the entire layer effect stack"}
+{"k": "script", "s": "Ekspor frame-by-frame selesai •", "en": "Frame-by-frame export complete •"}
+{"k": "script", "s": "Real-time Mengejar: Tanpa Celah", "en": "Real-time Catch-up: Without Gaps"}
+{"k": "script", "s": "Terapkan stabilisasi + keyframe", "en": "Apply stabilisation + keyframe"}
+{"k": "script", "s": "layer • headroom adaptif hingga", "en": "layer • adaptive headroom up to"}
+{"k": "script", "s": ">Simpan / perbarui paket stack", "en": ">Save / update the stack package"}
+{"k": "script", "s": "Lepaskan media untuk mengimpor", "en": "Drop media to import"}
+{"k": "script", "s": "Saat menerapkan paket gabungan", "en": "When applying a combined package"}
+{"k": "script", "s": "disimpan di clipboard internal", "en": "saved to the internal clipboard"}
+{"k": "script", "s": "· Waktu dalam detik komposisi.", "en": "· Time in composition seconds."}
+{"k": "script", "s": "• parameter optik ini terkunci", "en": "• these optical parameters are locked"}
+{"k": "script", "s": "Klasik: RAM Besar, CPU Ringan", "en": "Classic: High RAM, Light CPU"}
+{"k": "script", "s": "Template Editor · Ganti Media", "en": "Template Editor · Replace Media"}
+{"k": "script", "s": "Tidak ada preset yang cocok.", "en": "No presets match."}
+{"k": "script", "s": "frame • garis sedang = frame", "en": "frame • medium line = frame"}
+{"k": "script", "s": "melewati batas waktu setelah", "en": "timed out after"}
+{"k": "script", "s": "pilihan belum terverifikasi.", "en": "choice is not verified yet."}
+{"k": "script", "s": "• file lokal tidak ditemukan", "en": "• local file not found"}
+{"k": "script", "s": ". Bukan pengukuran speaker.", "en": ". Not a speaker measurement."}
+{"k": "script", "s": ">Simpan / perbarui animator", "en": ">Save / update the animator"}
+{"k": "script", "s": "Centang channel yang diikat", "en": "Tick the channels to bind"}
+{"k": "script", "s": "Ganti acuan transform layer", "en": "Change layer transform reference"}
+{"k": "script", "s": "\" aria-label=\"Waktu marker", "en": "\" aria-label=\"Marker time"}
+{"k": "script", "s": "Fill teks • alpha terpisah", "en": "Text fill • separate alpha"}
+{"k": "script", "s": "Tidak ada efek yang cocok.", "en": "No effects match."}
+{"k": "script", "s": "FOV optik dikunci sekitar", "en": "Optical FOV locked at around"}
+{"k": "script", "s": "Panel otomatis saat error", "en": "Panel opens automatically on error"}
+{"k": "script", "s": "• garis panjang = 1 detik", "en": "• long line = 1 second"}
+{"k": "script", "s": "Pindah Ujung ke Playhead", "en": "Move End to Playhead"}
+{"k": "script", "s": "dihapus dari Local Fonts", "en": "removed from Local Fonts"}
+{"k": "script", "s": "mengikuti keyframe asli.", "en": "follows the original keyframes."}
+{"k": "script", "s": "FOV optik tetap sekitar", "en": "Optical FOV stays at around"}
+{"k": "script", "s": "Impor Gambar atau Video", "en": "Import Image or Video"}
+{"k": "script", "s": "Kuat: Tanpa Lewat Frame", "en": "Strong: No Skipped Frames"}
+{"k": "script", "s": "layer sampai playhead\">", "en": "layer up to the playhead\">"}
+{"k": "script", "s": "Arti umur dan kualitas", "en": "Age and quality meaning"}
+{"k": "script", "s": "Ikuti Transform Target", "en": "Follow Target Transform"}
+{"k": "script", "s": "Ikuti Transform Target", "en": "Follow Target Transform"}
+{"k": "script", "s": "Masking dinonactivekan", "en": "Masking disabled"}
+{"k": "script", "s": "Pintasan Papan Kekunci", "en": "Keyboard Shortcuts"}
+{"k": "script", "s": "Tetapkan Semula Bawaan", "en": "Reset to Defaults"}
+{"k": "script", "s": ">FOV tetap (otomatis)", "en": ">Fixed FOV (automatic)"}
+{"k": "script", "s": "Atur Ulang ke Default", "en": "Reset to Default"}
+{"k": "script", "s": "Khusus layer terpilih", "en": "Selected layer only"}
+{"k": "script", "s": "Khusus selected layer", "en": "Selected layer only"}
+{"k": "script", "s": "Khusus selected layer", "en": "Selected layer only"}
+{"k": "script", "s": "Pilih satu atau lebih", "en": "Choose one or more"}
+{"k": "script", "s": "Projek & Persekitaran", "en": "Projects & Environment"}
+{"k": "script", "s": "media belum tersedia.", "en": "media is not available yet."}
+{"k": "script", "s": "Galeri preset teks ·", "en": "Text preset gallery ·"}
+{"k": "script", "s": "Pilih preset kustom…", "en": "Choose a custom preset…"}
+{"k": "script", "s": "font lokal tersimpan", "en": "saved local fonts"}
+{"k": "script", "s": "layer sedang dipilih", "en": "layer is being selected"}
+{"k": "script", "s": "Edit Points ditutup", "en": "Edit Points closed"}
+{"k": "script", "s": "Hapus data analisis", "en": "Delete analysis data"}
+{"k": "script", "s": "Terapkan + keyframe", "en": "Apply + keyframe"}
+{"k": "script", "s": "Terapkan + keyframe", "en": "Apply + keyframe"}
+{"k": "script", "s": "layer yang dipilih.", "en": "selected layer."}
+{"k": "script", "s": "• Google Fonts siap", "en": "• Google Fonts ready"}
+{"k": "script", "s": "Pulihkan transform", "en": "Restore transform"}
+{"k": "script", "s": "Pulihkan transform", "en": "Restore transform"}
+{"k": "script", "s": "RESET HASIL TERUJI", "en": "RESET TESTED RESULTS"}
+{"k": "script", "s": "dari Google Fonts…", "en": "from Google Fonts…"}
+{"k": "script", "s": "font gagal diimpor", "en": "fonts failed to import"}
+{"k": "script", "s": "Pintasan Keyboard", "en": "Keyboard Shortcuts"}
+{"k": "script", "s": "Pulihkan Media AM", "en": "Restore AM Media"}
+{"k": "script", "s": "Pulihkan Tracking", "en": "Restore Tracking"}
+{"k": "script", "s": "Shape + Kamera 3D", "en": "Shape + 3D Camera"}
+{"k": "script", "s": "dari Local Fonts…", "en": "from Local Fonts…"}
+{"k": "script", "s": "kamera + keyframe", "en": "camera + keyframes"}
+{"k": "script", "s": "masih tertahan) ·", "en": "still holding) ·"}
+{"k": "script", "s": "• Local Font siap", "en": "• Local Font ready"}
+{"k": "script", "s": "Ikuti arah jalur", "en": "Follow path direction"}
+{"k": "script", "s": "Impor Trek Audio", "en": "Import Audio Track"}
+{"k": "script", "s": "Panduan Pintasan", "en": "Shortcut Guide"}
+{"k": "script", "s": "Rentang analisis", "en": "Analysis range"}
+{"k": "script", "s": "Teks + Kamera 3D", "en": "Text + 3D Camera"}
+{"k": "script", "s": "kategori aktif •", "en": "categories active •"}
+{"k": "script", "s": ">Terapkan Orbit", "en": ">Apply Orbit"}
+{"k": "script", "s": ">Terapkan Orbit", "en": ">Apply Orbit"}
+{"k": "script", "s": ">Terapkan rumus", "en": ">Apply formula"}
+{"k": "script", "s": ">Terapkan rumus", "en": ">Apply formula"}
+{"k": "script", "s": "Kecepatan Layer", "en": "Layer Speed"}
+{"k": "script", "s": "Reset ke Bawaan", "en": "Reset to Defaults"}
+{"k": "script", "s": "Tetap di Tengah", "en": "Stay Centred"}
+{"k": "script", "s": "event tersimpan", "en": "events saved"}
+{"k": "script", "s": "Ganti Pintasan", "en": "Change Shortcut"}
+{"k": "script", "s": "Parameter Efek", "en": "Effect Parameters"}
+{"k": "script", "s": "Semua di bawah", "en": "Everything below"}
+{"k": "script", "s": "Semua kategori", "en": "All categories"}
+{"k": "script", "s": "Stabil Presisi", "en": "Precision Stabilisation"}
+{"k": "script", "s": "Tampilkan Mask", "en": "Show Mask"}
+{"k": "script", "s": "Terapkan Orbit", "en": "Apply Orbit"}
+{"k": "script", "s": "Terapkan rumus", "en": "Apply formula"}
+{"k": "script", "s": "Tukar Pintasan", "en": "Swap Shortcut"}
+{"k": "script", "s": "layer terpilih", "en": "selected layer"}
+{"k": "script", "s": "proyek dihapus", "en": "projects deleted"}
+{"k": "script", "s": ">Zoom berubah", "en": ">Zoom changed"}
+{"k": "script", "s": ">Zoom berubah", "en": ">Zoom changed"}
+{"k": "script", "s": "Bawaan preset", "en": "Preset default"}
+{"k": "script", "s": "EASING KELUAR", "en": "EASING OUT"}
+{"k": "script", "s": "Layer Dipilih", "en": "Layer Selected"}
+{"k": "script", "s": "PROJEK BAHARU", "en": "NEW PROJECT"}
+{"k": "script", "s": "Projek Baharu", "en": "New Project"}
+{"k": "script", "s": "UNDUH LAPORAN", "en": "DOWNLOAD REPORT"}
+{"k": "script", "s": "diterapkan ke", "en": "applied to"}
+{"k": "script", "s": "gagal setelah", "en": "failed after"}
+{"k": "script", "s": "layer dipilih", "en": "layer selected"}
+{"k": "script", "s": "source mundur", "en": "source back"}
+{"k": "script", "s": "titik dipilih", "en": "points selected"}
+{"k": "script", "s": "↔ Ganti media", "en": "↔ Replace media"}
+{"k": "script", "s": ">Ekspor JSON", "en": ">Export JSON"}
+{"k": "script", "s": "Belum diuji.", "en": "Not tested yet."}
+{"k": "script", "s": "Ikuti target", "en": "Follow target"}
+{"k": "script", "s": "Path ditutup", "en": "Path closed"}
+{"k": "script", "s": "Pilih Segmen", "en": "Select Segment"}
+{"k": "script", "s": "Posisi XYZ •", "en": "XYZ Position •"}
+{"k": "script", "s": "Rotasi Euler", "en": "Euler Rotation"}
+{"k": "script", "s": "Susun projek", "en": "Arrange projects"}
+{"k": "script", "s": "Zoom berubah", "en": "Zoom changed"}
+{"k": "script", "s": "diatur ulang", "en": "reset"}
+{"k": "script", "s": "Detail Efek", "en": "Effect Details"}
+{"k": "script", "s": "Ganti media", "en": "Replace media"}
+{"k": "script", "s": "Grup Kosong", "en": "Empty Group"}
+{"k": "script", "s": "HAPUS LAYER", "en": "DELETE LAYER"}
+{"k": "script", "s": "Jenis lensa", "en": "Lens type"}
+{"k": "script", "s": "PILIH AUDIO", "en": "CHOOSE AUDIO"}
+{"k": "script", "s": "PILIH MEDIA", "en": "CHOOSE MEDIA"}
+{"k": "script", "s": "Projek Anda", "en": "Your Projects"}
+{"k": "script", "s": "SALIN AKTIF", "en": "COPY ACTIVE"}
+{"k": "script", "s": "Sembunyikan", "en": "Hide"}
+{"k": "script", "s": "Tambah Efek", "en": "Add Effect"}
+{"k": "script", "s": "Terapkan ke", "en": "Apply to"}
+{"k": "script", "s": "mm terkunci", "en": "mm locked"}
+{"k": "script", "s": "yang sesuai", "en": "matching"}
+{"k": "script", "s": "Impor JSON", "en": "Import JSON"}
+{"k": "script", "s": "Mode aktif", "en": "Active mode"}
+{"k": "script", "s": "SEMUA FONT", "en": "ALL FONTS"}
+{"k": "script", "s": "Salin Efek", "en": "Copy Effect"}
+{"k": "script", "s": "Semua Efek", "en": "All Effects"}
+{"k": "script", "s": "Tutup Path", "en": "Close Path"}
+{"k": "script", "s": "\" dihapus", "en": "\" deleted"}
+{"k": "script", "s": "Kecepatan", "en": "Speed"}
+{"k": "script", "s": "Tampilkan", "en": "Show"}
+{"k": "script", "s": "penanda ·", "en": "markers ·"}
+{"k": "script", "s": "← Kembali", "en": "← Back"}
+{"k": "script", "s": "Otomatis", "en": "Automatic"}
+{"k": "script", "s": "Perbarui", "en": "Update"}
+{"k": "script", "s": "Skala 3D", "en": "3D Scale"}
+{"k": "script", "s": "Terapkan", "en": "Apply"}
+{"k": "script", "s": "berbasis", "en": "based on"}
+{"k": "script", "s": ">Mundur", "en": ">Back"}
+{"k": "script", "s": ">Mundur", "en": ">Back"}
+{"k": "script", "s": "Dipilih", "en": "Selected"}
+{"k": "script", "s": "dipilih", "en": "selected"}
+{"k": "script", "s": "px pada", "en": "px at"}
+{"k": "script", "s": "• geser", "en": "• drag"}
+{"k": "script", "s": ">Hapus", "en": ">Delete"}
+{"k": "script", "s": "Kamera", "en": "Camera"}
+{"k": "script", "s": "Mundur", "en": "Back"}
+{"k": "script", "s": "Posisi", "en": "Position"}
+{"k": "script", "s": "Rotasi", "en": "Rotation"}
+{"k": "script", "s": "TEMPEL", "en": "PASTE"}
+{"k": "script", "s": "Ulangi", "en": "Repeat"}
+{"k": "script", "s": "efek\">", "en": "effect\">"}
+{"k": "script", "s": ">Maju", "en": ">Forward"}
+{"k": "script", "s": ">Maju", "en": ">Forward"}
+{"k": "script", "s": "Hapus", "en": "Delete"}
+{"k": "script", "s": "MULAI", "en": "START"}
+{"k": "script", "s": "PILIH", "en": "CHOOSE"}
+{"k": "script", "s": "Putar", "en": "Play"}
+{"k": "script", "s": "Tutup", "en": "Close"}
+{"k": "script", "s": "Warna", "en": "Colour"}
+{"k": "script", "s": "aktif", "en": "active"}
+{"k": "script", "s": "BUKA", "en": "OPEN"}
+{"k": "script", "s": "Maju", "en": "Forward"}
+{"k": "script", "s": "Teks", "en": "Text"}
+{"k": "script", "s": "pada", "en": "at"}

@@ -1,0 +1,94 @@
+{"k":"html-attr:title","s":"Fullscreen"}
+{"k":"html-attr:aria-label","s":"Back"}
+{"k":"html-attr:placeholder","s":"Search Google or local fonts…"}
+{"k":"html-attr:title","s":"Reload catalog"}
+{"k":"html-attr:aria-label","s":"Cancel"}
+{"k":"html-attr:aria-label","s":"Done"}
+{"k":"html-attr:aria-label","s":"Change the layer's start point"}
+{"k":"html-attr:aria-label","s":"Change the layer's end point"}
+{"k":"html-attr:aria-label","s":"Stack layers in order from bottom to top"}
+{"k":"html-attr:title","s":"${orbitSpace?'Base reference '+transformSpace.toUpperCase()+' • Orbit 360° active':'Change the layer transform reference'}"}
+{"k":"html-attr:aria-label","s":"Open the 360° Camera Orbit menu"}
+{"k":"html-attr:title","s":"360° Camera Orbit • shortcut to bind the camera to a layer"}
+{"k":"html-attr:aria-label","s":"Choose the camera lens type"}
+{"k":"html-attr:title","s":"Camera Lens Type: ${this.cameraLensModeLabel(lensMode)}"}
+{"k":"html-attr:aria-label","s":"Open Curve Editor"}
+{"k":"html-attr:aria-label","s":"Back to regular Easing"}
+{"k":"html-attr:title","s":"3D Camera"}
+{"k":"html-attr:title","s":"Null Object"}
+{"k":"html-attr:title","s":"Empty Group"}
+{"k":"html-attr:title","s":"Elements & Projects"}
+{"k":"html-attr:title","s":"Freehand Drawing"}
+{"k":"html-attr:title","s":"Vector Drawing"}
+{"k":"html-attr:title","s":"Text"}
+{"k":"html-attr:aria-label","s":"Close path"}
+{"k":"html-attr:aria-label","s":"Corner or Smooth Bézier"}
+{"k":"html-attr:aria-label","s":"Add point"}
+{"k":"html-attr:aria-label","s":"Drag to edit or place a new point; with a point or endpoint selected, tap once to confirm"}
+{"k":"html-attr:aria-label","s":"Point and segment order navigator; swipe to page through"}
+{"k":"html-attr:aria-label","s":"Open Blending and Opacity"}
+{"k":"html-attr:aria-label","s":"Relink media"}
+{"k":"html-attr:title","s":"Extend the layer's ${dir} end to the playhead"}
+{"k":"html-attr:title","s":"Move the layer so its ${dir} end sits on the playhead"}
+{"k":"html-attr:placeholder","s":"Search font name…"}
+{"k":"html-attr:title","s":"${ctx?esc(ctx.spec.name+' • '+ctx.param.label):'Choose an effect parameter first'}"}
+{"k":"html-attr:title","s":"Paste the most recently copied effect"}
+{"k":"html-attr:aria-label","s":"Sort effects"}
+{"k":"html-attr:aria-label","s":"${enabled?'Disable':'Enable'} effect"}
+{"k":"html-attr:aria-label","s":"Effect menu"}
+{"k":"html-attr:aria-label","s":"Expand or collapse parameters"}
+{"k":"html-attr:aria-label","s":"Delete effect"}
+{"k":"html-attr:title","s":"${available?'Renderer active':esc(OMSUnifiedEffects.reason(model.selectedLayer?.(),spec))}"}
+{"k":"html-attr:placeholder","s":"Search effects..."}
+{"k":"html-attr:aria-label","s":"${esc(spec.name)} menu"}
+{"k":"html-attr:aria-label","s":"${label}; tap to select, press and hold to edit the value"}
+{"k":"html-attr:title","s":"Tap to select ${label} • press and hold to type a value"}
+{"k":"html-attr:aria-label","s":"XYZ layer rotation"}
+{"k":"html-attr:aria-label","s":"${item.label}; tap to select, press and hold to edit the value"}
+{"k":"html-attr:title","s":"Tap to select ${item.label} • press and hold to type a value"}
+{"k":"html-attr:title","s":"${item.disabled?item.label+' locked by '+this.cameraLensModeLabel(lensMode):focusTitle||('Tap to select '+item.label+' • press and hold to type a value'+(keyed?' • keyframe at playhead':''))}"}
+{"k":"html-attr:title","s":"Enter an exact rotation value"}
+{"k":"html-attr:title","s":"${keyable?(keyed?'Remove the keyframe at this time':'Add a keyframe at this time'):'This lens parameter is locked'}"}
+{"k":"html-attr:title","s":"${keyable?'Open the easing editor':'This lens parameter is locked'}"}
+{"k":"html-attr:title","s":"Position"}
+{"k":"html-attr:aria-label","s":"Close keyframe controls"}
+{"k":"html-attr:title","s":"${keyedNow?'Remove the keyframe at this time':'Add a keyframe at the playhead'}"}
+{"k":"html-attr:title","s":"${this.xmlEscape(p.name||'New Project')}"}
+{"k":"html-attr:aria-label","s":"Controller or expression name"}
+{"k":"html-attr:aria-label","s":"Marker time ${i+1}"}
+{"k":"html-attr:aria-label","s":"Marker name ${i+1}"}
+{"k":"html-attr:aria-label","s":"Delete marker ${i+1}"}
+{"k":"html-attr:aria-label","s":"Search text animation presets"}
+{"k":"html-attr:aria-label","s":"Text animation preset categories"}
+{"k":"html-attr:placeholder","s":"Custom preset name…"}
+{"k":"html-attr:aria-label","s":"Custom preset name"}
+{"k":"html-attr:aria-label","s":"Managed custom presets"}
+{"k":"html-attr:aria-label","s":"Text expressions per target"}
+{"k":"html-attr:aria-label","s":"Template time position"}
+{"k":"html-attr:title","s":"One slot replaces every layer that uses the same asset. Keyframes, effects, trims and layout are preserved. Pick the same file type."}
+{"k":"html-attr:aria-label","s":"Choose replacement media"}
+{"k":"html-attr:aria-label","s":"Delete '+esc(p.name)+'"}
+{"k":"html-attr:aria-label","s":"Delete preset"}
+{"k":"html-attr:title","s":"Back to layer"}
+{"k":"html-attr:title","s":"Add / remove a keyframe on the active parameter"}
+{"k":"html-attr:title","s":"Curve / easing for the active parameter"}
+{"k":"html-attr:title","s":"Expression for the active parameter"}
+{"k":"html-attr:title","s":"Effect clipboard"}
+{"k":"html-attr:aria-label","s":"Effect clipboard"}
+{"k":"html-attr:aria-label","s":"Close panel"}
+{"k":"html-attr:aria-label","s":"Effect name"}
+{"k":"html-attr:aria-label","s":"Color '+(i.specId===BORDER?'border':'shadow')+'"}
+{"k":"html-attr:aria-label","s":"Finish selecting layers"}
+{"k":"html-attr:aria-label","s":"${['Create Group','Group and Mask','Group and Exclude'][i]}"}
+{"k":"html-attr:title","s":"${esc(plan.reason||['Create Group','Group and Mask','Group and Exclude'][i])}"}
+{"k":"html-attr:aria-label","s":"Delete selected layers"}
+{"k":"html-attr:title","s":"Back to the main timeline"}
+{"k":"html-attr:aria-label","s":"Group settings"}
+{"k":"html-attr:title","s":"${esc(reason||'Release the group contents; Mask / Exclude stays intact.')}"}
+{"k":"html-attr:aria-label","s":"Stroke color"}
+{"k":"html-attr:aria-label","s":"Leave the layer panel"}
+{"k":"html-attr:title","s":"Exit"}
+{"k":"html-attr:aria-label","s":"Layer name"}
+{"k":"html-attr:title","s":"Tap to rename the layer"}
+{"k":"html-attr:aria-label","s":"Delete layer"}
+{"k":"html-attr:title","s":"Delete layer"}

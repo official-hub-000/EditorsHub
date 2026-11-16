@@ -1,0 +1,94 @@
+{"k": "html-text", "s": "IMPORT"}
+{"k": "html-text", "s": "Faster access &amp; fullscreen"}
+{"k": "html-text", "s": "Professional motion, visual effects and compositing, right on your phone."}
+{"k": "html-text", "s": "Start New Project"}
+{"k": "html-text", "s": "New Project"}
+{"k": "html-text", "s": "Create an empty canvas"}
+{"k": "html-text", "s": "Quick Tutorial"}
+{"k": "html-text", "s": "Ready Templates"}
+{"k": "html-text", "s": "Start instantly"}
+{"k": "html-text", "s": "Import Project"}
+{"k": "html-text", "s": "Open a file"}
+{"k": "html-text", "s": "Recent Projects"}
+{"k": "html-text", "s": "View All →"}
+{"k": "html-text", "s": "No projects opened yet. Tap "}
+{"k": "html-text", "s": " to create your first project!"}
+{"k": "html-text", "s": "Add keyframes to position, scale and rotation, then shape them with Bezier easing curves."}
+{"k": "html-text", "s": "3D Composition Space & Camera"}
+{"k": "html-text", "s": "Enable TRUE 3D, move layers along the Z axis and navigate with an orbit camera."}
+{"k": "html-text", "s": "Cut objects with geometric shapes and blend with multiply/screen like a pro."}
+{"k": "html-text", "s": "Effect Catalog & Audio Spectrum"}
+{"k": "html-text", "s": "Apply chromatic aberration, neon glow, visualizer waves and color balance."}
+{"k": "html-text", "s": "Full Resolution 60 FPS Video Export"}
+{"k": "html-text", "s": "Bit-rate controls, fast GPU export, and a fullscreen preview before you save."}
+{"k": "html-text", "s": "RENDER & EXPORT"}
+{"k": "html-text", "s": "Your Projects"}
+{"k": "html-text", "s": "Name"}
+{"k": "html-text", "s": "NEW PROJECT"}
+{"k": "html-text", "s": "TEXT"}
+{"k": "html-text", "s": "Animated Text Title"}
+{"k": "html-text", "s": "Overshoot scale bounce with a modern elastic easing curve."}
+{"k": "html-text", "s": "3D Parallax Effect"}
+{"k": "html-text", "s": "Three shape layers on separate Z-depth planes."}
+{"k": "html-text", "s": "CAMERA"}
+{"k": "html-text", "s": "Cinematic Camera"}
+{"k": "html-text", "s": "Orbiting camera motion with a dynamic roll angle."}
+{"k": "html-text", "s": "Fast zoom-in transition with smooth easing and opacity."}
+{"k": "html-text", "s": "Projects"}
+{"k": "html-text", "s": "Export"}
+{"k": "html-text", "s": "Delete"}
+{"k": "html-text", "s": "Language"}
+{"k": "html-text", "s": "Choose the EditorsHub interface language."}
+{"k": "html-text", "s": "Your choice is saved on this device and can be changed anytime from Home."}
+{"k": "html-text", "s": "EditorsHub is a work in progress"}
+{"k": "html-text", "s": "This build is still an early release. Some features are limited and you may run into occasional bugs."}
+{"k": "html-text", "s": "EditorsHub today"}
+{"k": "html-text", "s": "Some areas, such as "}
+{"k": "html-text", "s": "playback, the timeline, the 3D system, performance and other editing features"}
+{"k": "html-text", "s": " are still being developed and refined."}
+{"k": "html-text", "s": "EditorsHub grows step by step, focused on becoming a flexible, lightweight motion graphics editor with a comfortable workflow."}
+{"k": "html-text", "s": "The road ahead"}
+{"k": "html-text", "s": "EditorsHub is built on the open-source Open Motion engine, which is still evolving quickly, so new features, fixes and workflow improvements arrive with every update."}
+{"k": "html-text", "s": "You are already running the "}
+{"k": "html-text", "s": " native build: the editor runs on your device, works offline, and exports straight to your gallery or the share sheet."}
+{"k": "html-text", "s": "What is the Open Motion engine?"}
+{"k": "html-text", "s": "EditorsHub is the "}
+{"k": "html-text", "s": " Android app for the Open Motion project: a browser-class motion graphics engine that covers video, audio, images, text, compositing, animation, effects, timelines, preview, rendering and export."}
+{"k": "html-text", "s": "Because that engine runs on the device's own graphics pipeline, "}
+{"k": "html-text", "s": "The engine works in a similar way to "}
+{"k": "html-text", "s": ", so timelines and media elements can react to state changes in real time while you edit."}
+{"k": "html-text", "s": "The engine also supports "}
+{"k": "html-text", "s": " 3D space such as X, Y, Z positioning, cameras, parallax and three-dimensional rotation, plus low-level APIs for "}
+{"k": "html-text", "s": "GPU rendering and custom GLSL shaders"}
+{"k": "html-text", "s": "The app is not meant to be just another video editor. It is built to grow into a "}
+{"k": "html-text", "s": "motion graphics, animation, compositing and 3D"}
+{"k": "html-text", "s": "The engine is the multimedia foundation of EditorsHub"}
+{"k": "html-text", "s": ", handling timelines, video/audio decoding, playback, compositing, animation, effects, filters, GPU rendering, video export, and the 3D and camera systems."}
+{"k": "html-text", "s": "With that engine in place, EditorsHub does not have to rebuild an entire multimedia stack from scratch, and development can focus on what makes the app its own: "}
+{"k": "html-text", "s": "the editor UI, keyframes, the timeline, animation workflow, tools, effects and other creative features."}
+{"k": "html-text", "s": "The engine is built on Kotlin Multiplatform and is designed to run on multiple platforms. Its developer material already covers iPhone, iPad and macOS, while Android and Windows are still in development. Web and backend support are planned."}
+{"k": "html-text", "s": "The Open Motion project is also planned to become "}
+{"k": "html-text", "s": " fully open source, and is being prepared for that public release."}
+{"k": "html-text", "s": "Not a final decision"}
+{"k": "html-text", "s": "The engine may not stay exactly as it is today."}
+{"k": "html-text", "s": " Once the framework is fully released we can judge whether its performance, features, compatibility, licensing and direction fit the needs of EditorsHub."}
+{"k": "html-text", "s": "For now, EditorsHub keeps growing as a hands-on project while features and ideas are explored."}
+{"k": "html-text", "s": "Thank you for trying EditorsHub and following it from this early stage."}
+{"k": "html-text", "s": "Don't show again"}
+{"k": "html-text", "s": "Untitled"}
+{"k": "html-text", "s": "Display &amp; Action Options"}
+{"k": "html-text", "s": "Camera, preview &amp; render settings"}
+{"k": "html-text", "s": "Fast render cache for smooth playback"}
+{"k": "html-text", "s": "Look Through Camera"}
+{"k": "html-text", "s": "Switch between the Camera &amp; Orbit Editor"}
+{"k": "html-text", "s": "Shape"}
+{"k": "html-text", "s": "Object / Element"}
+{"k": "html-text", "s": "Vector Drawing"}
+{"k": "html-text", "s": "Text"}
+{"k": "html-text", "s": "New Project "}
+{"k": "html-text", "s": "PROJECT"}
+{"k": "html-text", "s": "Custom Size (px)"}
+{"k": "html-text", "s": "Duration"}
+{"k": "html-text", "s": "10 seconds"}
+{"k": "html-text", "s": "15 seconds"}
+{"k": "html-text", "s": "30 seconds"}

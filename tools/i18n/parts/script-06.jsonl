@@ -1,0 +1,120 @@
+{"s": "Shader eksperimen gagal: "}
+{"s": "AM Link · Graph eksperimen V5.252. Shader, pass dan buffer sumber; paritas Android belum diklaim."}
+{"s": "Efek ini memerlukan layer teks."}
+{"s": "Taper memerlukan stroke freehand dengan data titik."}
+{"s": "Efek ini memerlukan jalur shape atau freehand."}
+{"s": "Efek ini memerlukan layer animasi yang sesuai."}
+{"s": "Jalur native eksperimen V5.253; cakupan shape/teks, waktu dan transform lokal. Paritas Android penuh belum diklaim."}
+{"s": "Repeat Path memerlukan outline shape; teks/media/freehand belum menyediakan outline native."}
+{"s": "Repeat stack menghasilkan lebih dari 65536 salinan; hasil tidak dipotong diam-diam."}
+{"s": "Echo mode native di luar 0/1 belum didukung."}
+{"s": "Repeat pada tipe "}
+{"s": " belum diimplementasikan."}
+{"s": "Repeat memerlukan sumber plane atau group; tipe "}
+{"s": " belum didukung adapter."}
+{"s": "Salinan layer native eksperimen V5.255; parameter/keyframe tetap dapat diedit. Paritas Android penuh belum diklaim."}
+{"s": "Native parenting lintas scene group belum tersedia."}
+{"s": "Bend Warp parenting native memerlukan solusi docking yang belum diimplementasikan."}
+{"s": "Move Along Path 3 memerlukan outline shape; glyph/media/freehand belum didukung."}
+{"s": "Native path/parent adapter untuk "}
+{"s": " belum diverifikasi."}
+{"s": "Transform/path native V5.256; parenting 2D, keyframe dan XML. Paritas Android penuh belum diklaim."}
+{"s": "Legacy Move Along Path memerlukan outline shape; glyph/media/freehand belum didukung."}
+{"s": "Native transform state belum siap."}
+{"s": "Legacy path menghasilkan tangent nol/nonfinite; cabang PathMeasure native belum diverifikasi."}
+{"s": "Parts pada kamera/audio belum dihubungkan ke evaluasi native."}
+{"s": "Transform anggota nested scene native V5.257; depth, keyframe dan ID sumber dipertahankan. Paritas Android penuh belum diklaim."}
+{"s": "Morph Path memerlukan outline shape/vector. Outline glyph, media dan freehand belum tersedia."}
+{"s": "Morph Path: outline shape/vector tersedia; glyph/media/freehand belum didukung."}
+{"s": "Morph outline lokal menuju shape sebelumnya. 301 sampel, keyframe dan XML; paritas PathMeasure Android belum diverifikasi."}
+{"s": "Text Transform: contour memerlukan outline font; belum didukung."}
+{"s": "Text Transform + Text Animator/Drawing Progress memerlukan penggabungan outline yang belum tersedia."}
+{"s": "Text Transform: fill gradient/media belum diverifikasi."}
+{"s": "Eksperimen huruf/kata/baris. Tata glyph memakai font browser, bukan kontur Android; hanya efek pertama yang aktif dibaca."}
+{"s": "Transform per huruf/kata/baris dengan range/keyframe native. Kontur font dan paritas Android belum tersedia; efek pertama yang aktif digunakan."}
+{"s": "Legacy Luma + native edge decorations/blend: tahap native setelah efek belum identik."}
+{"s": "Legacy eksperimen: dua pass dan transparansi dipertahankan. Paritas native Android penuh belum diverifikasi."}
+{"s": "Shader asli dan fallback target native eksperimen. Dua pass: terminal source-over, perantara overwrite. Paritas Android/edge decorations belum selesai."}
+{"s": "AM Link · Warna eksperimen V5.251. Shader/default sumber dipertahankan; paritas native penuh belum diklaim."}
+{"s": "Freeze adalah indikasi berbasis timestamp, bukan perbandingan piksel. Video dengan gambar statis dapat tetap mempresentasikan frame baru."}
+{"s": "currentTime yang bergerak tidak membuktikan bahwa frame baru dipresentasikan. Bukti frame menggunakan mediaTime rVFC yang sudah dimiliki aplikasi."}
+{"s": "Tanpa rVFC, diagnostik hanya dapat menilai jam media; freeze gambar tidak dapat dipastikan."}
+{"s": "Waktu CPU metode bersifat inklusif dan bertumpuk: jangan dijumlahkan. Waktu upload/submission bukan waktu GPU selesai."}
+{"s": "Mode cache komposisi, follower shared, bagian hold/edge, ekspor dan tab tersembunyi dikecualikan dari detektor freeze video live."}
+{"s": "Jeda observasi panjang dicatat terpisah; tidak otomatis dianggap decoder macet. Penyebab hardware/software belum dapat dipastikan."}
+{"s": "Peringatan texture/cache hanya dinilai saat media drawable, tidak seeking dan tidak paused; seek/unready bukan bukti kegagalan GPU."}
+{"s": "Hitungan write adalah assignment berhasil pada jalur sync/tick/koreksi live yang diinstrumentasi; bukan jumlah seek internal browser."}
+{"s": "Tutup panel → putar 20–30 detik → hentikan → unduh laporan. Tidak perlu ekspor."}
+{"s": "Volume/mute/rate adalah kontrol elemen, bukan pengukuran suara dari speaker. Semua video tidak mute belum membuktikan semuanya memiliki track audio."}
+{"s": "waiting/stalled dan buffered adalah bukti kondisi elemen media; bukan penghitung audio underrun dan bukan bukti penyebab suara mengecil."}
+{"s": "RMS/peak memakai getFloatTimeDomainData pada analyser yang sudah dimiliki aplikasi. Diagnostik tidak membuat atau mengubah jalur audio."}
+{"s": "Sinyal hanya mencakup node yang terhubung ke bus yang diamati, sebelum output perangkat/OS. Coverage dicatat; sumber di luar bus tidak terukur."}
+{"s": "Level rendah/penurunan sinyal tidak otomatis berarti bug: konten musik, campuran sumber dan perubahan yang disengaja juga dapat mengubah level."}
+{"s": "Sampling sinyal maksimal 4 kali/detik; jendela PCM pendek dan jeda observasi dapat melewatkan gangguan singkat. Tidak menyimpan PCM atau rekaman suara."}
+{"s": "Penanda gangguan audio dari panel diagnostik adalah laporan pengguna, bukan deteksi otomatis atau waktu pasti awal gangguan."}
+{"s": "Riwayat dibatasi jumlah dan estimasi byte metadata, bukan ukuran RAM aktual. Pengukuran unavailable/null tidak boleh dianggap nol."}
+{"s": "Sinyal belum diukur"}
+{"s": "Angka harus finite."}
+{"s": "Array maksimal 128 item."}
+{"s": "Panjang vektor tidak sama."}
+{"s": "Rumus maksimal 16384 karakter."}
+{"s": "Rumus terlalu kompleks atau terlalu dalam."}
+{"s": "Sintaks belum didukung: "}
+{"s": "Nama terlarang: "}
+{"s": "RegExp dan BigInt belum didukung."}
+{"s": "Getter, setter dan metode objek tidak diizinkan."}
+{"s": "Operator belum didukung: "}
+{"s": "Operator tidak diizinkan: "}
+{"s": "Assignment belum didukung."}
+{"s": "Async dan generator tidak diizinkan."}
+{"s": "Destructuring belum didukung."}
+{"s": "Parameter harus nama variabel."}
+{"s": "Async tidak diizinkan."}
+{"s": "Rumus kosong."}
+{"s": "Nama tidak dikenal: "}
+{"s": "Nama sudah dipakai atau terlarang: "}
+{"s": "Variabel sudah dideklarasikan: "}
+{"s": "Const tidak dapat diubah: "}
+{"s": "Global/properti AE hanya dapat dibaca: "}
+{"s": "Indeks tidak valid."}
+{"s": "Konversi objek ke string tidak diizinkan."}
+{"s": "Replace hanya mendukung string."}
+{"s": "Reduce membutuhkan nilai awal atau array berisi."}
+{"s": "Properti tidak tersedia: "}
+{"s": "Properti belum tersedia: "}
+{"s": "Tujuan assignment tidak valid."}
+{"s": "Properti API AE hanya dapat dibaca."}
+{"s": "Indeks array tidak valid."}
+{"s": "Panjang array tidak valid."}
+{"s": "Objek terlalu besar."}
+{"s": "Maksimal 16 argumen."}
+{"s": "Parameter belum didukung."}
+{"s": "Fungsi tidak diizinkan."}
+{"s": "Perbandingan membutuhkan angka atau string."}
+{"s": "Object spread belum didukung."}
+{"s": "Ekspresi belum didukung: "}
+{"s": "Label belum didukung."}
+{"s": "Pernyataan belum didukung: "}
+{"s": "Break/continue harus berada di dalam loop."}
+{"s": "Waktu di luar batas."}
+{"s": "Marker tidak ditemukan."}
+{"s": "Layer/komposisi belum memiliki marker."}
+{"s": "Terlalu banyak keyframe untuk satu Expression."}
+{"s": "Keyframe tidak ditemukan."}
+{"s": "Properti belum memiliki keyframe."}
+{"s": "Jenis loop belum didukung: "}
+{"s": "Wiggle: frekuensi 0–10000 dan octave 1–8."}
+{"s": "Layer tidak ditemukan."}
+{"s": "Efek/controller tidak ditemukan: "}
+{"s": "Parameter efek tidak tersedia."}
+{"s": "Parameter efek tidak ditemukan: "}
+{"s": "Interpolasi membutuhkan 3 atau 5 argumen."}
+{"s": "Dot membutuhkan vektor sama panjang."}
+{"s": "Posisi XYZ (px)"}
+{"s": "Kontrol Expression aktif; tidak menggunakan pass shader."}
+{"s": "Controller tidak ditemukan: "}
+{"s": "Parameter controller tidak ditemukan: "}
+{"s": "Hasil harus "}
+{"s": "Hasil properti di luar batas ±1e9."}
+{"s": "Waktu Expression tidak valid."}
+{"s": "Terlalu banyak layer dalam Expression."}

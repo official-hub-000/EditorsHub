@@ -24,14 +24,14 @@ val prepareWebAssets by tasks.registering(Exec::class) {
 tasks.named("preBuild") { dependsOn(prepareWebAssets) }
 
 // Name the APK after the app instead of the module: Open Motion-debug.apk
-base.archivesName.set("OpenMotion")
+base.archivesName.set("EditorsHub")
 
 android {
-    namespace = "dev.openmotion.nativeapp"
+    namespace = "com.editorhub"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "dev.openmotion.nativeapp"
+        applicationId = "com.editorhub"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

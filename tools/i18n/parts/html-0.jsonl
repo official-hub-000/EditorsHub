@@ -1,0 +1,94 @@
+{"k": "html-text", "s": "IMPOR"}
+{"k": "html-text", "s": "Aplikasi lebih cepat &amp; layar penuh"}
+{"k": "html-text", "s": "Editor gerak, efek visual, dan compositing profesional standar Alight Motion di perangkat seluler Anda."}
+{"k": "html-text", "s": "Mulai Proyek Baru"}
+{"k": "html-text", "s": "Proyek Baru"}
+{"k": "html-text", "s": "Buat kanvas kosong"}
+{"k": "html-text", "s": "Tutorial Cepat"}
+{"k": "html-text", "s": "Templat Siap"}
+{"k": "html-text", "s": "Mulai instan"}
+{"k": "html-text", "s": "Impor Proyek"}
+{"k": "html-text", "s": "Buka berkas"}
+{"k": "html-text", "s": "Proyek Terkini"}
+{"k": "html-text", "s": "Lihat Semua →"}
+{"k": "html-text", "s": "Belum ada proyek yang dibuka. Tekan "}
+{"k": "html-text", "s": " untuk membuat proyek pertama!"}
+{"k": "html-text", "s": "Cara menambahkan titik keyframe pada posisi, skala, dan rotasi serta mengatur kurva kurvatur Bezier."}
+{"k": "html-text", "s": "Ruang Komposisi 3D & Kamera"}
+{"k": "html-text", "s": "Mengaktifkan TRUE 3D, memindahkan layer di sumbu Z, dan navigasi kamera orbit."}
+{"k": "html-text", "s": "Memotong objek dengan shape geometri dan blending multiply/screen layaknya pro."}
+{"k": "html-text", "s": "Katalog Efek & Spectrum Audio"}
+{"k": "html-text", "s": "Menerapkan chromatic aberration, glow neon, gelombang visualizer, dan color balance."}
+{"k": "html-text", "s": "Ekspor Video Resolusi Penuh 60 FPS"}
+{"k": "html-text", "s": "Pengaturan bit-rate, hardware GPU Fast export, dan pratinjau fullscreen sebelum menyimpan."}
+{"k": "html-text", "s": "RENDER & EKSPOR"}
+{"k": "html-text", "s": "Proyek Anda"}
+{"k": "html-text", "s": "Nama"}
+{"k": "html-text", "s": "PROYEK BARU"}
+{"k": "html-text", "s": "TEKS"}
+{"k": "html-text", "s": "Judul Animasi Teks"}
+{"k": "html-text", "s": "Overshoot scale bounce dengan ease kurva elastis modern."}
+{"k": "html-text", "s": "Efek Parallax 3D"}
+{"k": "html-text", "s": "Tiga lapisan shape pada bidang kedalaman Z berbeda."}
+{"k": "html-text", "s": "KAMERA"}
+{"k": "html-text", "s": "Kamera Sinematik"}
+{"k": "html-text", "s": "Gerakan kamera berputar dengan roll sudut dinamis."}
+{"k": "html-text", "s": "Transisi zoom-in cepat dengan easing smooth dan opacity."}
+{"k": "html-text", "s": "Proyek"}
+{"k": "html-text", "s": "Ekspor"}
+{"k": "html-text", "s": "Hapus"}
+{"k": "html-text", "s": "Bahasa"}
+{"k": "html-text", "s": "Pilih bahasa antarmuka Open Motion."}
+{"k": "html-text", "s": "Pilihan tersimpan di perangkat ini dan dapat diubah kapan saja dari beranda."}
+{"k": "html-text", "s": "Open Motion masih dalam tahap eksperimen"}
+{"k": "html-text", "s": "Versi yang kamu gunakan sekarang masih merupakan prototipe awal. Fiturnya memang belum banyak dan kemungkinan masih ada beberapa bug."}
+{"k": "html-text", "s": "Open Motion saat ini"}
+{"k": "html-text", "s": "Beberapa bagian seperti "}
+{"k": "html-text", "s": "playback, timeline, sistem 3D, performa, dan fitur editor lainnya"}
+{"k": "html-text", "s": " masih terus dikembangkan dan disempurnakan."}
+{"k": "html-text", "s": "Open Motion akan berkembang secara bertahap dengan fokus membangun editor motion graphics yang fleksibel, ringan, dan punya workflow yang nyaman digunakan."}
+{"k": "html-text", "s": "Rencana ke depan"}
+{"k": "html-text", "s": "Untuk sekarang, Open Motion dikembangkan sebagai aplikasi berbasis web karena lebih cepat untuk melakukan eksperimen, mencoba fitur baru, dan mengubah sistem editor."}
+{"k": "html-text", "s": "Ke depannya, ada rencana untuk membuat "}
+{"k": "html-text", "s": " dirilis dan kondisinya sudah cukup matang untuk digunakan."}
+{"k": "html-text", "s": "Apa itu Opus Framework?"}
+{"k": "html-text", "s": " adalah framework "}
+{"k": "html-text", "s": " yang sedang dikembangkan oleh The Prismatic Company, yang juga melibatkan pengembang yang sebelumnya pernah mengerjakan Alight Motion."}
+{"k": "html-text", "s": "Secara sederhana, Opus menyediakan fondasi untuk membuat aplikasi yang berhubungan dengan video dan motion graphics. Framework ini dirancang untuk menangani video, audio, gambar, teks, compositing, animasi, efek visual, timeline multimedia, preview, rendering, export, serta berbagai kebutuhan media lainnya."}
+{"k": "html-text", "s": "Cara kerjanya memakai pendekatan yang mirip dengan "}
+{"k": "html-text", "s": ", sehingga timeline dan elemen media dapat bereaksi terhadap perubahan state secara real-time saat pengguna melakukan editing."}
+{"k": "html-text", "s": "Opus juga sudah memperlihatkan dukungan untuk "}
+{"k": "html-text", "s": " seperti posisi X, Y, Z, kamera, parallax, dan rotasi tiga dimensi, serta API tingkat rendah untuk "}
+{"k": "html-text", "s": "GPU rendering dan custom shader GLSL"}
+{"k": "html-text", "s": "Karena tujuan Open Motion bukan hanya menjadi editor video biasa. Open Motion direncanakan berkembang menjadi editor "}
+{"k": "html-text", "s": "motion graphics, animation, compositing, dan 3D"}
+{"k": "html-text", "s": "Opus bisa menjadi fondasi mesin multimedia Open Motion"}
+{"k": "html-text", "s": " untuk menangani timeline, decoding video/audio, playback, compositing, animasi, efek, filter, GPU rendering, export video, serta sistem 3D dan kamera."}
+{"k": "html-text", "s": "Kalau Opus nantinya memang cocok, Open Motion tidak perlu membangun seluruh engine multimedia dari nol. Pengembangan bisa lebih fokus pada bagian yang benar-benar membentuk identitas Open Motion: "}
+{"k": "html-text", "s": "UI editor, keyframe, timeline, workflow animasi, tools, efek, dan fitur kreatif lainnya."}
+{"k": "html-text", "s": "Opus berbasis Kotlin Multiplatform dan dirancang untuk digunakan di beberapa platform. Pada materi pengembangnya, iPhone, iPad, dan macOS sudah didukung, sementara Android dan Windows masih dalam pengembangan. Dukungan Web dan backend juga direncanakan."}
+{"k": "html-text", "s": "Opus juga direncanakan menjadi "}
+{"k": "html-text", "s": ", tetapi saat ini masih dipersiapkan sebelum dirilis secara publik."}
+{"k": "html-text", "s": "Belum keputusan final"}
+{"k": "html-text", "s": "Opus belum tentu menjadi engine final Open Motion."}
+{"k": "html-text", "s": " Setelah framework-nya benar-benar dirilis, baru bisa dilihat apakah performa, fitur, kompatibilitas, lisensi, dan arah pengembangannya cocok dengan kebutuhan Open Motion."}
+{"k": "html-text", "s": "Untuk sekarang, Open Motion akan tetap berkembang sebagai proyek eksperimen sambil terus membangun fitur dan mencoba berbagai ide."}
+{"k": "html-text", "s": "Terima kasih sudah mencoba Open Motion dan ikut melihat perkembangannya dari tahap awal."}
+{"k": "html-text", "s": "Jangan tampilkan lagi"}
+{"k": "html-text", "s": "Tanpa judul"}
+{"k": "html-text", "s": "Opsi Tampilan &amp; Aksi"}
+{"k": "html-text", "s": "Pengaturan kamera, preview &amp; render"}
+{"k": "html-text", "s": "Render cache cepat untuk playback lancar"}
+{"k": "html-text", "s": "Lihat Melalui Kamera"}
+{"k": "html-text", "s": "Alihkan antara Kamera &amp; Editor Orbit"}
+{"k": "html-text", "s": "Bentuk"}
+{"k": "html-text", "s": "Objek / Elemen"}
+{"k": "html-text", "s": "Gambar Vektor"}
+{"k": "html-text", "s": "Teks"}
+{"k": "html-text", "s": "Proyek Baru "}
+{"k": "html-text", "s": "PROYEK"}
+{"k": "html-text", "s": "Ukuran Kustom (px)"}
+{"k": "html-text", "s": "Durasi"}
+{"k": "html-text", "s": "10 detik"}
+{"k": "html-text", "s": "15 detik"}
+{"k": "html-text", "s": "30 detik"}

@@ -1,0 +1,120 @@
+{"s":"The playhead is still on the selected layers"}
+{"s":"<button type=\"button\" class=\"multiTimeBtn\" data-multi-time=\"trimLeft\"><span>⋯│⊏</span><small>Trim Start</small></button><button type=\"button\" class=\"multiTimeBtn\" data-multi-time=\"split\"><span>⊐│⊏</span><small>Split</small></button><button type=\"button\" class=\"multiTimeBtn\" data-multi-time=\"trimRight\"><span>⊐│⋯</span><small>Trim End</small></button>"}
+{"s":"Stack layers in order from bottom to top"}
+{"s":"Select at least one visible visual or audio layer"}
+{"s":"No layers"}
+{"s":"Style pasted: keyframes + effects"}
+{"s":"Finish Selecting Layers"}
+{"s":"Select Multiple Layers"}
+{"s":"Close select mode and return to normal Inspector taps"}
+{"s":"Turn on select mode, then tap layers in the timeline"}
+{"s":"Select layers to copy or duplicate"}
+{"s":"Pinch the preview for Free Perspective"}
+{"s":"Back to Camera Perspective"}
+{"s":"No active 3D layer"}
+{"s":"Effect"}
+{"s":"<button id=\"transformEditorModeToggle\" class=\"transformEditorModeToggle\" type=\"button\" aria-label=\"Open Curve Editor\" title=\"Switch to Curve Editor\">CURVE</button>"}
+{"s":"<button id=\"transformEditorModeToggle\" class=\"transformEditorModeToggle\" type=\"button\" aria-label=\"Back to regular Easing\" title=\"Switch to regular Easing\">EASING</button>"}
+{"s":"Close"}
+{"s":"Place the playhead between two effect keyframes"}
+{"s":"Choose a target layer"}
+{"s":"No target layer yet"}
+{"s":"No layer can be used as an orbit target yet. Add or select a layer that is not the camera or audio first."}
+{"s":"Orbit is off. Press <b>Apply Orbit</b> to release the camera binding while keeping the current camera pose."}
+{"s":"Camera orbit binding released"}
+{"s":"Choose a target layer first"}
+{"s":"That orbit target cannot be used"}
+{"s":"Rounded Angle"}
+{"s":"Crescent"}
+{"s":"Line"}
+{"s":"Thick Line"}
+{"s":"Question Mark"}
+{"s":"Exclamation Mark"}
+{"s":"Lock"}
+{"s":"3D Camera"}
+{"s":"Null Object"}
+{"s":"Empty Group"}
+{"s":"Elements & Projects"}
+{"s":"Freehand Drawing"}
+{"s":"Vector Drawing"}
+{"s":"Rounded Corner Box"}
+{"s":"New point added at the start of the path"}
+{"s":"New point added at the end of the path"}
+{"s":"SYMMETRY is only available for regular Bézier points"}
+{"s":"SYMMETRY active: both handles extend together"}
+{"s":"Closing the path needs at least 3 points"}
+{"s":"Point deleted"}
+{"s":"Delete the selected point"}
+{"s":"Insert a point at the green position"}
+{"s":"Add a new point"}
+{"s":"Open path"}
+{"s":"Close path"}
+{"s":"<div><b>Touchpad edit</b>Drag to move the selected anchor/handle.</div>"}
+{"s":"<div><b>Touchpad edit</b>Pick a point on the right, or pick + at the end of the path to add a new point.</div>"}
+{"s":"No point selected"}
+{"s":"Point inserted on the line"}
+{"s":"Touchpad Pen Tool and Edit Points"}
+{"s":"Corner or Smooth Bézier"}
+{"s":"Add point"}
+{"s":"><div><b>Touchpad edit</b>Pick a point on the right, then drag here to move the anchor/handle.</div></div><div class="}
+{"s":"Edit Points active • right: point/segment navigator • +: insert/delete • centre: edit geometry"}
+{"s":"aria-label=\"Open Blending and Opacity\""}
+{"s":"Relink"}
+{"s":"id=\"omsInspectorRelinkBtn\" aria-label=\"Relink media\""}
+{"s":"Color & Fill"}
+{"s":"Edit Text"}
+{"s":"Edit Shape"}
+{"s":"<button class=\"mediaQuickBtn\" data-mediaquick=\"trimLeft\"><span class=\"mqIcon\">⋯│⊏</span><span class=\"mqLabel\">Trim Start</span></button><button class=\"mediaQuickBtn\" data-mediaquick=\"split\"><span class=\"mqIcon\">⊐│⊏</span><span class=\"mqLabel\">Split</span></button><button class=\"mediaQuickBtn\" data-mediaquick=\"trimRight\"><span class=\"mqIcon\">⊐│⋯</span><span class=\"mqLabel\">Trim End</span></button>"}
+{"s":"left"}
+{"s":"right"}
+{"s":"The playhead is still on the layer"}
+{"s":"Left end extended to the playhead"}
+{"s":"Right end extended to the playhead"}
+{"s":"Layer start moved to the playhead"}
+{"s":"Layer end moved to the playhead"}
+{"s":"Left part trimmed"}
+{"s":"Right part trimmed"}
+{"s":"Clip split at the playhead"}
+{"s":"Search font name…"}
+{"s":"Local Font • stored on device"}
+{"s":"Device font • no network needed"}
+{"s":"Google Fonts • loaded when needed"}
+{"s":"Left"}
+{"s":"Center"}
+{"s":"Right"}
+{"s":"Text alpha"}
+{"s":"Enable Mask or Exclude to use this layer as a source."}
+{"s":"No keyframed effect parameters yet"}
+{"s":"SELECT"}
+{"s":"Paste the most recently copied effect"}
+{"s":">← Back</button><button id="}
+{"s":"><div><b>HOLD</b><br>The value is held until the next keyframe.</div></div><div class="}
+{"s":"Place the playhead between two keyframes to adjust easing"}
+{"s":"No effect copied yet"}
+{"s":"The copied effect is unavailable"}
+{"s":"Active"}
+{"s":"Sort effects"}
+{"s":"Renderer active"}
+{"s":"Renderer is not available yet"}
+{"s":"Effect menu"}
+{"s":"Expand or collapse parameters"}
+{"s":"Delete effect"}
+{"s":"<div class=\"miniNote\">This effect has no parameters.</div>"}
+{"s":"<div class=\"effectStackEmpty\"><div><span>✦</span><b>No effects yet</b><small>Add an effect to build the processing stack for this layer.</small></div></div>"}
+{"s":"Search effects..."}
+{"s":"Add Effect"}
+{"s":"All Effects"}
+{"s":"<i>No parameters</i>"}
+{"s":"menu"}
+{"s":"No effect parameter has two keyframes yet"}
+{"s":"Enable effect"}
+{"s":"Add another effect to change the order"}
+{"s":"Drag to change the effect order"}
+{"s":"Text & Typography"}
+{"s":">Cancel</button><button type="}
+{"s":"<b>Zoom Lens:</b> Zoom, Focal Length and FOV stay synchronised like a variable camera lens."}
+{"s":"<b>Free Lens:</b> FOV controls framing, Focal Length controls perspective compression/expansion against Focus without changing FOV, and Zoom digitally crops the canvas. All three can be animated independently."}
+{"s":"Drag vertically • adjust the camera tether length"}
+{"s":"Drag horizontally for X orbit • vertically for Y orbit"}
+{"s":"Drag vertically • X Rotation / Pitch only"}
+{"s":"Drag horizontally • Y Rotation / Yaw only"}
