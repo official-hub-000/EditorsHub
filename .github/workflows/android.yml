@@ -78,7 +78,7 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: open-motion-android-debug
+          name: editorshub-android-debug
           path: |
             app/build/outputs/apk/debug/*.apk
             app/build/outputs/apk/release/*.apk
@@ -121,23 +121,23 @@ jobs:
         run: |
           set -e
           apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
-          cp "$apk" "open-motion-debug.apk"
+          cp "$apk" "editorshub-debug.apk"
 
           # One rolling release holds the newest APK. Update it in place where
           # possible so the download URL never disappears mid-publish.
           if gh release view android-latest >/dev/null 2>&1; then
-            gh release upload android-latest "open-motion-debug.apk" --clobber
+            gh release upload android-latest "editorshub-debug.apk" --clobber
             gh release edit android-latest --notes "Updated from commit ${{ github.sha }}." || true
             exit 0
           fi
-          gh release create android-latest "open-motion-debug.apk" \
-            --title "Open Motion Android — latest build" \
+          gh release create android-latest "editorshub-debug.apk" \
+            --title "EditorsHub Android — latest build" \
             --notes "Debug APK built from commit ${{ github.sha }} (run ${{ github.run_number }}, $(date -u +%Y-%m-%dT%H:%MZ)).
 
           Install with:
 
           \`\`\`
-          adb install -r open-motion-debug.apk
+          adb install -r editorshub-debug.apk
           \`\`\`
 
           or copy the file to the device and tap it (allow install from unknown sources)." \

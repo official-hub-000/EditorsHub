@@ -21,7 +21,7 @@ ci-logs/
 
 # APKs are published as GitHub Release assets, not committed
 apk/
-open-motion-debug.apk
+editorshub-debug.apk
 
 # Local Gradle/IDE output
 .kotlin/

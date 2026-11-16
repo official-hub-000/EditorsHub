@@ -79,7 +79,7 @@ Or open the folder in **Android Studio** (Ladybug or newer), let it sync, and pr
 `signingConfig` (or use Android Studio → Build → Generate Signed Bundle/APK) to publish.
 
 Every push builds the debug APK in CI (`.github/workflows/android.yml`); grab it from
-the run's **open-motion-android-debug** artifact.
+the run's **editorshub-android-debug** artifact.
 
 > **Runner without outbound downloads?** Gradle needs `services.gradle.org` and Google
 > Maven on first run. If your network only allows GitHub, run the
@@ -151,11 +151,11 @@ editor:
 
 ## Downloading a build
 
-Successful CI runs publish `open-motion-debug.apk` as a release asset — open the
+Successful CI runs publish `editorshub-debug.apk` as a release asset — open the
 repository's **Releases** page, or:
 
 ```bash
-gh release download --pattern open-motion-debug.apk --repo official-hub-000/EditorsHub
+gh release download --pattern editorshub-debug.apk --repo official-hub-000/EditorsHub
 ```
 
 ## Media decoding & export
