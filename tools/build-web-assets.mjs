@@ -114,7 +114,9 @@ function patchEditorScope(html) {
 
 function injectShell(html) {
   if (html.includes('native-shell.js')) return html;
-  const tag = '<script src="./native-shell.js" defer id="oms-native-shell"></script>\n';
+  const tag =
+    '<script src="./diagnostics.js" defer id="oms-diagnostics"></script>\n' +
+    '<script src="./native-shell.js" defer id="oms-native-shell"></script>\n';
   // The upstream document keeps a large trailing <style> block after </body>, so the
   // tag is anchored on the closing </html> instead: defer still guarantees the adapter
   // runs after the editor has bootstrapped.
@@ -265,6 +267,7 @@ async function main() {
   await cp(path.join(webDir, 'icons'), path.join(outDir, 'icons'), { recursive: true });
 
   await cp(path.join(shellDir, 'native-shell.js'), path.join(outDir, 'native-shell.js'));
+  await cp(path.join(shellDir, 'diagnostics.js'), path.join(outDir, 'diagnostics.js'));
 
   if (vendoredMediabunny) {
     await cp(

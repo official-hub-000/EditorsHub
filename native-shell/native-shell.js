@@ -681,13 +681,80 @@
     return fallback == null ? '' : fallback;
   };
 
-  /* PWA service worker is pointless inside the APK (assets already local). */
-  if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
-    navigator.serviceWorker.getRegistrations().then(function (registrations) {
-      registrations.forEach(function (registration) {
-        registration.unregister().catch(function () {});
+  /* ---------------------------------------------------------------------
+   * PWA plumbing is noise inside the APK.
+   *
+   * The assets are already local and the document is never reloaded from a
+   * server, so a service worker can only add a registration to save, restore and
+   * prune on every launch. Registration is blocked outright and anything an
+   * earlier build persisted is removed.
+   * ------------------------------------------------------------------ */
+  try {
+    if (navigator.serviceWorker) {
+      if (navigator.serviceWorker.register) {
+        navigator.serviceWorker.register = function () {
+          return Promise.reject(new Error('service workers are not used in the APK'));
+        };
+      }
+      if (navigator.serviceWorker.getRegistrations) {
+        navigator.serviceWorker.getRegistrations().then(function (registrations) {
+          registrations.forEach(function (registration) {
+            registration.unregister().catch(function () {});
+          });
+        }).catch(function () {});
+      }
+    }
+  } catch (e) {
+    /* ignore */
+  }
+
+  /* ---------------------------------------------------------------------
+   * Diagnostics entry point.
+   *
+   * The report is worth nothing if the user cannot reach it when the app is
+   * misbehaving, so it is reachable two ways: a long press on the wordmark (always
+   * present, on every screen) and a button injected into the Home header.
+   * ------------------------------------------------------------------ */
+  function openDiagnostics() {
+    if (window.omsDiagnostics && window.omsDiagnostics.open) window.omsDiagnostics.open();
+    else toast('Diagnostics are still loading');
+  }
+
+  function installDiagnosticsEntry() {
+    var brand = document.querySelector('.homeBrand');
+    if (brand && !brand.dataset.diagnosticsBound) {
+      brand.dataset.diagnosticsBound = '1';
+      brand.style.cursor = 'default';
+      var timer = 0;
+      brand.addEventListener('pointerdown', function () {
+        timer = setTimeout(openDiagnostics, 1200);
+      }, { passive: true });
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (type) {
+        brand.addEventListener(type, function () { clearTimeout(timer); }, { passive: true });
       });
-    }).catch(function () {});
+    }
+
+    var actions = document.querySelector('.homeTopActions');
+    if (actions && !document.getElementById('omsDiagnosticsBtn')) {
+      var btn = document.createElement('button');
+      btn.id = 'omsDiagnosticsBtn';
+      btn.type = 'button';
+      btn.className = 'rightBtn';
+      btn.title = 'Diagnostics';
+      btn.setAttribute('aria-label', 'Diagnostics');
+      btn.textContent = '!';
+      btn.style.cssText =
+        'width:34px;min-width:34px;padding:0;font-weight:900;color:#ffd166;' +
+        'border-color:#3a3320;background:#191712';
+      btn.addEventListener('click', openDiagnostics);
+      actions.appendChild(btn);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', installDiagnosticsEntry, { once: true });
+  } else {
+    installDiagnosticsEntry();
   }
 
   window.dispatchEvent(new Event('omsnative:ready'));

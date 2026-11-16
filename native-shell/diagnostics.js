@@ -26,17 +26,39 @@
 
   var MAX_FRAME_SAMPLES = 90;
 
+  /**
+   * Samples up to MAX_FRAME_SAMPLES frame gaps.
+   *
+   * Bounded by wall-clock as well as by count: a frame callback that never arrives (a
+   * backgrounded page, or a view whose compositor has stalled) would otherwise leave the
+   * caller waiting forever, and a report that never appears is indistinguishable from a
+   * frozen app.
+   */
   function frames(callback) {
     var gaps = [];
     var last = 0;
     var count = 0;
+    var finished = false;
+    var started = Date.now();
+
+    function done() {
+      if (finished) return;
+      finished = true;
+      callback(gaps);
+    }
     function step(now) {
+      if (finished) return;
       if (last) gaps.push(now - last);
       last = now;
-      if (++count < MAX_FRAME_SAMPLES) requestAnimationFrame(step);
-      else callback(gaps);
+      if (++count < MAX_FRAME_SAMPLES && Date.now() - started < 2000) {
+        requestAnimationFrame(step);
+      } else {
+        done();
+      }
     }
     requestAnimationFrame(step);
+    // Hard stop: whichever comes first, the report is produced.
+    setTimeout(done, 2500);
   }
 
   function stats(gaps) {
@@ -202,6 +224,7 @@
             runtime: deviceDetails(),
             webgl: webglReport(),
             frame: timing,
+            framesSampled: gaps.length > 0,
             hit: hitTest(null),
             unreachable: unreachable(),
             delivery: delivery,
@@ -225,7 +248,9 @@
     var lines = [];
     var t = report.frame;
     var verdict;
-    if (t.fps && t.fps < 24) {
+    if (!report.framesSampled) {
+      verdict = 'Frame timing could not be measured (the page never drew a frame).';
+    } else if (t.fps && t.fps < 24) {
       verdict = 'The device is saturated: frames take ' + t.median + 'ms (about ' + t.fps + ' fps).';
     } else if (report.unreachable.length) {
       verdict = 'Controls are covered by other elements, so taps cannot reach them.';
@@ -236,8 +261,10 @@
     }
     lines.push('VERDICT: ' + verdict);
     lines.push('');
-    lines.push('Frames: ' + t.median + 'ms typical, ' + t.worst + 'ms worst, ~' + t.fps +
-      ' fps, ' + t.jank + '% of frames were late');
+    lines.push(report.framesSampled
+      ? 'Frames: ' + t.median + 'ms typical, ' + t.worst + 'ms worst, ~' + t.fps +
+        ' fps, ' + t.jank + '% of frames were late'
+      : 'Frames: not sampled (no frame callbacks arrived within 2s)');
     lines.push('WebGL: ' + (report.webgl.supported ? report.webgl.version : 'UNSUPPORTED') +
       ' | ' + report.webgl.renderer + ' | error=' + report.webgl.error);
     lines.push('Tap reaches: ' + report.hit.top + ' at ' + report.hit.x + ',' + report.hit.y);
@@ -257,7 +284,9 @@
   /** Opens the diagnostic sheet. Reached from Settings and from the error card. */
   function open() {
     if (typeof window.__omsDialog !== 'function') return;
-    var sheet = window.__omsDialog({
+    // The dialog resolves with the pressed value; it does not expose the element, so the
+    // progress sheet is torn down explicitly once the sample finishes.
+    window.__omsDialog({
       title: 'Measuring…',
       message: 'Sampling frames. This takes about two seconds.',
       acceptLabel: 'Close',
@@ -270,11 +299,17 @@
         if (native && native.saveDiagnostics) native.saveDiagnostics(text);
         if (native && native.log) native.log('INFO', 'diagnostics saved');
       } catch (e) { /* ignore */ }
-      if (sheet && sheet.close) sheet.close();
+      dismissAllSheets();
       window.omsInfo('Diagnostics', text).then(function () {
         copy(text);
       });
     });
+  }
+
+  /** Closes every open sheet, so the report replaces the progress sheet. */
+  function dismissAllSheets() {
+    var sheets = document.querySelectorAll('#omsDialogScrim');
+    for (var i = 0; i < sheets.length; i++) sheets[i].remove();
   }
 
   function copy(text) {
