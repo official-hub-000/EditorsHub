@@ -29,6 +29,11 @@ const AMOLED = `
   --home-ink:#000000;
   --home-panel:#0b0b0f;
   --home-panel-2:#131319;
+  /* The mobile tab bar and its sheets run on their own token set. */
+  --oms-m-bg:#000000;
+  --oms-m-panel:#0b0b0f;
+  --oms-m-card:#131319;
+  --oms-m-card-hover:#1b1b22;
 }
 html,body,.app{background:#000000!important}
 .home{background:#000000!important}
@@ -161,4 +166,32 @@ export function replaceSplash(splashSvg) {
 /** Swaps the header mark for the same logo, so the two cannot drift apart. */
 export function replaceHeaderMark(headerSvg) {
   return (html) => html.replace(/(<span class="homeMark"[^>]*>)[\s\S]*?(<\/span>)/, `$1${headerSvg}$2`);
+}
+
+/**
+ * Raises the floor on the tiny type the inherited skin uses everywhere.
+ *
+ * 311 declarations in the bundled stylesheet set 5.5-9px. On a ~400dpi phone that is
+ * genuinely unreadable, which is why the complaint was "the text is far too small".
+ * Rewriting them by hand is not viable and would rot against the upstream file, so the
+ * sizes are recomputed mechanically: anything at or below 9px is scaled up by 25% and
+ * clamped into 10-11px.
+ *
+ * Only the number after `font-size:` changes. Selectors, colours, spacing and every
+ * structural value stay exactly as the editor wrote them, so nothing is renamed, no rule
+ * is dropped, and no selector loses specificity.
+ */
+const TINY = 9;
+
+export function enlargeTinyText(html) {
+  let bumped = 0;
+  const out = html.replace(/font-size:\s*(\d*\.?\d+)px/g, (decl, size) => {
+    const value = parseFloat(size);
+    if (!(value <= TINY)) return decl;
+    const next = Math.min(11, Math.max(10, value * 1.25));
+    bumped += 1;
+    return `font-size:${Math.round(next * 2) / 2}px`;
+  });
+  console.log(`  tiny type ${bumped} declarations raised to a 10px floor`);
+  return out;
 }

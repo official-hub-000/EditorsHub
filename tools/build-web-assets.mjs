@@ -32,7 +32,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { patchBranding } from './branding.mjs';
-import { applyTheme, replaceSplash, replaceHeaderMark } from './theme.mjs';
+import { applyTheme, replaceSplash, replaceHeaderMark, enlargeTinyText } from './theme.mjs';
 import { markSvg, splashMarkup } from './brand-art.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -234,6 +234,7 @@ async function main() {
   // they land on the finished document and can key off the final class names.
   html = replaceHeaderMark(markSvg('header', 38))(html);
   html = replaceSplash(splashMarkup())(html);
+  html = enlargeTinyText(html);
   html = applyTheme(html);
   await writeFile(path.join(outDir, 'index.html'), html, 'utf8');
 
