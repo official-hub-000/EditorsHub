@@ -101,6 +101,24 @@
     return report;
   }
 
+  /** The diagnostics sheet must never be counted as an obstruction to the app. */
+  function isOwnChrome(el) {
+    var node = el;
+    while (node && node.nodeType === 1) {
+      if (
+        node.id === 'omsDialogScrim' ||
+        node.id === 'omsDialogCard' ||
+        node.id === 'omsDialogBody' ||
+        node.id === 'omsDialogActions' ||
+        node.id === 'omsDiagnosticsBtn'
+      ) {
+        return true;
+      }
+      node = node.parentElement;
+    }
+    return false;
+  }
+
   /** What a finger would actually hit at the centre of `el`, or at the viewport centre. */
   function hitTest(el) {
     var x;
@@ -119,6 +137,9 @@
     } catch (e) {
       return { x: x, y: y, top: '(unsupported)', blocked: false };
     }
+    // Drop anything belonging to the diagnostics sheet before judging; otherwise the
+    // report measures its own dialog and declares the whole app unreachable.
+    stack = stack.filter(function (node) { return !isOwnChrome(node); });
     var top = stack[0];
     var blocked = !!(el && top && top !== el && !el.contains(top) && !top.contains(el));
     return {
@@ -272,6 +293,9 @@
       .map(function (k) { return k + '=' + (report.delivery[k] ? 'yes' : 'no'); }).join(' '));
     lines.push('Unreachable controls: ' + (report.unreachable.length || 'none'));
     report.unreachable.forEach(function (u) { lines.push('  - ' + u); });
+    if (report.hit.blocked) {
+      lines.push('Screen centre is covered by: ' + report.hit.covering.join(' > '));
+    }
     lines.push('Viewport: ' + report.runtime.viewport + ' @' + report.runtime.dpr + 'x');
     lines.push('Device: ' + [report.device.manufacturer, report.device.model, report.device.android]
       .filter(Boolean).join(' ') + ' | sdk ' + (report.device.sdk || '?') +
@@ -321,5 +345,30 @@
     } catch (e) { /* clipboard may be unavailable; the text is on screen anyway */ }
   }
 
-  window.omsDiagnostics = { open: open, collect: collect, format: format };
+  /**
+   * The report says what the screen looks like; the self-test says whether pressing a
+   * control does anything. Both sit behind the same button so the user does not have to
+   * know which one they need.
+   */
+  function openWithSelfTest() {
+    var selfTest = window.omsSelfTest;
+    if (!selfTest || !window.__omsDialog) return open();
+    window.__omsDialog({
+      title: 'Check this screen',
+      message:
+        'This presses every control on this screen the way a finger would, and reports ' +
+        'any that do not respond. It takes a few seconds. Nothing is saved or uploaded.',
+      acceptLabel: 'Run check',
+      cancelLabel: 'Cancel',
+    }).then(function (accepted) {
+      if (accepted) selfTest.open();
+    });
+  }
+
+  window.omsDiagnostics = {
+    open: open,
+    openWithSelfTest: openWithSelfTest,
+    collect: collect,
+    format: format,
+  };
 })();

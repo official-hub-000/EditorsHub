@@ -552,8 +552,24 @@
    * Shows a themed dialog. Resolves with `true` (accept), `false` (cancel) or the
    * entered string for a prompt.
    */
+  /**
+   * Only one sheet exists at a time, and it can always be dismissed.
+   *
+   * The scrim covers the whole viewport, so a sheet that is never torn down makes every
+   * control in the app untappable. An on-device report showed exactly that: every
+   * "unreachable" control was covered by `#omsDialogScrim`.
+   *
+   * Three defences: opening a sheet closes any previous one, a closing sheet stops
+   * intercepting taps the instant the fade starts, and tapping the scrim always dismisses.
+   */
+  function closeExistingSheets() {
+    var open = document.querySelectorAll('#omsDialogScrim');
+    for (var i = 0; i < open.length; i++) open[i].remove();
+  }
+
   function omsDialog(options) {
     installDialogStyle();
+    closeExistingSheets();
     return new Promise(function (resolve) {
       var scrim = document.createElement('div');
       scrim.id = 'omsDialogScrim';
@@ -587,9 +603,14 @@
       actions.id = 'omsDialogActions';
       function finish(value) {
         scrim.classList.remove('show');
+        // Stop swallowing taps immediately, even while the fade-out is still running.
+        scrim.style.pointerEvents = 'none';
+        scrim.addEventListener('transitionend', function () {
+          scrim.remove();
+        }, { once: true });
         setTimeout(function () {
           scrim.remove();
-        }, 200);
+        }, 260);
         resolve(value);
       }
       function button(label, primary, value) {
@@ -619,8 +640,10 @@
       }
       card.appendChild(actions);
       scrim.appendChild(card);
+      // A stuck sheet covers the whole viewport and makes the entire app untappable, so
+      // tapping the scrim always dismisses it. Refusing to close is never worth a dead app.
       scrim.addEventListener('click', function (event) {
-        if (event.target === scrim && options.cancelable !== false) finish(false);
+        if (event.target === scrim) finish(false);
       });
       document.body.appendChild(scrim);
       requestAnimationFrame(function () {
@@ -716,7 +739,11 @@
    * present, on every screen) and a button injected into the Home header.
    * ------------------------------------------------------------------ */
   function openDiagnostics() {
-    if (window.omsDiagnostics && window.omsDiagnostics.open) window.omsDiagnostics.open();
+    if (window.omsDiagnostics && window.omsDiagnostics.openWithSelfTest) {
+      window.omsDiagnostics.openWithSelfTest();
+    } else if (window.omsDiagnostics && window.omsDiagnostics.open) {
+      window.omsDiagnostics.open();
+    }
     else toast('Diagnostics are still loading');
   }
 

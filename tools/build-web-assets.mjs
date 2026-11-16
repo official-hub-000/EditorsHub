@@ -115,6 +115,7 @@ function patchEditorScope(html) {
 function injectShell(html) {
   if (html.includes('native-shell.js')) return html;
   const tag =
+    '<script src="./selftest.js" defer id="oms-selftest"></script>\n' +
     '<script src="./diagnostics.js" defer id="oms-diagnostics"></script>\n' +
     '<script src="./native-shell.js" defer id="oms-native-shell"></script>\n';
   // The upstream document keeps a large trailing <style> block after </body>, so the
@@ -268,6 +269,7 @@ async function main() {
 
   await cp(path.join(shellDir, 'native-shell.js'), path.join(outDir, 'native-shell.js'));
   await cp(path.join(shellDir, 'diagnostics.js'), path.join(outDir, 'diagnostics.js'));
+  await cp(path.join(shellDir, 'selftest.js'), path.join(outDir, 'selftest.js'));
 
   if (vendoredMediabunny) {
     await cp(
