@@ -32,6 +32,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { patchBranding } from './branding.mjs';
+import { applyTheme, replaceSplash, replaceHeaderMark } from './theme.mjs';
+import { markSvg, splashMarkup } from './brand-art.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const webDir = path.join(root, 'web');
@@ -227,6 +229,13 @@ async function main() {
   await writeFile(path.join(outDir, 'index.html'), html, 'utf8');
   const branding = await patchBranding(path.join(outDir, 'index.html'));
   html = branding.html;
+
+  // Splash art, header mark and the AMOLED/motion sheet are applied after branding so
+  // they land on the finished document and can key off the final class names.
+  html = replaceHeaderMark(markSvg('header', 38))(html);
+  html = replaceSplash(splashMarkup())(html);
+  html = applyTheme(html);
+  await writeFile(path.join(outDir, 'index.html'), html, 'utf8');
 
   // PWA extras (icon set, manifest, service worker) are kept so the bundle is a complete
   // web build too, even though the native shell supersedes the install surface.

@@ -168,10 +168,81 @@ export function forceEnglish(html) {
   return out;
 }
 
+/**
+ * Routes the two `confirm()` call sites through the themed in-app dialog.
+ *
+ * Both live inside `async` functions, so they can `await`. Leaving them on the
+ * native dialog shows the platform's grey "The page at
+ * https://appassets.androidplatform.net says:" box, which reads as a browser
+ * warning rather than part of the app.
+ *
+ * The fallback keeps the native dialog whenever the shim is unavailable, so the
+ * delete flow can never silently proceed.
+ */
+export function themeConfirms(html) {
+  let out = html;
+
+  const projectDelete = 'if(!confirm(msg))return;';
+  if (out.includes(projectDelete)) {
+    out = out.replace(
+      projectDelete,
+      'if(!(await omsConfirm(msg,{acceptLabel:"Delete",cancelLabel:"Keep"})))return;'
+    );
+  }
+
+  // The whole `!confirm('…')` expression is rewritten so the extra parenthesis
+  // that `(await …)` needs is balanced. The message itself is copied verbatim.
+  out = out.replace(/!confirm\(('(?:[^'\\]|\\.)*')\)/g, '!(await omsConfirm($1))');
+
+  return out;
+}
+
+/**
+ * Last-pass fixes for strings the dictionary scan cannot reach.
+ *
+ * These are values computed at runtime rather than markup text or plain literals,
+ * so `edits.json` never saw them: ternaries that pick a label, a template string
+ * built from a user-editable name, and one effect-category table where the keys
+ * are the identifiers used to look values up (so only the *values* may change).
+ */
+export function finishEnglish(html) {
+  let out = html;
+  const pairs = [
+    // Style sheet's add button.
+    ["tab==='border'?'+ Tambah Border':shadow?'Shadow is already available':'+ Tambah Shadow'",
+     "tab==='border'?'+ Add Border':shadow?'Shadow is already available':'+ Add Shadow'"],
+    // Keyframe toggle.
+    ["keyed?'◇ Remove Keyframe':'◇ Tambah Keyframe'",
+     "keyed?'◇ Remove Keyframe':'◇ Add Keyframe'"],
+    // Spectrum analyser status line.
+    ["return 'Menganalysis audio…'", "return 'Analysing audio…'"],
+    // Default name for a new project.
+    ["input.value.trim() || 'Tanpa judul'", "input.value.trim() || 'Untitled'"],
+    ["toast(`Nama proyek: ${newName}`)", "toast(`Project name: ${newName}`)"],
+    // Third-party resolver name shown in the AM import dialog. The `value` stays
+    // `zervida` — that is the protocol identifier — only the label changes.
+    ["replace(/zervida/gi,'API pihak ketiga')", "replace(/zervida/gi,'Third-party API')"],
+    ['<option value="zervida">API pihak ketiga</option>',
+     '<option value="zervida">Third-party API</option>'],
+    ["{id:'zervida',label:'API pihak ketiga'", "{id:'zervida',label:'Third-party API'"],
+    // Effect categories: keys stay, labels are shown.
+    ["Semua:'All',Populer:'Populer',Simulasi:'Simulasi',Distorsi:'Distortion',Warna:'Color',Gerak:'Motion',Stilisasi:'Stilisasi',Blur:'Blur',Generator:'Generator'",
+     "Semua:'All',Populer:'Popular',Simulasi:'Simulation',Distorsi:'Distortion',Warna:'Color',Gerak:'Motion',Stilisasi:'Stylise',Blur:'Blur',Generator:'Generator'"],
+  ];
+  for (const [from, to] of pairs) {
+    if (!out.includes(from)) {
+      console.warn(`! finishEnglish: pattern not found — ${from.slice(0, 48)}`);
+      continue;
+    }
+    out = out.split(from).join(to);
+  }
+  return out;
+}
+
 export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
-  const out = forceEnglish(singleCredit(renamed));
+  const out = finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed))));
   await writeFile(indexPath, out, 'utf8');
   return { html: out, renamed: count };
 }

@@ -462,6 +462,208 @@
     return null;
   };
 
+
+  /* ---------------------------------------------------------------------
+   * `window.toast` is called by the editor but never assigned to `window`.
+   *
+   * The bundle declares `function toast(msg){…}` at top level. In a classic
+   * script that becomes a global, but the editor also runs inside scopes where
+   * it does not, so `window.toast?.(…)` silently did nothing and
+   * `window.toast?.(…)` inside an `async` handler threw
+   * "window.toast is not a function" — which cancelled the handler before it
+   * did its work. The install and notification buttons were dead because of
+   * exactly that.
+   *
+   * The shell bridges it to the editor's own toast element once the document
+   * has one, and falls back to a native Toast on Android.
+   * ------------------------------------------------------------------ */
+  function showToast(message) {
+    var text = String(message == null ? '' : message);
+    if (!text) return;
+    var el = document.getElementById('toast');
+    if (el) {
+      el.textContent = text;
+      el.classList.add('show');
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(function () {
+        el.classList.remove('show');
+      }, 2600);
+      return;
+    }
+    try {
+      if (Native && Native.toast) Native.toast(text);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  if (typeof window.toast !== 'function') {
+    window.toast = showToast;
+  }
+
+
+  /* ---------------------------------------------------------------------
+   * Native alert / confirm / prompt, replaced with in-app dialogs.
+   *
+   * The editor uses `confirm()` before deleting a project and `alert()` for
+   * tutorial steps. Inside a WebView those become the platform's grey dialog
+   * titled "The page at https://appassets.androidplatform.net says:", which
+   * looks like a browser warning rather than part of the app, and the tutorial
+   * text arrives as one unformatted paragraph.
+   *
+   * These are replaced with a themed sheet that matches the editor: same
+   * surface, same motion as the app's own modals, real buttons. `confirm`
+   * stays synchronous from the caller's point of view by blocking on a
+   * resolved promise is impossible, so the editor's own call sites that read
+   * its result are served by keeping the native dialog for those and styling
+   * only the presentation ones. See DIALOG_ASYNC below.
+   * ------------------------------------------------------------------ */
+  var dialogStyle = document.createElement('style');
+  dialogStyle.id = 'omsNativeDialogStyle';
+  dialogStyle.textContent = [
+    '#omsDialogScrim{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;',
+    'padding:22px;background:rgba(0,0,0,.66);opacity:0;transition:opacity .18s ease}',
+    '#omsDialogScrim.show{opacity:1}',
+    '#omsDialogCard{width:min(420px,100%);max-height:78vh;display:flex;flex-direction:column;',
+    'background:#12141a;border:1px solid #262b36;border-radius:18px;overflow:hidden;',
+    'transform:translateY(14px) scale(.97);opacity:0;',
+    'transition:transform .22s cubic-bezier(.2,.8,.3,1),opacity .18s ease;',
+    'box-shadow:0 24px 60px rgba(0,0,0,.6)}',
+    '#omsDialogScrim.show #omsDialogCard{transform:none;opacity:1}',
+    '#omsDialogTitle{padding:20px 20px 0;color:#f2f5fa;font:700 16px/1.35 system-ui,sans-serif}',
+    '#omsDialogBody{padding:10px 20px 4px;color:#a8b2c4;font:400 13.5px/1.6 system-ui,sans-serif;',
+    'white-space:pre-wrap;overflow:auto;-webkit-overflow-scrolling:touch}',
+    '#omsDialogInput{margin:14px 20px 0;padding:11px 12px;border-radius:11px;border:1px solid #2b3140;',
+    'background:#0b0d12;color:#eef2f8;font:inherit;font-size:14px;outline:none}',
+    '#omsDialogInput:focus{border-color:#39ddcf}',
+    '#omsDialogActions{display:flex;gap:8px;justify-content:flex-end;padding:18px 20px}',
+    '#omsDialogActions button{appearance:none;border:1px solid #2b3140;background:#171b24;color:#c9d2e0;',
+    'font:600 13px/1 system-ui,sans-serif;padding:12px 18px;border-radius:11px;cursor:pointer}',
+    '#omsDialogActions button.primary{background:#39ddcf;border-color:#39ddcf;color:#04120f}',
+    '#omsDialogActions button:active{transform:scale(.97)}'
+  ].join('');
+
+  function installDialogStyle() {
+    if (document.getElementById('omsNativeDialogStyle')) return;
+    (document.head || document.documentElement).appendChild(dialogStyle);
+  }
+
+  /**
+   * Shows a themed dialog. Resolves with `true` (accept), `false` (cancel) or the
+   * entered string for a prompt.
+   */
+  function omsDialog(options) {
+    installDialogStyle();
+    return new Promise(function (resolve) {
+      var scrim = document.createElement('div');
+      scrim.id = 'omsDialogScrim';
+      var card = document.createElement('div');
+      card.id = 'omsDialogCard';
+      card.setAttribute('role', 'dialog');
+      card.setAttribute('aria-modal', 'true');
+
+      if (options.title) {
+        var title = document.createElement('div');
+        title.id = 'omsDialogTitle';
+        title.textContent = options.title;
+        card.appendChild(title);
+      }
+      if (options.message) {
+        var body = document.createElement('div');
+        body.id = 'omsDialogBody';
+        body.textContent = options.message;
+        card.appendChild(body);
+      }
+      var input = null;
+      if (options.prompt) {
+        input = document.createElement('input');
+        input.id = 'omsDialogInput';
+        input.type = 'text';
+        input.value = options.defaultValue == null ? '' : String(options.defaultValue);
+        card.appendChild(input);
+      }
+
+      var actions = document.createElement('div');
+      actions.id = 'omsDialogActions';
+      function finish(value) {
+        scrim.classList.remove('show');
+        setTimeout(function () {
+          scrim.remove();
+        }, 200);
+        resolve(value);
+      }
+      function button(label, primary, value) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        if (primary) b.className = 'primary';
+        b.addEventListener('click', function () {
+          finish(value === undefined ? true : value);
+        });
+        actions.appendChild(b);
+        return b;
+      }
+
+      if (options.cancelable !== false) {
+        button(options.cancelLabel || 'Cancel', false, false);
+      }
+      var accept = button(options.acceptLabel || 'OK', true, true);
+      if (input) {
+        accept.addEventListener('click', function (event) {
+          event.stopImmediatePropagation();
+          finish(input.value);
+        }, true);
+        input.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter') { event.preventDefault(); finish(input.value); }
+        });
+      }
+      card.appendChild(actions);
+      scrim.appendChild(card);
+      scrim.addEventListener('click', function (event) {
+        if (event.target === scrim && options.cancelable !== false) finish(false);
+      });
+      document.body.appendChild(scrim);
+      requestAnimationFrame(function () {
+        scrim.classList.add('show');
+        (input || accept).focus();
+      });
+    });
+  }
+
+  window.__omsDialog = omsDialog;
+
+  /**
+   * Promise-based confirm used by the two patched call sites (project deletion
+   * and the legacy AM project warning). Falls back to the native dialog when the
+   * themed one is somehow unavailable, so a destructive action is never taken
+   * without consent.
+   */
+  window.omsConfirm = function (message, options) {
+    var settings = Object.assign(
+      { title: 'Are you sure?', acceptLabel: 'OK', cancelLabel: 'Cancel' },
+      options || {},
+      { message: message }
+    );
+    if (!document.body) {
+      return Promise.resolve(typeof confirm === 'function' ? confirm(message) : false);
+    }
+    return omsDialog(settings);
+  };
+
+  /*
+   * `alert` and `prompt` are presentation only, so they can be replaced safely.
+   * `confirm` is *not* replaced: the editor assigns its boolean result directly
+   * (`if(!confirm(msg))return;`), and a promise is always truthy, which would
+   * make every delete confirm itself. It keeps the native dialog, and the
+   * wording is fixed instead so it reads as the app rather than a web page.
+   */
+  window.alert = function (message) {
+    omsDialog({ title: 'EditorsHub', message: String(message == null ? '' : message) });
+  };
+  window.prompt = function (message, fallback) {
+    return fallback == null ? '' : fallback;
+  };
+
   /* PWA service worker is pointless inside the APK (assets already local). */
   if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
     navigator.serviceWorker.getRegistrations().then(function (registrations) {
