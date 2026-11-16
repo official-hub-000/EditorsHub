@@ -261,8 +261,10 @@ export function fixTutorialCards(html) {
 export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
-  const out = fixTutorialCards(
-    fixMobileTabs(finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed)))))
+  const out = hardenNewProjectButton(
+    fixTutorialCards(
+      fixMobileTabs(finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed)))))
+    )
   );
   await writeFile(indexPath, out, 'utf8');
   return { html: out, renamed: count };
@@ -288,6 +290,48 @@ export function fixMobileTabs(html) {
   const to = "if (targetTab === 'projects' || targetTab === 'proyek') {";
   if (!html.includes(from)) {
     console.warn('! fixMobileTabs: pattern not found');
+    return html;
+  }
+  return html.replace(from, to);
+}
+
+/**
+ * Makes the New Project button recoverable.
+ *
+ * `openNewProjectModal` hides the floating button as it opens:
+ *
+ *     modal.classList.remove('hidden');
+ *     homeFab.style.display='none';
+ *     homeFab.style.pointerEvents='none';
+ *
+ * Only the close path puts it back, and the close path is driven by a 190 ms
+ * `setTimeout`. If anything in between fails — an exception while the sheet builds its
+ * resolution list, a sheet closed by a route that does not run `closeNewProjectModal` —
+ * the composer opens with no visible way to reach it again, and the button stays hidden
+ * for the rest of the session. That reads as "the New Project button stopped working".
+ *
+ * The fix keeps the same behaviour but makes the state self-healing: the button is
+ * re-shown whenever the modal is not on screen, whatever path got us there.
+ */
+export function hardenNewProjectButton(html) {
+  const from = `homeFab.ontouchend=openNewProjectModal;`;
+  const to = `homeFab.ontouchend=openNewProjectModal;
+
+  // Self-healing visibility: whatever closes the sheet, the button comes back.
+  (function watchNewProjectButton(){
+    const fab=document.getElementById('newProjectFab');
+    const modal=document.getElementById('newModal');
+    if(!fab||!modal)return;
+    const sync=()=>{
+      const open=!modal.classList.contains('hidden');
+      if(open){fab.style.display='none';fab.style.pointerEvents='none';}
+      else if(fab.style.display==='none'){fab.style.display='';fab.style.pointerEvents='auto';}
+    };
+    try{new MutationObserver(sync).observe(modal,{attributes:true,attributeFilter:['class']});}catch(e){}
+    sync();
+  })();`;
+  if (!html.includes(from)) {
+    console.warn('! hardenNewProjectButton: pattern not found');
     return html;
   }
   return html.replace(from, to);

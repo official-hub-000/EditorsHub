@@ -362,6 +362,40 @@ class NativeBridge(
     @JavascriptInterface
     fun platform(): String = "android"
 
+    /**
+     * Persists the diagnostics report so it survives a restart.
+     *
+     * The user reports "nothing works" on a device we cannot attach a debugger to. If the
+     * failure is a frozen or restarted renderer, an in-page report is lost with the page,
+     * so the report is written to internal storage first and read back on the next launch.
+     */
+    @JavascriptInterface
+    fun saveDiagnostics(report: String) {
+        try {
+            java.io.File(activity.filesDir, DIAGNOSTICS_FILE).writeText(report)
+        } catch (e: Throwable) {
+            NativeLog.log("ERROR", "could not save diagnostics: ${e.message}", "native", 0)
+        }
+    }
+
+    /** Last report written by [saveDiagnostics], or an empty string if none. */
+    @JavascriptInterface
+    fun readDiagnostics(): String = try {
+        val f = java.io.File(activity.filesDir, DIAGNOSTICS_FILE)
+        if (f.exists()) f.readText() else ""
+    } catch (e: Throwable) {
+        ""
+    }
+
+    @JavascriptInterface
+    fun clearDiagnostics() {
+        try {
+            java.io.File(activity.filesDir, DIAGNOSTICS_FILE).delete()
+        } catch (e: Throwable) {
+            // Nothing to do: the report is a convenience, never required.
+        }
+    }
+
     fun detach() {
         main.removeCallbacksAndMessages(null)
     }
@@ -369,5 +403,7 @@ class NativeBridge(
     companion object {
         /** Name the page reaches the shell through: `window.EditorsHubNative`. */
         const val NAME = "EditorsHubNative"
+
+        private const val DIAGNOSTICS_FILE = "editorshub-diagnostics.txt"
     }
 }
