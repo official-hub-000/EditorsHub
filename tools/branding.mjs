@@ -262,12 +262,16 @@ export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
   const out = hardenNewProjectButton(
-    fixNewProjectSeg(
-      fixDetachedGlobals(
-        fixElementCard(
-        fixTemplateButtons(
-        fixTutorialCards(
-              finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed))))
+    addElementsDrawerTab(
+      fixNewProjectSeg(
+        fixDetachedGlobals(
+          fixElementCard(
+            fixTemplateButtons(
+              fixTutorialCards(
+                finishEnglish(
+                  themeConfirms(forceEnglish(singleCredit(renamed)))
+                )
+              )
             )
           )
         )
@@ -528,35 +532,35 @@ export function fixLayerBarHistory(html) {
   return out.slice(0, blockStart) + patched + out.slice(blockEnd);
 }
 
+
 /**
  * Makes the New Project sheet's PROJECT / ELEMENTS toggle real.
  *
  * `.seg` holds two buttons and there is no handler on either of them anywhere in the
- * document -- the pair is decorative. The word "ELEMENTS" therefore opens nothing: it is
- * the single most obvious dead control in the app, and it sits in the first sheet every
- * new user sees.
+ * document -- the pair is decorative, so tapping ELEMENTS opened nothing.
  *
- * The editor's own shape catalog ("Elements" as Alight Motion means it) can only be used
- * once a project exists, so the toggle now does the honest thing:
+ * The two options are genuinely different things:
  *
- *   PROJECT   the existing setup form -- name, ratio, resolution, fps, duration, colour
- *   ELEMENTS  creates a 9:16 1080p 30fps project and opens the Elements drawer, which is
- *             where the shape catalog lives
+ *   PROJECT    start a new empty composition
+ *   ELEMENTS   open the saved-element library: reuse a piece of another project here,
+ *              or export it to a file for later
  *
- * The tab highlights follow the selection so the sheet never looks like it ignored the
- * tap, and the second button is relabelled from its clipped display.
+ * An earlier version of this patch created a project and jumped to the shape drawer,
+ * which was wrong: a shape catalog is not a library, and it cannot save or export
+ * anything. The library itself lives in `native-shell/elements.js`; this only routes the
+ * tab to it.
  */
 export function fixNewProjectSeg(html) {
-  const anchor = `<div class="seg"><button class="active">PROJECT</button><button>ELEMENTS</button></div>`;
+  const anchor = '<div class="seg"><button class="active">PROJECT</button><button>ELEMENTS</button></div>';
   if (!html.includes(anchor)) {
     console.warn('! fixNewProjectSeg: seg markup not found');
     return html;
   }
   const replacement =
-    `<div class="seg" id="omsNewProjectSeg">` +
-    `<button type="button" class="active" data-oms-seg="project">PROJECT</button>` +
-    `<button type="button" data-oms-seg="elements">ELEMENTS</button>` +
-    `</div>`;
+    '<div class="seg" id="omsNewProjectSeg">' +
+    '<button type="button" class="active" data-oms-seg="project">PROJECT</button>' +
+    '<button type="button" data-oms-seg="elements">ELEMENTS</button>' +
+    '</div>';
 
   const script = `
 <script id="oms-new-project-seg">
@@ -566,59 +570,87 @@ export function fixNewProjectSeg(html) {
     const seg = document.getElementById('omsNewProjectSeg');
     if (!seg || seg.dataset.omsWired === '1') return;
     seg.dataset.omsWired = '1';
-
     const buttons = seg.querySelectorAll('[data-oms-seg]');
     buttons.forEach((button) => {
       button.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
-        const mode = button.dataset.omsSeg;
         buttons.forEach((b) => b.classList.toggle('active', b === button));
-
-        if (mode !== 'elements') return;
-
-        // Build a project with the sheet's current settings, then land on Elements. The
-        // shape catalog needs a project to exist before it can add to one.
-        const modal = document.getElementById('newModal');
+        if (button.dataset.omsSeg !== 'elements') return;
         const close = document.getElementById('closeNew');
         if (close) close.click();
-        if (modal) modal.classList.add('hidden');
-
-        const create = document.getElementById('createProject');
-        if (create) create.click();
-
-        // The editor builds its DOM on the next frame or two; retry briefly rather than
-        // guessing a single delay.
-        let tries = 0;
-        const openElements = () => {
-          tries += 1;
-          const editor = document.getElementById('editor');
-          const ready = editor && !editor.classList.contains('hidden') && window.ui;
-          if (!ready) {
-            if (tries < 40) setTimeout(openElements, 100);
-            return;
-          }
-          try {
-            window.ui.openTool('objects');
-          } catch (e) {
-            try { window.ui.openTool('templates'); } catch (e2) { /* give up quietly */ }
-          }
-        };
-        setTimeout(openElements, 120);
+        if (window.omsElementsUI) window.omsElementsUI.open();
+        else if (typeof toast === 'function') toast('Elements are still loading');
       });
     });
   }
-
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', wire, { once: true });
   } else {
     wire();
   }
-  // The sheet markup exists in the initial document, but wire again after any re-render.
   setTimeout(wire, 1500);
 })();
 </script>
 `;
-
   return html.replace(anchor, replacement + script);
+}
+
+/**
+ * Adds an Elements entry to the editor's add drawer, beside Template.
+ *
+ * The add drawer builds its tabs from a hardcoded array of five tools, and the swipe
+ * pager indexes into that array, so a sixth entry there would shift the paging. A button
+ * is appended to the tab holder instead and given its own handler.
+ */
+export function addElementsDrawerTab(html) {
+  /*
+   * Upstream writes this binding with a single-$ selector:
+   *
+   *     $('[data-addhub]').forEach(b=>b.onclick=...)
+   *
+   * `$` is `document.querySelector`, which returns one element, not a list -- so this line
+   * throws "forEach is not a function" and the Add Hub's five tabs are never wired.
+   * `$$` is the list form, which is clearly what was meant, and every other loop in the
+   * same function uses it. Fixing the selector is part of making the drawer usable.
+   */
+  const broken = "$('[data-addhub]').forEach(b=>b.onclick=()=>this.openTool(b.dataset.addhub));";
+  const from = "$$('[data-addhub]').forEach(b=>b.onclick=()=>this.openTool(b.dataset.addhub));";
+  let out = html;
+  if (out.includes(broken)) {
+    // String#replace treats `$$` in the replacement as an escaped literal `$`, so passing
+    // the replacement as a string silently collapses `$$(` to `$(` -- the fix rewrote
+    // itself back to the bug. A function replacement is not interpreted.
+    out = out.replace(broken, () => from);
+    console.log('  add-hub   tab binding repaired ($ -> $$)');
+  }
+  if (!out.includes(from)) {
+    console.warn('! addElementsDrawerTab: addHub binding not found');
+    return out;
+  }
+  const to = from + `
+      (() => {
+        const holder = document.getElementById('elementTabHolder');
+        if (!holder || document.getElementById('tabAddElements')) return;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'amTab addHubTab';
+        b.id = 'tabAddElements';
+        const icon = document.createElement('span');
+        icon.className = 'amTabIconWrap';
+        icon.textContent = '◈';
+        icon.style.fontSize = '19px';
+        icon.style.lineHeight = '19px';
+        const label = document.createElement('span');
+        label.textContent = 'Elements';
+        b.append(icon, label);
+        b.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (window.omsElementsUI) window.omsElementsUI.open();
+          else if (typeof toast === 'function') toast('Elements are still loading');
+        };
+        holder.appendChild(b);
+      })();`;
+  return out.replace(from, to);
 }

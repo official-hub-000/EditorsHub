@@ -117,6 +117,8 @@ function patchEditorScope(html) {
 function injectShell(html) {
   if (html.includes('native-shell.js')) return html;
   const tag =
+    '<script src="./elements.js" defer id="oms-elements"></script>\n' +
+    '<script src="./elements-ui.js" defer id="oms-elements-ui"></script>\n' +
     '<script src="./probe.js" defer id="oms-probe"></script>\n' +
     '<script src="./check.js" defer id="oms-check"></script>\n' +
     '<script src="./report.js" defer id="oms-report"></script>\n' +
@@ -286,6 +288,8 @@ async function main() {
   await cp(path.join(shellDir, 'report.js'), path.join(outDir, 'report.js'));
   await cp(path.join(shellDir, 'check.js'), path.join(outDir, 'check.js'));
   await cp(path.join(shellDir, 'probe.js'), path.join(outDir, 'probe.js'));
+  await cp(path.join(shellDir, 'elements.js'), path.join(outDir, 'elements.js'));
+  await cp(path.join(shellDir, 'elements-ui.js'), path.join(outDir, 'elements-ui.js'));
 
   if (vendoredMediabunny) {
     await cp(
