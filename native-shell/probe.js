@@ -27,6 +27,9 @@
   var recording = [];
   var active = false;
   var startedAt = 0;
+  var mutations = 0;
+  var observer = null;
+  var errors = [];
 
   function describe(el) {
     if (!el || el.nodeType !== 1) return '(not an element)';
@@ -97,6 +100,7 @@
       misplaced: !!(point && target && point !== target &&
         !point.contains(target) && !target.contains(point)),
       state: state(),
+    mutations: mutations,
     });
   }
 
@@ -105,11 +109,71 @@
     handlers[type] = function (event) { record(type, event); };
   });
 
+  /**
+   * Counts DOM mutations, so "did anything happen" is answered by the document itself.
+   *
+   * The first version compared a hand-picked list of things -- open sheets, the active
+   * tab view, editor visibility. Most controls change none of those: switching a drawer
+   * tab rewrites the content inside the drawer, and deleting a layer rewrites the
+   * timeline. Both were reported as "the app did not react" when the app had reacted
+   * perfectly. Watching for any mutation is the only verdict that does not depend on me
+   * guessing which element a given button is supposed to touch.
+   */
+  function startMutations() {
+    mutations = 0;
+    if (observer) return;
+    try {
+      observer = new MutationObserver(function (list) { mutations += list.length; });
+      observer.observe(document.documentElement, {
+        childList: true, subtree: true, attributes: true, characterData: true,
+      });
+    } catch (e) { observer = null; }
+  }
+
+  /**
+   * Catches exceptions thrown by the app's own handlers.
+   *
+   * A tap on a handler that throws and a tap on a handler that does nothing look
+   * identical from the outside: the screen does not change either way. Recording the
+   * error separately is the difference between "this button is not connected" and "this
+   * button is connected and the code behind it is broken", which need opposite fixes.
+   */
+  function onError(event) {
+    if (errors.length >= 20) return;
+    errors.push({
+      at: Math.round(performance.now() - startedAt),
+      message: String(event.message || (event.error && event.error.message) || 'error'),
+      source: String(event.filename || '').split('/').pop(),
+      line: event.lineno || 0,
+      // The stack names the function that threw. A line number inside a 6 MB document is
+      // not something I can act on; a function name is.
+      stack: String((event.error && event.error.stack) || '').split('\n')
+        .slice(1, 4).map(function (l) { return l.trim(); }).join(' | '),
+    });
+  }
+
+  function onRejection(event) {
+    if (errors.length >= 20) return;
+    var reason = event.reason;
+    errors.push({
+      at: Math.round(performance.now() - startedAt),
+      message: 'unhandled promise: ' +
+        String((reason && (reason.message || reason)) || 'rejection'),
+      source: '', line: 0,
+    });
+  }
+
   function start() {
     if (active) return;
     active = true;
     recording = [];
+    errors = [];
     startedAt = performance.now();
+    startMutations();
+    try {
+      window.addEventListener('error', onError, true);
+      window.addEventListener('unhandledrejection', onRejection, true);
+    } catch (e) { /* older WebView */ }
     TYPES.forEach(function (type) {
       document.addEventListener(type, handlers[type], true);
     });
@@ -118,17 +182,42 @@
   function stop() {
     if (!active) return;
     active = false;
+    if (observer) {
+      try { observer.disconnect(); } catch (e) { /* already gone */ }
+      observer = null;
+    }
+    try {
+      window.removeEventListener('error', onError, true);
+      window.removeEventListener('unhandledrejection', onRejection, true);
+    } catch (e) { /* older WebView */ }
     TYPES.forEach(function (type) {
       document.removeEventListener(type, handlers[type], true);
     });
   }
 
+  /*
+   * One finger tap produces up to six events, and Android sends both a touchstart and a
+   * pointerdown for it. The first version treated each of those as a new tap, so every
+   * real tap was reported as two: one that "never got a click" and one that "clicked but
+   * did nothing". That doubled the count and half of it was noise.
+   *
+   * A tap now ends when a click arrives, or when the next touchstart/pointerdown arrives
+   * after one has already been seen for the current tap.
+   */
   function summarise() {
     var taps = [];
     var current = null;
+
+    function close() {
+      if (current) { taps.push(current); current = null; }
+    }
+
     recording.forEach(function (event) {
-      if (event.type === 'touchstart' || event.type === 'pointerdown') {
-        if (current) taps.push(current);
+      var starts = event.type === 'touchstart' || event.type === 'pointerdown';
+      // A second start after we already have a start and no click means the previous
+      // tap never produced one; keep them separate so the failure stays visible.
+      if (starts && current && current.seen.click) close();
+      if (starts && !current) {
         current = {
           target: event.target,
           hit: event.hit,
@@ -136,17 +225,20 @@
           seen: {},
           stateBefore: event.state,
           stateAfter: event.state,
+          mutationsBefore: event.mutations,
+          mutationsAfter: event.mutations,
         };
       }
       if (!current) return;
       current.seen[event.type] = true;
       current.stateAfter = event.state;
+      current.mutationsAfter = event.mutations;
       if (event.misplaced) {
         current.misplaced = true;
         current.hit = event.hit;
       }
     });
-    if (current) taps.push(current);
+    close();
     return taps;
   }
 
@@ -158,7 +250,8 @@
 
     taps.forEach(function (tap, index) {
       var chain = TYPES.filter(function (t) { return tap.seen[t]; }).join(' ');
-      var changed = tap.stateBefore.sheets !== tap.stateAfter.sheets ||
+      var changed = (tap.mutationsAfter - tap.mutationsBefore) > 0 ||
+        tap.stateBefore.sheets !== tap.stateAfter.sheets ||
         tap.stateBefore.view !== tap.stateAfter.view ||
         tap.stateBefore.editor !== tap.stateAfter.editor;
 
@@ -173,7 +266,7 @@
         verdict = 'tap arrived, but the page never got a click';
         dead++;
       } else if (!changed) {
-        verdict = 'arrived and clicked, but the app did not react';
+        verdict = 'clicked, but nothing in the page changed';
         dead++;
       } else {
         verdict = 'worked';
@@ -184,11 +277,27 @@
       lines.push('    ' + verdict);
       if (tap.misplaced && tap.hit) lines.push('    finger landed on: ' + tap.hit);
       lines.push('    events: ' + (chain || '(none)'));
+      var delta = tap.mutationsAfter - tap.mutationsBefore;
+      lines.push('    page changes after tap: ' + (delta > 0 ? delta : 'none'));
       if (changed) {
         lines.push('    screen: ' + JSON.stringify(tap.stateBefore) + ' -> ' +
           JSON.stringify(tap.stateAfter));
       }
     });
+
+    if (errors.length) {
+      lines.push('');
+      lines.push('ERRORS THROWN WHILE TAPPING (' + errors.length +
+        ') — these are the code behind the button failing:');
+      errors.forEach(function (e) {
+        lines.push('  x ' + e.message + '  at ' + e.at + 'ms');
+        if (e.stack) lines.push('      ' + e.stack);
+      });
+    } else if (taps.length) {
+      lines.push('');
+      lines.push('No errors were thrown. The taps that did nothing did not fail — ' +
+        'they ran and had no effect.');
+    }
 
     lines.push('');
     if (!taps.length) {
