@@ -106,7 +106,7 @@ jobs:
           # device can be reported back. An APK that ships without them still installs and
           # still runs, so a missing file is invisible until someone tries to use it.
           for entry in assets/www/index.html assets/www/native-shell.js \
-                       assets/www/report.js assets/www/check.js assets/www/probe.js assets/www/elements.js assets/www/elements-ui.js assets/www/nodevideo.js assets/www/nodevideo-ui.js assets/www/smooth-motion.js \
+                       assets/www/report.js assets/www/check.js assets/www/probe.js assets/www/elements.js assets/www/elements-ui.js assets/www/nodevideo.js assets/www/nodevideo-ui.js assets/www/nodevideo-pro.js assets/www/smooth-motion.js \
                        assets/www/vendor/mediabunny/mediabunny.mjs; do
             if ! grep -q "$entry" <<<"$listing"; then
               echo "::error::missing $entry in APK"
@@ -125,6 +125,7 @@ jobs:
           grep -q 'oms-nodevideo-entry' /tmp/apk-index.html
           grep -q 'data-oms-nv' /tmp/apk-index.html
           grep -q 'min="0.1" max="4"' /tmp/apk-index.html
+          grep -q 'oms-nodevideo-pro' /tmp/apk-index.html
           ! grep -q 'cdn.jsdelivr.net/npm/mediabunny' /tmp/apk-index.html
           echo "editor bundle verified inside APK"
 

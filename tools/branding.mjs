@@ -262,7 +262,9 @@ export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
   const out = addNodeVideoImport(
-    hardenNewProjectButton(
+    addLutPaintHook(
+      addLutEffectSpec(
+      hardenNewProjectButton(
       addElementsDrawerTab(
         fixNewProjectSeg(
           fixDetachedGlobals(
@@ -274,6 +276,8 @@ export async function patchBranding(indexPath) {
                   )
                 )
               )
+            )
+          )
             )
           )
         )
@@ -718,7 +722,8 @@ export function addNodeVideoImport(html) {
     if (insertAt === -1) {
       console.warn('! addNodeVideoImport: settings anchor end not found');
     } else {
-      const row = '<div class="propRow"><label>Node Video</label><button type="button" data-oms-nv="speed" style="grid-column:span 2;justify-self:start;appearance:none;border:1px solid #2a3240;background:#141821;color:#cfd8e5;font:700 12px/1 system-ui,sans-serif;padding:10px 12px;border-radius:9px">Speed &amp; slow motion</button><span></span></div>' +
+      const row = '<div class="propRow"><label>Tools</label><button type="button" data-oms-nv="pro" style="grid-column:span 2;justify-self:start;appearance:none;border:1px solid #2a3240;background:#141821;color:#cfd8e5;font:700 12px/1 system-ui,sans-serif;padding:10px 12px;border-radius:9px">Tracking · AI matte · LUT · Optical flow</button><span></span></div>' +
+        '<div class="propRow"><label>Node Video</label><button type="button" data-oms-nv="speed" style="grid-column:span 2;justify-self:start;appearance:none;border:1px solid #2a3240;background:#141821;color:#cfd8e5;font:700 12px/1 system-ui,sans-serif;padding:10px 12px;border-radius:9px">Speed &amp; slow motion</button><span></span></div>' +
         '<div class="propRow"><label>Package</label><button type="button" data-oms-nv="import" style="grid-column:span 2;justify-self:start;appearance:none;border:1px solid #2a3240;background:#141821;color:#cfd8e5;font:700 12px/1 system-ui,sans-serif;padding:10px 12px;border-radius:9px">Import .zip</button><span></span></div>' +
         '<div class="propRow"><label>Export</label><button type="button" data-oms-nv="export" style="grid-column:span 2;justify-self:start;appearance:none;border:1px solid #2a3240;background:#141821;color:#cfd8e5;font:700 12px/1 system-ui,sans-serif;padding:10px 12px;border-radius:9px">Export .zip</button><span></span></div>';
       out = out.slice(0, insertAt) + row + out.slice(insertAt);
@@ -836,4 +841,58 @@ export function addNodeVideoImport(html) {
   const close = out.lastIndexOf('</html>');
   if (close === -1) return out + script;
   return out.slice(0, close) + script + out.slice(close);
+}
+
+/**
+ * Gives the LUT grade a real entry in the effect catalog.
+ *
+ * The catalog is a `const` inside the editor's own script, so nothing outside that scope can
+ * extend it -- `window.OMS_EFFECT_CATALOG` never exists. The only place a new effect can be
+ * declared is immediately before `OMS_EFFECT_BY_ID` is built, and that is where this goes.
+ * Without it the layer stack would hold an effect the renderer and the panel have never
+ * heard of, which is how a menu item ends up doing nothing.
+ */
+export function addLutEffectSpec(html) {
+  const anchor = "const OMS_EFFECT_BY_ID=new Map(OMS_EFFECT_CATALOG.map(spec=>[spec.id,spec]));";
+  if (!html.includes(anchor)) {
+    console.warn('! addLutEffectSpec: effect catalog anchor not found');
+    return html;
+  }
+  const inject = `/* EditorsHub: a real, keyframable LUT Grade effect. The colour table is applied by the
+   renderer's paint step (see nodevideo-pro.js) because a 3D cube needs a texture the effect
+   pipeline cannot bind; this entry is what makes the layer stack, the effects panel and the
+   keyframe system treat it as a first-class effect. */
+const OMS_LUT_GRADE_SPEC=Object.freeze({id:'oms_lut_grade',name:'LUT Grade',category:'Color',renderKind:'SHADER',params:[{id:'amount',label:'Amount',type:'SCALAR',default:1,min:0,max:1,step:.01,displayScale:100,group:'Grade'}]});
+OMS_EFFECT_CATALOG=[...OMS_EFFECT_CATALOG,OMS_LUT_GRADE_SPEC];
+// The effects panel reads window.omsUnifiedEffects.catalog, which is built later in this
+// script, so the entry is added once that object exists.
+queueMicrotask(()=>{try{window.omsUnifiedEffects?.catalog?.set?.('oms_lut_grade',OMS_LUT_GRADE_SPEC);OMS_EFFECT_RENDERABLE.add?.('oms_lut_grade')}catch(e){}});
+
+`;
+  return html.split(anchor).join(inject + anchor);
+}
+
+/**
+ * Applies an active LUT grade to the layer raster, after the layer is painted.
+ *
+ * The grade cannot live in the GPU effect pipeline: that pipeline binds two textures and
+ * float parameters only, and a 3D colour cube needs a third texture. Doing it here means the
+ * lookup runs on the pixels the layer just produced, before they are uploaded, so the grade
+ * is part of the frame rather than a pass over it.
+ *
+ * The lookup itself is a flat index into a 32^3 table (see nodevideo-pro.js), one multiply
+ * per channel. Every failure path leaves the ungraded raster in place: a colour table that
+ * cannot be read must never black out the preview or lose a layer.
+ */
+export function addLutPaintHook(html) {
+  const anchor = '\n    c.restore();window.omsBackgroundRemoval?.apply(l,e,model.time);';
+  if (!html.includes(anchor)) {
+    console.warn('! addLutPaintHook: paint anchor not found');
+    return html;
+  }
+  const hook = '\n    c.restore();window.omsNodeVideoPro?.gradeCanvas?.(l,e);' +
+    'window.omsBackgroundRemoval?.apply(l,e,model.time);';
+  let out = html.split(anchor).join(hook);
+  console.log('  lut       paint hook installed');
+  return out;
 }
