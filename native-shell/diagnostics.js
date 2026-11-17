@@ -301,6 +301,8 @@
       .filter(Boolean).join(' ') + ' | sdk ' + (report.device.sdk || '?') +
       ' | ' + (report.device.cores || '?') + ' cores | heap ' + (report.device.heapMb || '?') + 'MB');
     lines.push('State: ' + JSON.stringify(report.ui));
+    var buildMeta = document.querySelector('meta[name="editorshub-build"]');
+    lines.push('Build: ' + (buildMeta ? buildMeta.getAttribute('content') : '(unknown)'));
     lines.push('At: ' + report.at);
     return lines.join('\n');
   }

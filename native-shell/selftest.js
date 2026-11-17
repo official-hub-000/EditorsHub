@@ -178,6 +178,8 @@
     if (!blocked.length && !inert.length) {
       lines.push('Every control on this screen responded to a tap.');
     }
+    var buildMeta = document.querySelector('meta[name="editorshub-build"]');
+    lines.push('Build: ' + (buildMeta ? buildMeta.getAttribute('content') : '(unknown)'));
     lines.push('Viewport: ' + window.innerWidth + 'x' + window.innerHeight +
       ' @' + window.devicePixelRatio + 'x');
     return lines.join('\n');

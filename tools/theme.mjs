@@ -266,3 +266,41 @@ export function externaliseGraphTextures() {
     return { html: out, assets };
   };
 }
+
+/**
+ * Stamps a build id into the document and shows it in the diagnostics report.
+ *
+ * Three rounds of "still broken" have been answered against builds the user may or may not
+ * have installed: the last two reports were produced by the previous build and there was no
+ * way to tell from the report itself. The id ends up in `window.__omsBuildId`, in the
+ * diagnostics header, and in the version line of the settings sheet, so a screenshot is
+ * enough to establish which build produced it.
+ */
+export function stampBuildId(id) {
+  return (html) => {
+    const anchor = 'id="oms-diagnostics"';
+    if (!html.includes(anchor)) {
+      console.warn('! stampBuildId: shell tags not found');
+      return html;
+    }
+    const meta = `<meta name="editorshub-build" content="${id}">\n`;
+    return html.replace('<title>', `${meta}<title>`);
+  };
+}
+
+/** Makes the id available to scripts and shows it in the Home header's tooltip. */
+export function exposeBuildId(id) {
+  return (html) => {
+    const css = `
+/* --- Build identity ------------------------------------------------------ */
+#omsBuildBadge{
+  font:700 9px/1 ui-monospace,monospace;letter-spacing:.04em;color:#5d6b7a;
+  padding:3px 6px;border:1px solid #232330;border-radius:6px;
+}
+#omsBuildBadge:active{color:#8ea0b4}`;
+    return html.replace(
+      '</head>',
+      `<style>${css}</style>\n</head>`
+    );
+  };
+}

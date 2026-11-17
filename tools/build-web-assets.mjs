@@ -39,6 +39,8 @@ import {
   enlargeTinyText,
   removeTapDelay,
   externaliseGraphTextures,
+  stampBuildId,
+  exposeBuildId,
 } from './theme.mjs';
 import { markSvg, splashMarkup } from './brand-art.mjs';
 
@@ -247,6 +249,16 @@ async function main() {
   html = enlargeTinyText(html);
   html = removeTapDelay(html);
   html = applyTheme(html);
+  // A build id so an installed build can be identified from a screenshot alone.
+  let commit = 'dev';
+  try {
+    commit = execSync('git rev-parse --short HEAD', { cwd: webDir }).toString().trim();
+  } catch {
+    /* not a git checkout */
+  }
+  const buildId = `${new Date().toISOString().slice(0, 10)}-${commit}`;
+  html = stampBuildId(buildId)(html);
+  html = exposeBuildId(buildId)(html);
 
   // The graph textures are the single largest lump in the document; they are written as
   // files and referenced by URL so startup does not decode 2.8 MB of base64.
