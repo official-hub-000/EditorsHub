@@ -24,6 +24,7 @@ What is verified here
   5. The graph textures stayed out of the document.
   6. The shell never redefines a `window.*` name the editor already owns.
   7. No build step rewrote a JavaScript key into one that does not exist.
+  8. No detached <script> block calls the editor's undo stack by bare name.
   6. The document contains no half-translated Bahasa Indonesia UI text.
 
 Exit code 1 on any failure, so CI fails instead of publishing an APK that cannot boot.
@@ -151,6 +152,45 @@ def main() -> int:
                     f"(known: {', '.join(sorted(keys))}). The call is a silent no-op.",
                     file=sys.stderr,
                 )
+
+    # The document is a series of independent <script> blocks. A block that declares its
+    # own `history` (the editor's HistoryManager) is fine. A block that does not -- the
+    # layer toolbar, the mobile overhaul wrapper -- reaches the app through window.model
+    # and window.ui and then calls `history.push()`, which resolves to window.history.
+    # That object has pushState, not push. The call throws and the control silently does
+    # nothing: the toolbar's delete and rename buttons both died this way, and so did a
+    # template handler written for this project.
+    for tag in re.finditer(r"<script([^>]*)>", html):
+        opener = tag.group(1)
+        start = tag.end()
+        end = html.find("</script>", start)
+        if end < 0:
+            continue
+        body = html[start:end]
+        if re.search(r"(?:const|let|var)\s+history\s*=", body):
+            continue  # declares its own HistoryManager; bare `history` is correct
+        GLOBALS = {
+            "history": "__omsHistory",
+            "timeline": "__omsTimeline",
+            "renderer": "__omsRenderer",
+            "bus": "__omsBus",
+        }
+        bad = []
+        for name, published in GLOBALS.items():
+            if re.search(r"(?:const|let|var)\s+" + name + r"\s*=", body):
+                continue  # declares its own; bare use is correct
+            if re.search(r"(?<![.\w])" + name + r"\.\w+\s*\(", body):
+                bad.append(name)
+        if bad:
+            ok = False
+            label = re.search(r'id="([^"]+)"', opener)
+            print(
+                f"\n<script {label.group(1) if label else 'anonymous'}> uses "
+                f"{', '.join(bad)} without declaring it. In a detached block these resolve "
+                f"to undefined (or to window.history), and the surrounding try/catch hides "
+                f"the failure. Use the window.__oms* globals.",
+                file=sys.stderr,
+            )
 
     # 2.82 MB of base64 belongs in files, not in the parsed document.
     if 'data:image/webp;base64' in html:

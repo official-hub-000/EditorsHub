@@ -262,10 +262,12 @@ export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
   const out = hardenNewProjectButton(
-    fixElementCard(
-      fixTemplateButtons(
+    fixDetachedGlobals(
+      fixElementCard(
+        fixTemplateButtons(
         fixTutorialCards(
-          finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed))))
+            finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed))))
+          )
         )
       )
     )
@@ -358,10 +360,14 @@ export function fixTemplateButtons(html) {
               model.mode3d = false;
               model.cameraView = true;
               try { renderer.resize(); } catch (e) {}
-              history.clear();
+              // This block has no access to the editor's HistoryManager, so the bare
+              // identifier resolves to window.history -- the browser's -- which has
+              // neither clear() nor push(). Both calls threw and the template never
+              // applied. Go through the global the build exposes instead.
+              try { window.__omsHistory && window.__omsHistory.clear(); } catch (e) {}
               ui.authorizeEditorOpen?.();
               ui.showEditor();
-              history.push();
+              try { window.__omsHistory && window.__omsHistory.push(); } catch (e) {}
               setTimeout(() => {
                 ui.applyTemplate(tmplName);
                 if (typeof toast === 'function') toast('Template applied');
@@ -396,4 +402,126 @@ export function fixElementCard(html) {
     return html;
   }
   return html.replace(from, to);
+}
+
+/**
+ * Publishes the editor's core objects so detached scripts can reach them.
+ *
+ * The document is a series of independent `<script>` blocks, each in its own IIFE. A few
+ * of them -- the layer toolbar, the Alight Motion parity menu, the mobile overhaul
+ * wrapper -- are written as if they shared the editor's scope: they call
+ * `history.push()`, `timeline.rebuild()`, `renderer.resize()` and `bus.on()` on bare
+ * identifiers that only exist inside the editor block.
+ *
+ * In those blocks the bare names resolve to something else or to nothing:
+ *
+ *   history.push()      -> window.history.push, which does not exist (throws)
+ *   timeline.rebuild()  -> ReferenceError (swallowed by a try/catch)
+ *   renderer.resize()   -> ReferenceError (swallowed by a try/catch)
+ *   bus.on(...)         -> ReferenceError (swallowed by a try/catch)
+ *
+ * The last three are the dangerous ones: they are wrapped in `try {} catch {}`, so a
+ * broken control looks exactly like a working one that had nothing to do. That is how
+ * the layer toolbar's delete button, the parity action menu and the template buttons all
+ * survived every check that only asked "is it wired?".
+ *
+ * The repair is deliberately small: publish the four objects on `window` next to the
+ * existing `window.model` / `window.ui`, then point the detached call sites at them.
+ * No behaviour changes in the editor's own scope.
+ */
+export function fixDetachedGlobals(html) {
+  const decls = [
+    ["const history=new HistoryManager(model);", "history"],
+    ["const renderer=new WebGLRenderer(model,$('#stage'));", "renderer"],
+    ["const timeline=new TimelineController(model);", "timeline"],
+    ["const bus=new EventBus();", "bus"],
+  ];
+  let out = html;
+  for (const [decl, name] of decls) {
+    const globalName = name === 'history' ? '__omsHistory' : '__oms' + name.charAt(0).toUpperCase() + name.slice(1);
+    if (out.includes(decl) && !out.includes('window.' + globalName + '=')) {
+      out = out.replace(
+        decl,
+        decl + `\nwindow.${globalName}=${name};`
+      );
+    } else if (!out.includes(decl)) {
+      console.warn(`! fixDetachedGlobals: ${name} declaration not found`);
+    }
+  }
+
+  // Point the detached blocks at the published globals.
+  const blocks = ['oms-layer-header-v250-script', 'am-parity-action-menu-script',
+    'oms-mobile-device-overhaul-script'];
+  for (const id of blocks) {
+    const at = out.indexOf('id="' + id + '"');
+    if (at === -1) continue;
+    const end = out.indexOf('</script>', at);
+    if (end === -1) continue;
+    let body = out.slice(at, end);
+    if (re_hasDecl(body)) continue;
+    body = body
+      .replace(/\bhistory\.(push|undo|redo|clear)\(\)/g,
+        '(window.__omsHistory&&window.__omsHistory.$1())')
+      .replace(/(?:window\.timeline\?\.rebuild\s*&&\s*)?\btimeline\.rebuild\(\)/g,
+        'window.__omsTimeline&&window.__omsTimeline.rebuild()')
+      .replace(/\brenderer\.resize\?\.\(\)|\brenderer\.resize\(\)/g,
+        'window.__omsRenderer&&window.__omsRenderer.resize()')
+      .replace(/\bbus\.on\(/g, 'window.__omsBus&&window.__omsBus.on(');
+    out = out.slice(0, at) + body + out.slice(end);
+  }
+  return out;
+}
+
+function re_hasDecl(body) {
+  return /(?:const|let|var)\s+(?:history|timeline|renderer|bus)\s*=/.test(body);
+}
+
+/**
+ * Repairs the layer-bar rename and delete buttons.
+ *
+ * `oms-layer-header-v250-script` is its own `<script>` block, wrapped in an IIFE. It
+ * reaches the app through `window.model` and `window.ui`, which is correct -- but it
+ * calls `history.push()` on the bare identifier. Inside that block `history` resolves to
+ * `window.history`, the browser's session history, which has `pushState` and no `push`.
+ * The call throws immediately, so:
+ *
+ *   - the toolbar delete button did nothing at all
+ *   - renaming a layer in that bar was silently discarded
+ *
+ * Both look like dead controls. The fix exposes the editor's undo stack as
+ * `window.__omsHistory` and points these two call sites at it. Nothing else in the
+ * document changes: every other block runs in the editor's own scope where `history`
+ * already means the HistoryManager.
+ */
+export function fixLayerBarHistory(html) {
+  // 1. Publish the undo stack next to the other globals the shell already exposes.
+  const fromDecl = `const history=new HistoryManager(model);`;
+  const toDecl =
+    `const history=new HistoryManager(model);\n` +
+    `// Reached by detached IIFE blocks (the layer toolbar) that cannot see this scope.\n` +
+    `window.__omsHistory=history;`;
+  let out = html;
+  if (out.includes(fromDecl)) {
+    out = out.replace(fromDecl, toDecl);
+  } else {
+    console.warn('! fixLayerBarHistory: HistoryManager declaration not found');
+  }
+
+  // 2. Point the layer toolbar's two calls at it.
+  const blockStart = out.indexOf('id="oms-layer-header-v250-script"');
+  if (blockStart === -1) {
+    console.warn('! fixLayerBarHistory: layer toolbar block not found');
+    return out;
+  }
+  const blockEnd = out.indexOf('</script>', blockStart);
+  const block = out.slice(blockStart, blockEnd);
+  const patched = block.replace(
+    /\bhistory\.push\(\)/g,
+    '(window.__omsHistory&&window.__omsHistory.push())'
+  );
+  if (patched === block) {
+    console.warn('! fixLayerBarHistory: no history.push() call in the block');
+    return out;
+  }
+  return out.slice(0, blockStart) + patched + out.slice(blockEnd);
 }
