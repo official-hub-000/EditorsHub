@@ -774,6 +774,31 @@
     }
   }
 
+  /**
+   * Shows the build id once, on first launch only.
+   *
+   * Three rounds of "still broken" were answered against a build nobody could identify:
+   * the self-test's Build line was blank for two of them. A short notice naming the
+   * installed build removes that ambiguity for good — the user can read the version off
+   * the screen instead of trusting a download timestamp.
+   */
+  function announceBuildOnce() {
+    var meta = document.querySelector('meta[name="editorshub-build"]');
+    var id = meta ? meta.getAttribute('content') : 'unknown';
+    var KEY = 'omsBuildAnnounced';
+    try {
+      if (localStorage.getItem(KEY) === id) return;
+      localStorage.setItem(KEY, id);
+    } catch (e) {
+      return; /* no storage: stay quiet rather than repeat on every launch */
+    }
+    setTimeout(function () {
+      try {
+        if (typeof window.toast === 'function') window.toast('EditorsHub ' + id, 3200);
+      } catch (e) { /* toast is a nicety */ }
+    }, 2200);
+  }
+
   function installReportButton() {
     if (document.getElementById('omsReportBtn')) return;
     if (!document.body) return;
@@ -816,9 +841,13 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', installReportButton, { once: true });
+    document.addEventListener('DOMContentLoaded', function () {
+      installReportButton();
+      announceBuildOnce();
+    }, { once: true });
   } else {
     installReportButton();
+    announceBuildOnce();
   }
 
   window.dispatchEvent(new Event('omsnative:ready'));
