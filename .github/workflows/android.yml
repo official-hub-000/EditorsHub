@@ -126,6 +126,24 @@ jobs:
           grep -q 'data-oms-nv' /tmp/apk-index.html
           grep -q 'min="0.1" max="4"' /tmp/apk-index.html
           grep -q 'oms-nodevideo-pro' /tmp/apk-index.html
+          # The preview must be drawn at a fraction of the project size, with the pointer
+          # maths and the projection moved to composition units to match. If any of these
+          # four are missing the editor is either slow again or the hit boxes are wrong.
+          grep -q 'function omsPreviewCanvasSize()' /tmp/apk-index.html
+          grep -q '__cs=omsPreviewCanvasSize()' /tmp/apk-index.html
+          grep -q 'x:(clientX-rect.left)*(W/Math.max(1,rect.width))' /tmp/apk-index.html
+          grep -q 'window.omsSetPreviewQuality=omsSetPreviewQuality' /tmp/apk-index.html
+          # One sheet listing every tool, and the reachable preview-quality control.
+          grep -q 'omsMoreToolsBtn' /tmp/apk-index.html
+          grep -q 'omsPreviewQualitySheet' /tmp/apk-index.html
+          # Row taps: a switchRow whose label is tapped must toggle, on devices that send
+          # only pointer events and on devices that send both.
+          grep -q '__omsSwitchRows' /tmp/apk-index.html
+          # The zip reader must be able to inflate without DecompressionStream, because the
+          # WebView on the reporting device does not have it.
+          unzip -p "$apk" assets/www/nodevideo.js > /tmp/apk-nodevideo.js
+          grep -q 'function inflateRaw(' /tmp/apk-nodevideo.js
+          grep -q 'inflateRaw(raw, entry.size)' /tmp/apk-nodevideo.js
           ! grep -q 'cdn.jsdelivr.net/npm/mediabunny' /tmp/apk-index.html
           echo "editor bundle verified inside APK"
 

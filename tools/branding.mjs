@@ -261,23 +261,31 @@ export function fixTutorialCards(html) {
 export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
-  const out = addNodeVideoImport(
-    addLutPaintHook(
-      addLutEffectSpec(
-      hardenNewProjectButton(
-      addElementsDrawerTab(
-        fixNewProjectSeg(
-          fixDetachedGlobals(
-            fixElementCard(
-              fixTemplateButtons(
-                fixTutorialCards(
-                  finishEnglish(
-                    themeConfirms(forceEnglish(singleCredit(renamed)))
+  const out = addMoreTools(
+    addQualityAndTapFixes(
+      addPreviewScale(
+        addPlayheadThrottle(
+          addNodeVideoImport(
+            addLutPaintHook(
+              addLutEffectSpec(
+                hardenNewProjectButton(
+                  addElementsDrawerTab(
+                    fixNewProjectSeg(
+                      fixDetachedGlobals(
+                        fixElementCard(
+                          fixTemplateButtons(
+                            fixTutorialCards(
+                              finishEnglish(
+                                themeConfirms(forceEnglish(singleCredit(renamed)))
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
                   )
                 )
               )
-            )
-          )
             )
           )
         )
@@ -447,6 +455,7 @@ export function fixDetachedGlobals(html) {
     ["const renderer=new WebGLRenderer(model,$('#stage'));", "renderer"],
     ["const timeline=new TimelineController(model);", "timeline"],
     ["const bus=new EventBus();", "bus"],
+    ["const ui=new UIController()", "ui"],
   ];
   let out = html;
   for (const [decl, name] of decls) {
@@ -895,4 +904,737 @@ export function addLutPaintHook(html) {
   let out = html.split(anchor).join(hook);
   console.log('  lut       paint hook installed');
   return out;
+}
+
+/**
+ * Renders the preview at the preview's own size instead of the project's.
+ *
+ * WHY
+ *
+ * The WebGL canvas was always the full project resolution. A 1080p timeline therefore
+ * shaded 1920x1080 pixels per frame to fill a preview box that is a few hundred pixels
+ * wide, and every blur, effect pass and texture upload paid for pixels no one can see.
+ * That is the largest single reason the editor felt heavy on a phone: the work scaled
+ * with the project, not with the screen.
+ *
+ * WHAT CHANGES
+ *
+ *   `resize()` sizes the canvas to project size * preview quality
+ *   `screenWorld`/`project` report composition pixels, not canvas pixels
+ *   `canvasPointFromClient` converts the other way, so taps still land exactly
+ *
+ * Export is untouched: it sets its own native-resolution target and the code here never
+ * runs while `_nativeExportTarget` is set.
+ *
+ * Every edit is anchored on an exact string from the shipped document and fails soft with
+ * a console warning, because a wrong guess here would move every hit box in the editor.
+ */
+
+/** The three size assignments that must become preview-sized. */
+const PREVIEW_SIZE_SITES = [
+  // The Canvas2D fallback renderer is deliberately left at project size. It paints in
+  // composition coordinates with no projection matrix, so a smaller backing store would
+  // draw every layer at the wrong scale. It only runs on devices without WebGL, where
+  // correctness matters more than the pixels it saves.
+  //
+  // 1. WebGL renderer. Keeps a 1:1 fallback while an export target is active.
+  ['const w=target?.width||Math.max(1,+model.project.width||1),h=target?.height||Math.max(1,+model.project.height||1);',
+    'const __p=target?null:omsPreviewCanvasSize(),w=target?.width||__p.width,h=target?.height||__p.height;'],
+  // 2. Leaving an export restores the preview size, not the project size.
+  ['this.canvas.width=Math.max(1,+model.project.width||1);this.canvas.height=Math.max(1,+model.project.height||1);\n    this.gl.viewport(0,0,this.canvas.width,this.canvas.height);',
+    'const __p=omsPreviewCanvasSize();this.canvas.width=__p.width;this.canvas.height=__p.height;\n    this.gl.viewport(0,0,this.canvas.width,this.canvas.height);'],
+];
+
+/** The helper the size sites call. Inserted once, before the renderer class exists. */
+const PREVIEW_HELPER = `const OMS_PREVIEW_SCALE_KEY='oms_preview_scale_v1';
+// One place decides what "preview resolution" means. A cached value keeps this off the
+// hot path: it is called from resize(), the export teardown and every live setting change.
+let __omsPreviewSizeCache={key:'',width:2,height:2};
+function omsPreviewCanvasSize(){
+  const project=window.model&&model.project;
+  if(!project)return{width:2,height:2,scale:1};
+  const scale=typeof omsPreviewQualityScale==='function'?omsPreviewQualityScale():.5;
+  const key=(+project.width||2)+'x'+(+project.height||2)+'@'+scale;
+  if(__omsPreviewSizeCache.key===key)return __omsPreviewSizeCache;
+  const width=Math.max(2,Math.round((+project.width||2)*scale));
+  const height=Math.max(2,Math.round((+project.height||2)*scale));
+  __omsPreviewSizeCache={key,width,height,scale};
+  return __omsPreviewSizeCache;
+}
+window.omsPreviewCanvasSize=omsPreviewCanvasSize;
+// Editor overlay surfaces are drawn in composition units even though the stage canvas is
+// scaled, so they keep the project size and are scaled back down by CSS.
+function omsCompositionWidth(){const p=window.model&&model.project;return Math.max(1,+p?.width||1)}
+function omsCompositionHeight(){const p=window.model&&model.project;return Math.max(1,+p?.height||1)}
+window.omsCompositionWidth=omsCompositionWidth;
+window.omsCompositionHeight=omsCompositionHeight;
+`;
+
+export function addPreviewScale(html) {
+  let out = html;
+
+  // The quality functions are block-scoped inside the editor script, so the settings row
+  // and the tools sheet can only reach them if they are published. Without this the sheet
+  // would write localStorage and the renderer would never hear about it.
+  const qualityAnchor = 'function omsPreviewQualityPercent(){return Math.round(omsPreviewQualityScale()*100)}';
+  if (out.includes(qualityAnchor)) {
+    out = out.split(qualityAnchor).join(
+      qualityAnchor +
+      '\nwindow.omsPreviewQualityScale=omsPreviewQualityScale;' +
+      'window.omsPreviewQualityPercent=omsPreviewQualityPercent;'
+    );
+  } else {
+    console.warn('! addPreviewScale: quality functions anchor missing');
+  }
+  const setQualityAnchor = 'function omsSetPreviewQuality(value){';
+  if (out.includes(setQualityAnchor)) {
+    out = out.split(setQualityAnchor).join('function omsSetPreviewQuality(value){');
+    // Published after the body, so the export below sees the finished function.
+    // Published after the closing brace, at the same block level as the declaration:
+    // publishing inside the body would leave the function unreachable until someone had
+    // already called it through a path that does not exist yet.
+    const endAnchor = "  bus.emit('preview:quality',{preference:next,scale:omsPreviewQualityScale()});\n  return next\n}";
+    if (out.includes(endAnchor)) {
+      out = out.split(endAnchor).join(endAnchor + '\nwindow.omsSetPreviewQuality=omsSetPreviewQuality;');
+    } else {
+      console.warn('! addPreviewScale: set-quality body anchor missing');
+    }
+  } else {
+    console.warn('! addPreviewScale: omsSetPreviewQuality anchor missing');
+  }
+
+  // The helper has to exist before the first renderer is constructed.
+  const rendererAnchor = "const renderer=new WebGLRenderer(model,$('#stage'));";
+  if (!out.includes(rendererAnchor)) {
+    console.warn('! addPreviewScale: renderer construction anchor missing');
+    return out;
+  }
+  out = out.split(rendererAnchor).join(PREVIEW_HELPER + rendererAnchor);
+
+  // Projection results move back into composition pixels. This is the half that keeps
+  // hit testing, drag deltas and overlay drawing honest once the canvas is smaller.
+  const screenAnchor = 'screenWorld(x,y,z,vp=this.vp){const p=Mat4.point(vp,x,y,z);if(p.w<=.00001)return null;const nx=p.x/p.w,ny=p.y/p.w,nz=p.z/p.w;if(nz<-1.2||nz>1.2)return null;return{x:(nx*.5+.5)*this.canvas.width,y:(1-(ny*.5+.5))*this.canvas.height,z:nz,w:p.w}}';
+  const screenTo = `screenWorld(x,y,z,vp=this.vp){const p=Mat4.point(vp,x,y,z);if(p.w<=.00001)return null;const nx=p.x/p.w,ny=p.y/p.w,nz=p.z/p.w;if(nz<-1.2||nz>1.2)return null;
+    // Composition pixels, not canvas pixels: the preview canvas is scaled down, and every
+    // caller of this function (hit tests, polygons, overlays) works in composition space.
+    const __cs=omsPreviewCanvasSize(),__sx=__cs.scale||1;
+    return{x:(nx*.5+.5)*this.canvas.width/__sx,y:(1-(ny*.5+.5))*this.canvas.height/__sx,z:nz,w:p.w}}`;
+  if (!out.includes(screenAnchor)) {
+    console.warn('! addPreviewScale: screenWorld anchor missing — pointer maths left alone');
+  } else {
+    out = out.split(screenAnchor).join(screenTo);
+  }
+
+  // ...and the pointer conversion is the inverse of that.
+  const pointAnchor = `function canvasPointFromClient(clientX,clientY,rect){
+  return {
+    x:(clientX-rect.left)*(renderer.canvas.width/rect.width),
+    y:(clientY-rect.top)*(renderer.canvas.height/rect.height)
+  };
+}`;
+  const pointTo = `function canvasPointFromClient(clientX,clientY,rect){
+  // Composition pixels. The canvas backing store is scaled for speed, the composition is
+  // not, so the ratio has to come from the project size rather than the canvas size.
+  const p=window.model&&model.project||{},W=Math.max(1,+p.width||renderer.canvas.width),H=Math.max(1,+p.height||renderer.canvas.height);
+  return {
+    x:(clientX-rect.left)*(W/Math.max(1,rect.width)),
+    y:(clientY-rect.top)*(H/Math.max(1,rect.height))
+  };
+}`;
+  if (!out.includes(pointAnchor)) {
+    console.warn('! addPreviewScale: canvasPointFromClient anchor missing');
+  } else {
+    out = out.split(pointAnchor).join(pointTo);
+  }
+
+  // `unproject` is the inverse of `screenWorld`: it takes composition pixels and turns them
+  // into world space. With the canvas scaled down it has to normalise by the composition
+  // size, or every drag of a 3D layer moves it by the wrong distance.
+  const unprojectAnchor = 'unproject(x,y,depth){const inv=Mat4.inverse(this.vp),nx=x/this.canvas.width*2-1,ny=1-y/this.canvas.height*2,';
+  if (out.includes(unprojectAnchor)) {
+    out = out.split(unprojectAnchor).join(
+      'unproject(x,y,depth){const inv=Mat4.inverse(this.vp),__c=omsPreviewCanvasSize(),nx=x/(__c.scale?this.canvas.width/__c.scale:this.canvas.width)*2-1,ny=1-y/(__c.scale?this.canvas.height/__c.scale:this.canvas.height)*2,'
+    );
+  } else {
+    console.warn('! addPreviewScale: unproject anchor missing');
+  }
+
+  // The 3D camera handle radius was a fraction of the canvas size, which is now the preview
+  // size. Measured against composition pixels it would shrink with the quality setting, so
+  // it is expressed in composition units -- the same 2.8% of the short edge as before.
+  const cameraHitAnchor = 'const radius=Math.max(20,Math.min(this.canvas.width,this.canvas.height)*.028);';
+  if (out.includes(cameraHitAnchor)) {
+    out = out.split(cameraHitAnchor).join(
+      'const __c=omsPreviewCanvasSize(),radius=Math.max(20,Math.min(__c.width,__c.height)*(1/(__c.scale||1))*.028);'
+    );
+    console.log('  preview   camera handle radius kept in composition units');
+  } else {
+    console.warn('! addPreviewScale: camera handle anchor missing');
+  }
+
+  // The selection overlay is drawn on its own canvas, which stays at project size, so its
+  // strokes are scaled up by the canvas/project ratio to keep the same visual weight.
+  const overlayWidthAnchor = "c.lineWidth=Math.max(1.5,this.canvas.width*.0015);";
+  if (out.includes(overlayWidthAnchor)) {
+    out = out.split(overlayWidthAnchor).join(
+      "c.lineWidth=Math.max(1.5,this.canvas.width*.0015)*(this.overlay&&this.overlay.width?this.overlay.width/Math.max(1,this.canvas.width):1);"
+    );
+  }
+
+  // The editor's overlay surfaces are sized from the stage canvas but drawn in composition
+  // coordinates, so at preview scale they must keep the composition size and the CSS box
+  // does the down-scaling. Without this the selection box is a quarter size in the corner.
+  const overlaySites = [
+    [`if(this.interactionLayer){this.interactionLayer.width=this.canvas.width;this.interactionLayer.height=this.canvas.height;`,
+      `if(this.interactionLayer){this.interactionLayer.width=omsCompositionWidth();this.interactionLayer.height=omsCompositionHeight();`],
+    [`if(this.overlay){this.overlay.width=this.canvas.width;this.overlay.height=this.canvas.height;`,
+      `if(this.overlay){this.overlay.width=omsCompositionWidth();this.overlay.height=omsCompositionHeight();`],
+    ['    overlay.width=above.width=this.canvas.width;\n    overlay.height=above.height=this.canvas.height;',
+      '    overlay.width=above.width=omsCompositionWidth();\n    overlay.height=above.height=omsCompositionHeight();'],
+  ];
+  let overlayHits = 0;
+  for (const [from, to] of overlaySites) {
+    const hits = out.split(from).length - 1;
+    if (!hits) { console.warn(`! addPreviewScale: overlay site missing (${from.slice(0, 40)}…)`); continue; }
+    out = out.split(from).join(to);
+    overlayHits += hits;
+  }
+  if (overlayHits) console.log(`  preview   ${overlayHits} overlay surface(s) kept at composition size`);
+
+  // The DOM-interaction fast path converts a composition delta into CSS pixels. Before this
+  // it divided by the canvas backing width; now it must divide by the composition width so
+  // a dragged layer still follows the finger at any preview scale.
+  const domDragAnchor = 'const rect=this.canvas.getBoundingClientRect();\n    const sx=rect.width/this.canvas.width;';
+  if (out.includes(domDragAnchor)) {
+    out = out.split(domDragAnchor).join(
+      'const rect=this.canvas.getBoundingClientRect();\n    const sx=rect.width/omsCompositionWidth();'
+    );
+    out = out.split('\n    const sy=rect.height/this.canvas.height;').join(
+      '\n    const sy=rect.height/omsCompositionHeight();'
+    );
+    console.log('  preview   DOM drag follows the finger in CSS pixels');
+  } else {
+    console.warn('! addPreviewScale: DOM drag anchor missing');
+  }
+
+  let applied = 0;
+  for (const [from, to] of PREVIEW_SIZE_SITES) {
+    const hits = out.split(from).length - 1;
+    if (!hits) {
+      console.warn(`! addPreviewScale: size site not found (${from.slice(0, 40)}…)`);
+      continue;
+    }
+    out = out.split(from).join(to);
+    applied += hits;
+  }
+  console.log(`  preview   rendered at ${Math.round(100 * 0.5)}% default quality (${applied} size site(s))`);
+  return out;
+}
+
+/**
+ * Stops the playhead update from redoing per-frame work that cannot change mid-frame.
+ *
+ * `updatePlayhead` runs on every rendered frame. Unconditionally it walked the keyframe
+ * list, rewrote the multi-selection tool strip and re-rendered the ruler labels — DOM and
+ * allocation work at 30-60 Hz, none of which depends on the playhead during playback.
+ * The guards below only skip the work when nothing about its input changed, so a value
+ * that is on screen still updates the frame after it changes.
+ */
+export function addPlayheadThrottle(html) {
+  const anchor = '    this.updateKeyframePlayheadState();\n    ui?.refreshMultiSelectionToolsContext?.();\n  }';
+  if (!html.includes(anchor)) {
+    console.warn('! addPlayheadThrottle: playhead anchor missing');
+    return html;
+  }
+  const replacement =
+    `    // The keyframe lane only depends on the frame index and the selected layer. During
+    // playback the index changes at most once per frame, so this is the same call with a
+    // cheap guard instead of a full walk per rendered frame.
+    const __kfKey=timeline.frameIndex(model.time)+':'+(model.selected||'')+':'+(ui?.drawerMode||'');
+    if(__kfKey!==this.__omsKfKey){this.__omsKfKey=__kfKey;this.updateKeyframePlayheadState()}
+    // The multi-selection strip is only on screen in multi-select mode; the callee already
+    // returns early otherwise, so it is called every frame on purpose and left as is.
+    ui?.refreshMultiSelectionToolsContext?.();
+  }`;
+  return html.split(anchor).join(replacement);
+}
+
+/**
+ * A "More tools" entry on every inspector root, because the tools existed but could not be
+ * found.
+ *
+ * The report was not "these features are missing", it was "I didn't find other options to
+ * test". Everything below already shipped -- motion tracking, the AI matte, LUT grading,
+ * optical flow, the Node Video package tools, quality controls -- but each one lived inside
+ * a different drawer, or behind a selection, or in a Settings panel two screens deep. A
+ * feature nobody can reach is a missing feature.
+ *
+ * This adds one full-width button under the inspector grid that opens a single sheet
+ * listing every tool the app has, each one calling the function that opens it directly.
+ * The sheet is built from a table, so it can grow without touching the editor.
+ *
+ * The row is added from a capture-phase listener rather than by rewriting the inspector's
+ * template: the template is a single long line whose exact text changes with the upstream
+ * build, while `#drawer` and `[data-ins]` are stable.
+ */
+export const MORE_TOOLS_SCRIPT = `
+<script id="oms-more-tools">
+(() => {
+  'use strict';
+  const BUTTON_ID = 'omsMoreToolsBtn';
+  const STYLE_ID = 'omsMoreToolsStyle';
+
+  function style() {
+    if (document.getElementById(STYLE_ID)) return;
+    const s = document.createElement('style');
+    s.id = STYLE_ID;
+    s.textContent = [
+      '#' + BUTTON_ID + '{width:100%;margin:4px 0 2px;appearance:none;display:flex;',
+      'align-items:center;justify-content:center;gap:8px;min-height:44px;',
+      'border:1px solid #2b3444;background:#101620;color:#dfe8f4;',
+      'font:700 13px/1 system-ui,-apple-system,sans-serif;border-radius:12px}',
+      '#' + BUTTON_ID + ':active{background:#17222f;border-color:#3ad9c6}',
+      '.omsMtSheet{position:fixed;inset:0;z-index:2147483300;display:flex;',
+      'align-items:flex-end;justify-content:center;background:rgba(0,0,0,.78)}',
+      '.omsMtCard{width:100%;max-width:560px;max-height:88vh;display:flex;',
+      'flex-direction:column;background:#000;border:1px solid #171d27;',
+      'border-radius:20px 20px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));',
+      'color:#e8edf4;font:400 13px/1.5 system-ui,-apple-system,sans-serif;',
+      'animation:omsMtIn .2s cubic-bezier(.22,1,.36,1) both}',
+      '@keyframes omsMtIn{from{transform:translateY(20px);opacity:.5}to{transform:none;opacity:1}}',
+      '.omsMtHead{display:flex;align-items:center;gap:10px;padding-bottom:11px;',
+      'border-bottom:1px solid #151a22}',
+      '.omsMtHead b{flex:1 1 auto;font:800 16px/1.3 system-ui,sans-serif}',
+      '.omsMtHead button{appearance:none;background:#0f131a;border:1px solid #222a36;',
+      'color:#b9c4d3;font:700 12px/1 system-ui,sans-serif;padding:10px 13px;border-radius:10px}',
+      '.omsMtBody{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;',
+      'padding:12px 0 2px;display:flex;flex-direction:column;gap:8px}',
+      '.omsMtGroup{font:800 10.5px/1 system-ui,sans-serif;letter-spacing:.14em;',
+      'text-transform:uppercase;color:#5f6b7c;padding:10px 4px 2px}',
+      '.omsMtRow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;',
+      'padding:12px;border:1px solid #171d27;border-radius:13px;background:#070a0e;',
+      'color:inherit;font:inherit;appearance:none}',
+      '.omsMtRow:active{background:#0d141c;border-color:#2b3a4a}',
+      '.omsMtRow>i{flex:0 0 30px;font-style:normal;font-size:18px;text-align:center;color:#4fe0cd}',
+      '.omsMtRow>span{flex:1 1 auto;min-width:0}',
+      '.omsMtRow b{display:block;font:700 13.5px/1.35 system-ui,sans-serif}',
+      '.omsMtRow small{display:block;margin-top:2px;font-size:11.5px;line-height:1.45;color:#7d8796}',
+      '.omsMtRow em{flex:0 0 auto;font-style:normal;color:#4a5566;font-size:16px}',
+      '.omsMtNote{padding:10px 4px 4px;font-size:11px;line-height:1.6;color:#6b7686}',
+    ].join('');
+    document.head.appendChild(s);
+  }
+
+  function card(title, subtitle) {
+    style();
+    const host = document.createElement('div');
+    host.className = 'omsMtSheet';
+    const box = document.createElement('div');
+    box.className = 'omsMtCard';
+    const head = document.createElement('div');
+    head.className = 'omsMtHead';
+    const label = document.createElement('b');
+    label.textContent = title;
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = 'Close';
+    head.append(label, close);
+    const body = document.createElement('div');
+    body.className = 'omsMtBody';
+    if (subtitle) {
+      const note = document.createElement('div');
+      note.className = 'omsMtNote';
+      note.textContent = subtitle;
+      body.appendChild(note);
+    }
+    box.append(head, body);
+    host.appendChild(box);
+    document.body.appendChild(host);
+    const dismiss = () => host.remove();
+    close.addEventListener('click', dismiss);
+    host.addEventListener('click', (e) => { if (e.target === host) dismiss(); });
+    return { body, close: dismiss };
+  }
+
+  function row(parent, icon, title, detail, run) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'omsMtRow';
+    const i = document.createElement('i');
+    i.textContent = icon;
+    const span = document.createElement('span');
+    const b = document.createElement('b');
+    b.textContent = title;
+    const small = document.createElement('small');
+    small.textContent = detail;
+    span.append(b, small);
+    const chevron = document.createElement('em');
+    chevron.textContent = '\\u203a';
+    button.append(i, span, chevron);
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      run();
+    });
+    parent.appendChild(button);
+    return button;
+  }
+
+  function group(parent, title) {
+    const heading = document.createElement('div');
+    heading.className = 'omsMtGroup';
+    heading.textContent = title;
+    parent.appendChild(heading);
+  }
+
+  // Every entry below is a real call into an existing feature. If a call is missing the row
+  // says so instead of closing onto nothing.
+  function build() {
+    const view = card('Everything in this app', 'Grouped by what you are working on. Nothing here is a shortcut: every row opens the real tool.');
+    const ui = window.__omsUi || null;
+    const pro = window.omsNodeVideoPro;
+    const nv = window.omsNodeVideoUI;
+    const elements = window.omsElementsUI;
+    const renderer = window.__omsRenderer;
+
+    const missing = (name) => () => {
+      if (typeof window.toast === 'function') toast(name + ' is still loading');
+    };
+    const openSelected = (type) => () => {
+      const layer = window.model && model.selectedLayer ? model.selectedLayer() : null;
+      if (!layer) { if (typeof window.toast === 'function') toast('Select a layer first'); return; }
+      view.close();
+      ui && ui.openInspector(type);
+    };
+
+    group(view.body, 'Grade and finish');
+    row(view.body, '\\u25c9', 'Colour grading (LUT)', 'Load a .cube table and grade the selected layer.',
+      pro ? () => { view.close(); pro.openLut(); } : missing('Colour grading'));
+    row(view.body, '\\u2726', 'Effects', '38 effect categories on the selected layer.',
+      ui ? openSelected('effects') : missing('Effects'));
+    row(view.body, '\\u25d2', 'Blending & Opacity', 'Blend mode, opacity and fill on the selected layer.',
+      ui ? openSelected('blend') : missing('Blending'));
+    row(view.body, '\\u25c8', 'Colour & Fill', 'Fill colour and stroke for shapes and text.',
+      ui ? openSelected('color') : missing('Colour'));
+
+    group(view.body, 'Time and motion');
+    row(view.body, '\\u25b6', 'Speed & slow motion', '0.10x to 4.00x, ramps and frame blending.',
+      nv ? () => { view.close(); nv.openSpeed(); } : missing('Speed'));
+    row(view.body, '\\u25c7', 'Optical flow', 'Estimate motion between two frames and build an in-between.',
+      pro ? () => { view.close(); pro.openFlow(); } : missing('Optical flow'));
+    row(view.body, '\\u2313', 'Keyframes', 'Graph editor for the selected layer.',
+      ui ? () => { openSelected('keys')(); } : missing('Keyframes'));
+
+    group(view.body, 'Track and cut out');
+    row(view.body, '\\u2316', 'Motion tracking', 'Tracker point, corner pin and stabiliser.',
+      pro ? () => { view.close(); pro.openTracking(); } : missing('Tracking'));
+    row(view.body, '\\u25a3', 'AI subject matte', 'Cut the subject out. The model downloads once.',
+      pro ? () => { view.close(); pro.openSubjectMatte(); } : missing('AI matte'));
+    row(view.body, '\\u2b21', 'Mask', 'Rectangle or ellipse mask on the selected layer.',
+      ui ? openSelected('mask') : missing('Mask'));
+
+    group(view.body, '3D and camera');
+    row(view.body, '\\u25c6', 'True 3D & camera', 'Depth, camera, lens and projection for the selected layer.',
+      ui ? openSelected('three') : missing('3D'));
+    row(view.body, '\\u25ce', 'Scene graph', 'Parenting and hierarchy for the selected layer.',
+      ui ? openSelected('hier') : missing('Scene graph'));
+    row(view.body, '\\u270e', 'Vector drawing', 'Pen tool with editable points.',
+      ui ? () => { view.close(); ui.openTool('vector'); } : missing('Vector'));
+
+    group(view.body, 'Project and files');
+    row(view.body, '\\u2913', 'Import Node Video .zip', 'Read a project package from Node Video.',
+      nv ? () => { view.close(); nv.openImport(); } : missing('Import'));
+    row(view.body, '\\u2911', 'Export .zip package', 'Write a package this app can read back.',
+      nv ? () => { view.close(); nv.openExport(); } : missing('Export'));
+    row(view.body, '\\u25c8', 'Elements library', 'Saved assets you can reuse in another project.',
+      elements ? () => { view.close(); elements.open(); } : missing('Elements'));
+
+    group(view.body, 'Smoothness');
+    row(view.body, '\\u25d1', 'Preview quality', 'Lower it if the preview stutters. Export is unaffected.',
+      ui && ui.openInspectorRoot ? () => { view.close(); if (window.omsPreviewQualitySheet) window.omsPreviewQualitySheet(); } : missing('Preview quality'));
+    row(view.body, '\\u25a4', 'Self test', 'Check the engine and the tools on this device.',
+      window.omsSelfTest ? () => { view.close(); window.omsSelfTest.run(); } : missing('Self test'));
+
+    const foot = document.createElement('div');
+    foot.className = 'omsMtNote';
+    foot.textContent = 'Tip: most of these act on the layer you have selected. Select a layer on the timeline first.';
+    view.body.appendChild(foot);
+    return view;
+  }
+
+  function addButton() {
+    const drawer = document.getElementById('drawer');
+    if (!drawer || drawer.contains && drawer.querySelector('#' + BUTTON_ID)) return;
+    // Only the inspector root gets the row; every other drawer has its own content.
+    if (!drawer.querySelector('[data-ins]')) return;
+    if (drawer.querySelector('#' + BUTTON_ID)) return;
+    const grid = drawer.querySelector('.inspectorGrid');
+    if (!grid) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.id = BUTTON_ID;
+    button.innerHTML = '<span aria-hidden="true">\\u2630</span> More tools';
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      build();
+    });
+    grid.insertAdjacentElement('afterend', button);
+  }
+
+  // The inspector is rebuilt on every selection, so the row is re-added whenever the drawer
+  // changes rather than once at boot.
+  function watch() {
+    const drawer = document.getElementById('drawer');
+    if (!drawer) return;
+    try {
+      new MutationObserver(addButton).observe(drawer, { childList: true, subtree: true });
+    } catch (e) { /* observer unavailable: the interval below still covers it */ }
+    addButton();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch, { once: true });
+  } else {
+    watch();
+  }
+  setTimeout(watch, 1500);
+  setInterval(addButton, 2000);
+})();
+</script>
+`;
+
+/** Appends the "More tools" sheet to the finished document. */
+export function addMoreTools(html) {
+  const close = html.lastIndexOf('</html>');
+  if (close === -1) return html + MORE_TOOLS_SCRIPT;
+  console.log('  tools     single "More tools" sheet installed');
+  return html.slice(0, close) + MORE_TOOLS_SCRIPT + html.slice(close);
+}
+
+/**
+ * A real Preview quality control, plus the two tap defects the transcript showed.
+ *
+ * PREVIEW QUALITY
+ *
+ * The editor already had the machinery -- `omsSetPreviewQuality` and a `preview:quality`
+ * event the renderer listens to -- but no control anywhere reached it, so the setting was
+ * unreachable and stuck on its automatic guess. The sheet below is the missing control, and
+ * it is also reachable from Settings so it is not only inside "More tools".
+ *
+ * TAP DEFECTS
+ *
+ * 1. `div.switchRow` (e.g. "Enable Mask") received touchstart/touchend/pointerdown and no
+ *    click at all, so tapping the row did nothing. The row is now a real target: any tap on
+ *    it toggles its checkbox, and the click path is deduplicated so a device that sends both
+ *    still toggles once.
+ * 2. The floating + (plusBtn) sits over the right end of the timeline rows. A tap meant for
+ *    the timeline, 671 ms long, landed on the button and opened the add drawer instead. The
+ *    hit area is clipped to the circle it is drawn as, so the square corners that caught
+ *    those taps no longer do.
+ */
+export const QUALITY_AND_TAP_SCRIPT = `
+<script id="oms-quality-and-tap">
+(() => {
+  'use strict';
+  const STYLE_ID = 'omsQualityStyle';
+
+  function style() {
+    if (document.getElementById(STYLE_ID)) return;
+    const s = document.createElement('style');
+    s.id = STYLE_ID;
+    s.textContent = [
+      '.omsQSheet{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:flex-end;',
+      'justify-content:center;background:rgba(0,0,0,.78)}',
+      '.omsQCard{width:100%;max-width:520px;display:flex;flex-direction:column;background:#000;',
+      'border:1px solid #171d27;border-radius:20px 20px 0 0;',
+      'padding:14px 14px calc(16px + env(safe-area-inset-bottom,0px));color:#e8edf4;',
+      'font:400 13px/1.5 system-ui,-apple-system,sans-serif;',
+      'animation:omsQIn .2s cubic-bezier(.22,1,.36,1) both}',
+      '@keyframes omsQIn{from{transform:translateY(20px);opacity:.5}to{transform:none;opacity:1}}',
+      '.omsQHead{display:flex;align-items:center;gap:10px;padding-bottom:11px;',
+      'border-bottom:1px solid #151a22}',
+      '.omsQHead b{flex:1 1 auto;font:800 16px/1.3 system-ui,sans-serif}',
+      '.omsQHead button{appearance:none;background:#0f131a;border:1px solid #222a36;',
+      'color:#b9c4d3;font:700 12px/1 system-ui,sans-serif;padding:10px 13px;border-radius:10px}',
+      '.omsQBody{display:flex;flex-direction:column;gap:8px;padding:12px 0 4px}',
+      '.omsQOpt{display:flex;align-items:center;gap:10px;width:100%;text-align:left;',
+      'padding:13px 12px;border:1px solid #171d27;border-radius:13px;background:#070a0e;',
+      'color:inherit;font:inherit;appearance:none}',
+      '.omsQOpt b{display:block;font:700 13.5px/1.3 system-ui,sans-serif}',
+      '.omsQOpt small{display:block;margin-top:2px;font-size:11.5px;color:#7d8796}',
+      '.omsQOpt>span{flex:1 1 auto;min-width:0}',
+      '.omsQOpt>em{font-style:normal;color:#3ad9c6;font-size:15px;opacity:0}',
+      '.omsQOpt.on{border-color:#2b6f68;background:#0a1514}',
+      '.omsQOpt.on>em{opacity:1}',
+      '.omsQNote{padding:8px 2px 0;font-size:11px;line-height:1.6;color:#6b7686}',
+      // The floating + was catching taps meant for the timeline beside it.
+      '#plusBtn{clip-path:circle(50%)}',
+    ].join('');
+    document.head.appendChild(s);
+  }
+
+  function currentPreference() {
+    try { return localStorage.getItem('oms_preview_quality') || 'auto'; } catch (e) { return 'auto'; }
+  }
+
+  function currentScale() {
+    return typeof window.omsPreviewQualityScale === 'function'
+      ? Math.round(window.omsPreviewQualityScale() * 100)
+      : null;
+  }
+
+  const CHOICES = [
+    ['auto', 'Automatic', 'Picks a size from the device. Usually the best balance.'],
+    ['1', 'Full', 'Sharpest preview, most work per frame.'],
+    ['0.75', 'High', '75% of the project size.'],
+    ['0.5', 'Balanced', '50%. Noticeably smoother on a phone.'],
+    ['0.25', 'Fastest', '25%. Softest preview, least work.'],
+  ];
+
+  window.omsPreviewQualitySheet = function () {
+    style();
+    const host = document.createElement('div');
+    host.className = 'omsQSheet';
+    const box = document.createElement('div');
+    box.className = 'omsQCard';
+    const head = document.createElement('div');
+    head.className = 'omsQHead';
+    const title = document.createElement('b');
+    title.textContent = 'Preview quality';
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = 'Close';
+    head.append(title, close);
+    const body = document.createElement('div');
+    body.className = 'omsQBody';
+    box.append(head, body);
+    host.appendChild(box);
+    document.body.appendChild(host);
+
+    const dismiss = () => host.remove();
+    close.addEventListener('click', dismiss);
+    host.addEventListener('click', (e) => { if (e.target === host) dismiss(); });
+
+    const buttons = [];
+    const paint = () => {
+      const pref = currentPreference();
+      const scale = currentScale();
+      buttons.forEach(({ button, value }) => {
+        button.classList.toggle('on', value === pref);
+        const mark = button.querySelector('em');
+        if (mark) mark.textContent = value === pref ? '\\u2713' : '';
+      });
+      note.textContent = scale
+        ? 'The preview is drawing at ' + scale + '% of the project size. Export always renders at full size.'
+        : 'Export always renders at full size.';
+    };
+
+    CHOICES.forEach(([value, label, detail]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'omsQOpt';
+      const span = document.createElement('span');
+      const b = document.createElement('b');
+      b.textContent = label;
+      const small = document.createElement('small');
+      small.textContent = detail;
+      span.append(b, small);
+      const mark = document.createElement('em');
+      button.append(span, mark);
+      button.addEventListener('click', () => {
+        if (typeof window.omsSetPreviewQuality === 'function') {
+          window.omsSetPreviewQuality(value);
+        } else {
+          try { localStorage.setItem('oms_preview_quality', value); } catch (e) { /* ignore */ }
+        }
+        paint();
+        if (typeof window.toast === 'function') toast('Preview quality: ' + label);
+      });
+      buttons.push({ button, value });
+      body.appendChild(button);
+    });
+
+    const note = document.createElement('div');
+    note.className = 'omsQNote';
+    body.appendChild(note);
+    paint();
+  };
+
+  // A Settings row, so the control is not only reachable from the tools sheet.
+  function addSettingsRow() {
+    if (document.getElementById('omsPreviewQualityRow')) return;
+    const anchor = document.querySelector('[data-oms-nv="pro"]');
+    if (!anchor) return;
+    const holder = anchor.closest('.propRow');
+    if (!holder || !holder.parentNode) return;
+    const row = document.createElement('div');
+    row.className = 'propRow';
+    row.id = 'omsPreviewQualityRow';
+    const label = document.createElement('label');
+    label.textContent = 'Preview';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Preview quality';
+    button.style.cssText = 'grid-column:span 2;justify-self:start;appearance:none;border:1px solid #2a3240;background:#141821;color:#cfd8e5;font:700 12px/1 system-ui,sans-serif;padding:10px 12px;border-radius:9px';
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.omsPreviewQualitySheet();
+    });
+    row.append(label, button);
+    holder.parentNode.insertBefore(row, holder.nextSibling);
+  }
+
+  /* Tapping a switch row toggles it. */
+  function wireSwitchRows() {
+    if (document.__omsSwitchRows) return;
+    document.__omsSwitchRows = true;
+    const lastTouch = new WeakMap();
+    const toggle = (row) => {
+      const input = row.querySelector('input[type=checkbox]');
+      if (!input || input.disabled) return false;
+      input.checked = !input.checked;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      try { navigator.vibrate && navigator.vibrate(8); } catch (e) { /* ignore */ }
+      return true;
+    };
+    document.addEventListener('pointerup', (event) => {
+      const row = event.target && event.target.closest ? event.target.closest('.switchRow') : null;
+      if (!row) return;
+      if (event.target.closest('input,select,textarea,button,a')) return;
+      if (toggle(row)) lastTouch.set(row, Date.now());
+    }, true);
+    document.addEventListener('click', (event) => {
+      const row = event.target && event.target.closest ? event.target.closest('.switchRow') : null;
+      if (!row) return;
+      if (event.target.closest('input,select,textarea,button,a')) return;
+      // pointerup already handled this tap on devices that send both events.
+      const at = lastTouch.get(row);
+      if (at && Date.now() - at < 700) return;
+      toggle(row);
+    }, true);
+  }
+
+  function boot() {
+    style();
+    wireSwitchRows();
+    addSettingsRow();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
+  setTimeout(boot, 1200);
+  setInterval(addSettingsRow, 3000);
+})();
+</script>
+`;
+
+export function addQualityAndTapFixes(html) {
+  const close = html.lastIndexOf('</html>');
+  if (close === -1) return html + QUALITY_AND_TAP_SCRIPT;
+  console.log('  quality   preview control + row taps + FAB hit area');
+  return html.slice(0, close) + QUALITY_AND_TAP_SCRIPT + html.slice(close);
 }

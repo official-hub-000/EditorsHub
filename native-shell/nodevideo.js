@@ -150,21 +150,163 @@
     })();
   }
 
+  /*
+   * A raw-deflate decoder, used only when the WebView has no DecompressionStream.
+   *
+   * The browser route was the whole of the import path, and it is not guaranteed: a
+   * WebView older than Chrome 80 has no DecompressionStream, and a device that refuses
+   * 'deflate-raw' throws on construction. Every Node Video project zip is deflate-compressed,
+   * so on those devices every import ended at "That package could not be read" -- the error
+   * the user saw three times. RFC 1951 is small enough to carry, so it is carried: the
+   * browser decoder is still preferred, this is the floor.
+   */
+  var LEN_BASE = [3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258];
+  var LEN_EXTRA = [0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0];
+  var DIST_BASE = [1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577];
+  var DIST_EXTRA = [0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];
+  // Code lengths arrive in this order, not numerically.
+  var CLC_ORDER = [16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];
+
+  function huffman(lengths) {
+    var maxBits = 0, i;
+    for (i = 0; i < lengths.length; i++) if (lengths[i] > maxBits) maxBits = lengths[i];
+    var counts = new Uint16Array(maxBits + 1);
+    for (i = 0; i < lengths.length; i++) if (lengths[i]) counts[lengths[i]]++;
+    var offsets = new Uint16Array(maxBits + 1), total = 0;
+    for (i = 1; i <= maxBits; i++) { offsets[i] = total; total += counts[i]; }
+    var symbols = new Uint16Array(total);
+    for (i = 0; i < lengths.length; i++) {
+      if (lengths[i]) symbols[offsets[lengths[i]]++] = i;
+    }
+    return { counts: counts, symbols: symbols, maxBits: maxBits };
+  }
+
+  function inflateRaw(source, expected) {
+    var pos = 0, bitBuf = 0, bitCount = 0;
+    var out = new Uint8Array(Math.max(64, expected || 1024));
+    var outLength = 0;
+    function need(size) {
+      if (outLength + size <= out.length) return;
+      var next = new Uint8Array(Math.max(out.length * 2, outLength + size + 64));
+      next.set(out.subarray(0, outLength));
+      out = next;
+    }
+    function bits(count) {
+      while (bitCount < count) {
+        if (pos >= source.length) throw new Error('That package is damaged');
+        bitBuf |= source[pos++] << bitCount;
+        bitCount += 8;
+      }
+      var value = bitBuf & ((1 << count) - 1);
+      bitBuf >>>= count;
+      bitCount -= count;
+      return value;
+    }
+    function decode(table) {
+      var code = 0, first = 0, index = 0;
+      for (var len = 1; len <= table.maxBits; len++) {
+        code |= bits(1);
+        var count = table.counts[len];
+        if (code - first < count) return table.symbols[index + (code - first)];
+        index += count;
+        first = (first + count) << 1;
+        code <<= 1;
+      }
+      throw new Error('That package is damaged');
+    }
+    function fixedTables() {
+      var lit = new Uint8Array(288), i;
+      for (i = 0; i < 144; i++) lit[i] = 8;
+      for (; i < 256; i++) lit[i] = 9;
+      for (; i < 280; i++) lit[i] = 7;
+      for (; i < 288; i++) lit[i] = 8;
+      var dist = new Uint8Array(30);
+      for (i = 0; i < 30; i++) dist[i] = 5;
+      return { lit: huffman(lit), dist: huffman(dist) };
+    }
+    var last = 0, fixed = null;
+    while (!last) {
+      last = bits(1);
+      var type = bits(2);
+      if (type === 0) {
+        // Stored block: the bit stream is byte aligned first.
+        bitBuf = 0; bitCount = 0;
+        if (pos + 4 > source.length) throw new Error('That package is damaged');
+        var length = source[pos] | (source[pos + 1] << 8);
+        pos += 4;
+        if (pos + length > source.length) throw new Error('That package is damaged');
+        need(length);
+        out.set(source.subarray(pos, pos + length), outLength);
+        outLength += length;
+        pos += length;
+        continue;
+      }
+      var litTable, distTable;
+      if (type === 1) {
+        if (!fixed) fixed = fixedTables();
+        litTable = fixed.lit; distTable = fixed.dist;
+      } else if (type === 2) {
+        var hlit = bits(5) + 257, hdist = bits(5) + 1, hclen = bits(4) + 4;
+        var clc = new Uint8Array(19), i;
+        for (i = 0; i < hclen; i++) clc[CLC_ORDER[i]] = bits(3);
+        var clTable = huffman(clc);
+        var lengths = new Uint8Array(hlit + hdist), at = 0;
+        while (at < hlit + hdist) {
+          var symbol = decode(clTable);
+          if (symbol < 16) { lengths[at++] = symbol; continue; }
+          var repeat, value = 0;
+          if (symbol === 16) {
+            if (!at) throw new Error('That package is damaged');
+            value = lengths[at - 1]; repeat = 3 + bits(2);
+          } else if (symbol === 17) { repeat = 3 + bits(3); }
+          else { repeat = 11 + bits(7); }
+          if (at + repeat > hlit + hdist) throw new Error('That package is damaged');
+          while (repeat--) lengths[at++] = value;
+        }
+        litTable = huffman(lengths.subarray(0, hlit));
+        distTable = huffman(lengths.subarray(hlit));
+      } else {
+        throw new Error('That package uses an unsupported compression');
+      }
+      for (;;) {
+        var sym = decode(litTable);
+        if (sym < 256) {
+          need(1);
+          out[outLength++] = sym;
+          continue;
+        }
+        if (sym === 256) break;
+        sym -= 257;
+        if (sym >= 29) throw new Error('That package is damaged');
+        var runLength = LEN_BASE[sym] + bits(LEN_EXTRA[sym]);
+        var distSym = decode(distTable);
+        if (distSym >= 30) throw new Error('That package is damaged');
+        var distance = DIST_BASE[distSym] + bits(DIST_EXTRA[distSym]);
+        if (distance > outLength) throw new Error('That package is damaged');
+        need(runLength);
+        for (var k = 0; k < runLength; k++, outLength++) out[outLength] = out[outLength - distance];
+      }
+    }
+    return out.slice(0, outLength);
+  }
+
   /** Decompresses one entry to a Uint8Array. */
   function readEntry(bytes, entry) {
     var raw = bytes.subarray(entry.start, entry.start + entry.compressed);
     var work;
     if (entry.method === 8) {
-      if (typeof DecompressionStream !== 'function') {
-        return Promise.reject(new Error('This Android WebView cannot unpack .zip files'));
+      // Browser decoder first: it runs natively and is faster on large media. The carried
+      // decoder is the fallback, not the other way round.
+      var inflater = null;
+      if (typeof DecompressionStream === 'function') {
+        try { inflater = new DecompressionStream('deflate-raw'); } catch (e) { inflater = null; }
       }
-      var inflater;
-      try {
-        inflater = new DecompressionStream('deflate-raw');
-      } catch (e) {
-        return Promise.reject(new Error('This Android WebView cannot unpack .zip files'));
+      if (inflater) {
+        work = readStream(new Blob([raw]).stream().pipeThrough(inflater), entry.size + 1)
+          .catch(function () { return Promise.resolve().then(function () { return inflateRaw(raw, entry.size); }); });
+      } else {
+        work = Promise.resolve().then(function () { return inflateRaw(raw, entry.size); });
       }
-      work = readStream(new Blob([raw]).stream().pipeThrough(inflater), entry.size + 1);
     } else {
       work = Promise.resolve(raw);
     }

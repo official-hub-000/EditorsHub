@@ -173,6 +173,10 @@
     try {
       window.addEventListener('error', onError, true);
       window.addEventListener('unhandledrejection', onRejection, true);
+      // A click can be cancelled by the app (preventDefault) or by a listener that throws.
+      // Without observing the event itself there is no way to tell "nothing was wired" from
+      // "something was wired and refused", and those need opposite fixes.
+      window.addEventListener('click', onClickCapture, true);
     } catch (e) { /* older WebView */ }
     TYPES.forEach(function (type) {
       document.addEventListener(type, handlers[type], true);
@@ -189,6 +193,7 @@
     try {
       window.removeEventListener('error', onError, true);
       window.removeEventListener('unhandledrejection', onRejection, true);
+      window.removeEventListener('click', onClickCapture, true);
     } catch (e) { /* older WebView */ }
     TYPES.forEach(function (type) {
       document.removeEventListener(type, handlers[type], true);
@@ -204,6 +209,48 @@
    * A tap now ends when a click arrives, or when the next touchstart/pointerdown arrives
    * after one has already been seen for the current tap.
    */
+
+  /*
+   * What the element's own click handling looks like, described without judgement.
+   *
+   * Every dead control this session has come down to one of these: an inline `onclick` that
+   * was never assigned, a listener that exists but is bound in a scope the element does not
+   * reach, or a handler that runs and asks a question that answers "no". Naming which one it
+   * is on the device is worth more than any number of guesses from here.
+   */
+  function describeHandlers(el) {
+    if (!el) return 'no element';
+    var parts = [];
+    try {
+      if (typeof el.onclick === 'function') parts.push('onclick property set');
+      else if (el.onclick === null) parts.push('onclick property empty');
+      if (el.hasAttribute && el.hasAttribute('onclick')) parts.push('inline onclick attribute');
+      if (el.dataset && el.dataset.omsWired === '1') parts.push('marked wired');
+      if (el.type) parts.push('type=' + el.type);
+      if (el.disabled) parts.push('DISABLED');
+      if (el.tagName === 'SPAN' || el.tagName === 'B' || el.tagName === 'PATH') {
+        parts.push('not a button (' + el.tagName + ') - the click must delegate to a parent');
+      }
+    } catch (e) { return 'unreadable'; }
+    return parts.join(', ') || 'no handler visible';
+  }
+
+  var lastClick = null;
+
+  function onClickCapture(event) {
+    lastClick = {
+      target: event.target,
+      prevented: false,
+      event: event,
+    };
+    // preventDefault can still be called after this listener returns, so the flag is read
+    // one turn later rather than here.
+    var record = lastClick;
+    setTimeout(function () {
+      try { record.prevented = event.defaultPrevented; } catch (e) { /* detached */ }
+    }, 0);
+  }
+
   function summarise() {
     var taps = [];
     var current = null;
@@ -231,6 +278,7 @@
       }
       if (!current) return;
       current.seen[event.type] = true;
+      if (event.type === 'click') current.clickTarget = event.target;
       current.stateAfter = event.state;
       current.mutationsAfter = event.mutations;
       if (event.misplaced) {
@@ -275,8 +323,23 @@
       lines.push('');
       lines.push('#' + (index + 1) + '  ' + tap.target);
       lines.push('    ' + verdict);
+      var worked = verdict === 'worked';
       if (tap.misplaced && tap.hit) lines.push('    finger landed on: ' + tap.hit);
       lines.push('    events: ' + (chain || '(none)'));
+      // Only for taps that did not work: what the element's own wiring looks like, and
+      // whether the click was cancelled on the way through.
+      if (!worked) {
+        var wired = describeHandlers(tap.target);
+        lines.push('    handler: ' + wired);
+        if (tap.seen.click && lastClick && lastClick.target === tap.target && lastClick.prevented) {
+          lines.push('    the app cancelled this click (preventDefault)');
+        }
+        if (tap.seen.click && !tap.seen.pointerup) lines.push('    no pointerup before the click');
+        var parent = tap.target && tap.target.closest ? tap.target.closest('button,[role="button"],a') : null;
+        if (parent && parent !== tap.target) {
+          lines.push('    nearest real button: ' + describeHandlers(parent));
+        }
+      }
       var delta = tap.mutationsAfter - tap.mutationsBefore;
       lines.push('    page changes after tap: ' + (delta > 0 ? delta : 'none'));
       if (changed) {

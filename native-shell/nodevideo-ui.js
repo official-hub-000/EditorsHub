@@ -143,9 +143,17 @@
         }
         var unmapped = Object.keys(report.unmapped || {});
         if (unmapped.length) {
+          // Plain English: the previous wording read like a failure even though the project
+          // opened. These are Node Video's own settings; they cannot exist here.
           list.appendChild(el('div', 'omsNvNote omsNvWarn',
-            'Not carried over (they belong to the other app): ' +
-            unmapped.map(function (key) { return key + ' \u00d7' + report.unmapped[key]; }).join(', ')));
+            'These Node Video settings were not copied, because this app has no equivalent: ' +
+            unmapped.map(function (key) { return key + ' \u00d7' + report.unmapped[key]; }).join(', ') +
+            '. Your layers, timing and speed are all here.'));
+        }
+        if (report.missing && report.missing.length) {
+          list.appendChild(el('div', 'omsNvNote omsNvWarn',
+            'The media for these files was not inside the package, so those layers are empty. ' +
+            'Use Relink on the layer to point it at the file on your phone.'));
         }
         pick.textContent = 'Open project';
         pick.onclick = view.close;
@@ -214,8 +222,8 @@
   function applySpeed(layer, speed) {
     var model = window.model;
     var history = window.__omsHistory;
-    speed = Math.min(4, Math.max(0.25, speed));
-    var old = Math.min(4, Math.max(0.25, +layer.playbackRate || 1));
+    speed = Math.min(4, Math.max(0.1, speed));
+    var old = Math.min(4, Math.max(0.1, +layer.playbackRate || 1));
     if (Math.abs(speed - old) < 1e-6) return;
     if (history && history.push) history.push();
     if (layer.type === 'video' || layer.type === 'audio') {
@@ -381,7 +389,7 @@
       return null;
     }
     var view = sheet('Speed · ' + (layer.name || 'Layer'));
-    var current = Math.min(4, Math.max(0.25, +layer.playbackRate || 1));
+    var current = Math.min(4, Math.max(0.1, +layer.playbackRate || 1));
 
     var readout = el('div', 'omsNvNote', 'Current speed ' + current.toFixed(2) + '×');
     view.body.appendChild(readout);
@@ -394,7 +402,7 @@
     steadyLabel.appendChild(steadyValue);
     var range = el('input');
     range.type = 'range';
-    range.min = '0.25';
+    range.min = '0.1';
     range.max = '4';
     range.step = '0.05';
     range.value = String(current);
@@ -410,7 +418,7 @@
     view.body.appendChild(steady);
 
     var presets = el('div', 'omsNvSeg');
-    [0.25, 0.5, 1, 2, 4].forEach(function (value) {
+    [0.1, 0.25, 0.5, 1, 2, 4].forEach(function (value) {
       var button = el('button', Math.abs(value - current) < 0.01 ? 'on' : '', value + '×');
       button.type = 'button';
       button.addEventListener('click', function () {
@@ -430,14 +438,14 @@
     var rampRow = el('div', 'omsNvSlider');
     var rampLabel = el('label');
     rampLabel.appendChild(el('span', null, 'Ramp start → end'));
-    var rampValue = el('b', null, '1.00× → 0.25×');
+    var rampValue = el('b', null, '1.00× → 0.10×');
     rampLabel.appendChild(rampValue);
     var fromRange = el('input');
-    fromRange.type = 'range'; fromRange.min = '0.25'; fromRange.max = '4';
+    fromRange.type = 'range'; fromRange.min = '0.1'; fromRange.max = '4';
     fromRange.step = '0.05'; fromRange.value = '1';
     var toRange = el('input');
-    toRange.type = 'range'; toRange.min = '0.25'; toRange.max = '4';
-    toRange.step = '0.05'; toRange.value = '0.25';
+    toRange.type = 'range'; toRange.min = '0.1'; toRange.max = '4';
+    toRange.step = '0.05'; toRange.value = '0.1';
     function syncRamp() {
       rampValue.textContent = Number(fromRange.value).toFixed(2) + '× → ' +
         Number(toRange.value).toFixed(2) + '×';
