@@ -117,6 +117,9 @@ function patchEditorScope(html) {
 function injectShell(html) {
   if (html.includes('native-shell.js')) return html;
   const tag =
+    '<script src="./nodevideo.js" defer id="oms-nodevideo"></script>\n' +
+    '<script src="./nodevideo-ui.js" defer id="oms-nodevideo-ui"></script>\n' +
+    '<script src="./smooth-motion.js" defer id="oms-smooth-motion"></script>\n' +
     '<script src="./elements.js" defer id="oms-elements"></script>\n' +
     '<script src="./elements-ui.js" defer id="oms-elements-ui"></script>\n' +
     '<script src="./probe.js" defer id="oms-probe"></script>\n' +
@@ -290,6 +293,9 @@ async function main() {
   await cp(path.join(shellDir, 'probe.js'), path.join(outDir, 'probe.js'));
   await cp(path.join(shellDir, 'elements.js'), path.join(outDir, 'elements.js'));
   await cp(path.join(shellDir, 'elements-ui.js'), path.join(outDir, 'elements-ui.js'));
+  await cp(path.join(shellDir, 'nodevideo.js'), path.join(outDir, 'nodevideo.js'));
+  await cp(path.join(shellDir, 'nodevideo-ui.js'), path.join(outDir, 'nodevideo-ui.js'));
+  await cp(path.join(shellDir, 'smooth-motion.js'), path.join(outDir, 'smooth-motion.js'));
 
   if (vendoredMediabunny) {
     await cp(

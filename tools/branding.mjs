@@ -261,15 +261,17 @@ export function fixTutorialCards(html) {
 export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
-  const out = hardenNewProjectButton(
-    addElementsDrawerTab(
-      fixNewProjectSeg(
-        fixDetachedGlobals(
-          fixElementCard(
-            fixTemplateButtons(
-              fixTutorialCards(
-                finishEnglish(
-                  themeConfirms(forceEnglish(singleCredit(renamed)))
+  const out = addNodeVideoImport(
+    hardenNewProjectButton(
+      addElementsDrawerTab(
+        fixNewProjectSeg(
+          fixDetachedGlobals(
+            fixElementCard(
+              fixTemplateButtons(
+                fixTutorialCards(
+                  finishEnglish(
+                    themeConfirms(forceEnglish(singleCredit(renamed)))
+                  )
                 )
               )
             )
@@ -653,4 +655,185 @@ export function addElementsDrawerTab(html) {
         holder.appendChild(b);
       })();`;
   return out.replace(from, to);
+}
+
+/**
+ * Adds Node Video package import and export, and widens the speed control.
+ *
+ * THE IMPORT BUTTON
+ *
+ * The home screen has one IMPORT button. Its picker is `#projectInput`, whose accept list
+ * is `application/json,text/xml,.json,.xml`, so a .zip is filtered out of the device
+ * chooser before it can be picked at all. Adding a fifth button to that row would squeeze
+ * the wordmark on a narrow phone, so the existing button is widened instead: its picker
+ * accepts packages as well, and the chosen file is routed by sniffing whether it is a
+ * .zip. Anything else is handed straight back to the editor's own import path through a
+ * synthetic DataTransfer, so project and XML import behave exactly as before.
+ *
+ * THE SPEED RANGE
+ *
+ * The editor clamps playback speed to 0.25x-4x in ten places. Slow motion to 0.1x needs
+ * every one of them to agree, so they are rewritten together.
+ */
+export function addNodeVideoImport(html) {
+  let out = html;
+  // Widen the speed ceiling everywhere the editor clamps it.
+  const clamps = [
+    ['const speed=clamp(+layer?.playbackRate||1,.25,4);', 'const speed=clamp(+layer?.playbackRate||1,.1,4);'],
+    ['const speed=clamp(+layer.playbackRate||1,.25,4);', 'const speed=clamp(+layer.playbackRate||1,.1,4);'],
+    ['const speed=clamp(+l.playbackRate||1,.25,4)', 'const speed=clamp(+l.playbackRate||1,.1,4)'],
+    ['const speed=clamp(+value||1,.25,4),old=clamp(+l.playbackRate||1,.25,4);',
+      'const speed=clamp(+value||1,.1,4),old=clamp(+l.playbackRate||1,.1,4);'],
+    ['<small>0.25× – 4.00×</small>', '<small>0.10× – 4.00×</small>'],
+    ['<input id="mediaSpeedRange" type="range" min="0.25" max="4" step="0.05"',
+      '<input id="mediaSpeedRange" type="range" min="0.1" max="4" step="0.05"'],
+    ['<input id="mediaSpeedNumber" class="mediaQuickNumber" type="number" min="0.25" max="4" step="0.05"',
+      '<input id="mediaSpeedNumber" class="mediaQuickNumber" type="number" min="0.1" max="4" step="0.05"'],
+    ['${[.25,.5,.75,1,1.5,2,3,4].map(v=>`<button data-speedpreset="${v}"',
+      '${[.1,.25,.5,.75,1,1.5,2,3,4].map(v=>`<button data-speedpreset="${v}"'],
+  ];
+  let widened = 0;
+  for (const [from, to] of clamps) {
+    const hits = out.split(from).length - 1;
+    if (!hits) {
+      console.warn(`! addNodeVideoImport: speed clamp not found (${from.slice(0, 44)}…)`);
+      continue;
+    }
+    // Function replacement: the replacement contains `$`, which a string replacement
+    // would treat as a capture reference.
+    out = out.split(from).join(to);
+    widened += hits;
+  }
+  if (widened) console.log(`  speed     ${widened} clamp site(s) widened to 0.10x`);
+
+  // A settings row that reaches the Node Video tools and the speed panel, because the
+  // clip's own Speed button only appears once a media layer is selected.
+  const card = '<div class="true3dCard"><i>4</i><div><b>Open Motion Scene 4</b><small>';
+  const cardIndex = out.indexOf(card);
+  if (cardIndex === -1) {
+    console.warn('! addNodeVideoImport: settings anchor not found');
+  } else {
+    const end = out.indexOf('</div></div>', cardIndex);
+    const insertAt = end === -1 ? -1 : end + '</div></div>'.length;
+    if (insertAt === -1) {
+      console.warn('! addNodeVideoImport: settings anchor end not found');
+    } else {
+      const row = '<div class="propRow"><label>Node Video</label><button type="button" data-oms-nv="speed" style="grid-column:span 2;justify-self:start;appearance:none;border:1px solid #2a3240;background:#141821;color:#cfd8e5;font:700 12px/1 system-ui,sans-serif;padding:10px 12px;border-radius:9px">Speed &amp; slow motion</button><span></span></div>' +
+        '<div class="propRow"><label>Package</label><button type="button" data-oms-nv="import" style="grid-column:span 2;justify-self:start;appearance:none;border:1px solid #2a3240;background:#141821;color:#cfd8e5;font:700 12px/1 system-ui,sans-serif;padding:10px 12px;border-radius:9px">Import .zip</button><span></span></div>' +
+        '<div class="propRow"><label>Export</label><button type="button" data-oms-nv="export" style="grid-column:span 2;justify-self:start;appearance:none;border:1px solid #2a3240;background:#141821;color:#cfd8e5;font:700 12px/1 system-ui,sans-serif;padding:10px 12px;border-radius:9px">Export .zip</button><span></span></div>';
+      out = out.slice(0, insertAt) + row + out.slice(insertAt);
+    }
+  }
+
+  const script = `
+<script id="oms-nodevideo-entry">
+(() => {
+  'use strict';
+  // Reads the first four bytes: every zip starts with "PK\u0003\u0004". Deciding by the
+  // name alone would misroute a zip that was renamed on the way through a chat app.
+  function looksLikeZip(file) {
+    var head = file.slice(0, 4);
+    if (head.arrayBuffer) {
+      return head.arrayBuffer().then(function (buffer) {
+        var b = new Uint8Array(buffer);
+        return b.length >= 4 && b[0] === 0x50 && b[1] === 0x4b && b[2] === 3 && b[3] === 4;
+      }).catch(function () { return /\.zip$/i.test(file.name || ''); });
+    }
+    return Promise.resolve(/\.zip$/i.test(file.name || ''));
+  }
+
+  function wireImport() {
+    var target = document.getElementById('projectInput');
+    if (!target) return;
+
+    // The picker is the thing that filters files, so the picker is what is widened. The
+    // IMPORT button keeps its own handler and still calls click() on this input.
+    if (target.dataset.omsZipAccept !== '1') {
+      target.dataset.omsZipAccept = '1';
+      target.setAttribute('accept',
+        '.json,.xml,.zip,application/json,application/xml,application/zip,application/x-zip-compressed');
+    }
+
+    // Capture phase on the document, not a handler on the input.
+    //
+    // The editor assigns the input's handler as a property and reassigns it more than
+    // once during boot. Wrapping that property was tried and lost the race twice: a wrap
+    // installed before the editor's own assignment was silently replaced, which would
+    // have dropped every project import. A capture listener runs before the target's own
+    // handlers, so a package is taken here and stopped from ever reaching the editor's
+    // parser, while a project or XML file is left completely alone.
+    if (document.__omsZipCapture) return;
+    document.__omsZipCapture = true;
+    document.addEventListener('change', function (event) {
+      var input = event.target;
+      if (!input || input.id !== 'projectInput') return;
+      var file = input.files && input.files[0];
+      if (!file || !window.omsNodeVideoUI) return;
+
+      // The editor's handler is taken here, synchronously, before anything awaits. If it
+      // is missing the event is left alone -- taking a file away from a handler that does
+      // not exist would delete project import entirely.
+      var editorHandler = input.onchange;
+      var canTake = typeof editorHandler === 'function';
+
+      // Reading the first bytes decides what the file is, and that is asynchronous. The
+      // event stops here now, not later: once the promise resolves the dispatch is over
+      // and stopPropagation would do nothing -- which is exactly how a zip still reached
+      // the editor's JSON parser in the first test.
+      if (canTake) {
+        event.stopPropagation();
+        if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+      }
+
+      looksLikeZip(file).then(function (zip) {
+        if (zip) {
+          input.value = '';
+          window.omsNodeVideoUI.openImport(file);
+          return;
+        }
+        if (canTake) editorHandler.call(input, event);
+      });
+    }, true);
+  }
+
+  // Delegated, so a row inside a drawer that is built later works the moment it is
+  // tapped -- polling would leave a dead window of several seconds.
+  function wireSettings() {
+    if (document.__omsNvDelegated) return;
+    document.__omsNvDelegated = true;
+    document.addEventListener('click', function (event) {
+      var target = event.target;
+      var button = target && target.closest ? target.closest('[data-oms-nv]') : null;
+      if (!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      var kind = button.dataset.omsNv;
+      var ui = window.omsNodeVideoUI;
+      if (!ui) {
+        if (typeof toast === 'function') toast('The tools are still loading');
+        return;
+      }
+      if (kind === 'speed') ui.openSpeed();
+      else if (kind === 'import') ui.openImport();
+      else ui.openExport();
+    }, true);
+  }
+
+  function boot() {
+    wireImport();
+    wireSettings();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
+  setTimeout(boot, 1200);
+  setInterval(boot, 4000);
+})();
+</script>
+`;
+  const close = out.lastIndexOf('</html>');
+  if (close === -1) return out + script;
+  return out.slice(0, close) + script + out.slice(close);
 }

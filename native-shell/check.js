@@ -346,7 +346,49 @@
     });
   }
 
+
+  /**
+   * Checks the Node Video feature against the live editor rather than against itself.
+   *
+   * Runs a real round trip: pack a package, read it back, and confirm the reader returns
+   * the layers that went in. A self-test that only checks that a function exists would
+   * pass while the whole feature was broken, which is the failure mode this repository has
+   * already been burned by.
+   */
+  function checkNodeVideo() {
+    var nv = window.omsNodeVideo;
+    if (!nv) return Promise.resolve({ ok: false, reason: 'the importer is not loaded' });
+    var sample = {
+      fps: 30, duration: 4, width: 1080, height: 1920,
+      layers: [
+        { type: 'text', name: 'Title', text: 'Check', start: 0, duration: 4, color: '#ffffff' },
+        { type: 'shape', name: 'Box', start: 1, duration: 2 },
+      ],
+    };
+    return nv._pack([{ name: 'project.json', text: JSON.stringify(sample) }])
+      .then(function (blob) { return blob.arrayBuffer(); })
+      .then(function (buffer) {
+        var entries = nv._indexZip(new Uint8Array(buffer));
+        if (!entries.length) return { ok: false, reason: 'the package writer produced no entries' };
+        return nv._readEntry(new Uint8Array(buffer), entries[0]).then(function (data) {
+          var doc = JSON.parse(new TextDecoder().decode(data));
+          if (!doc.layers || doc.layers.length !== 2) {
+            return { ok: false, reason: 'the package did not read back' };
+          }
+          var found = nv._findLayerArray(doc);
+          if (!found || found.length !== 2) {
+            return { ok: false, reason: 'the layer reader found the wrong number of layers' };
+          }
+          return { ok: true, reason: 'package write, read and layer scan all agree' };
+        });
+      })
+      .catch(function (error) {
+        return { ok: false, reason: (error && error.message) || String(error) };
+      });
+  }
+
   window.omsSelfTest = {
     open: open, run: run, obstruction: obstruction, format: format, reset: reset,
+    checkNodeVideo: checkNodeVideo,
   };
 })();
