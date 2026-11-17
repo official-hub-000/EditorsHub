@@ -117,8 +117,8 @@ function patchEditorScope(html) {
 function injectShell(html) {
   if (html.includes('native-shell.js')) return html;
   const tag =
-    '<script src="./selftest.js" defer id="oms-selftest"></script>\n' +
-    '<script src="./diagnostics.js" defer id="oms-diagnostics"></script>\n' +
+    '<script src="./check.js" defer id="oms-check"></script>\n' +
+    '<script src="./report.js" defer id="oms-report"></script>\n' +
     '<script src="./native-shell.js" defer id="oms-native-shell"></script>\n';
   // The upstream document keeps a large trailing <style> block after </body>, so the
   // tag is anchored on the closing </html> instead: defer still guarantees the adapter
@@ -280,8 +280,10 @@ async function main() {
   await cp(path.join(webDir, 'icons'), path.join(outDir, 'icons'), { recursive: true });
 
   await cp(path.join(shellDir, 'native-shell.js'), path.join(outDir, 'native-shell.js'));
-  await cp(path.join(shellDir, 'diagnostics.js'), path.join(outDir, 'diagnostics.js'));
-  await cp(path.join(shellDir, 'selftest.js'), path.join(outDir, 'selftest.js'));
+  // Names matter: `omsDiagnostics` belongs to the editor's own hub, so these ship as
+  // report.js / check.js and expose window.omsReport / window.omsSelfTest.
+  await cp(path.join(shellDir, 'report.js'), path.join(outDir, 'report.js'));
+  await cp(path.join(shellDir, 'check.js'), path.join(outDir, 'check.js'));
 
   if (vendoredMediabunny) {
     await cp(

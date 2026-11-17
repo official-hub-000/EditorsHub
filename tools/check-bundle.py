@@ -22,6 +22,7 @@ What is verified here
   3. No `id="…"` collides with a function the bundle calls through `window`.
   4. The mobile tab router accepts the key the markup actually uses.
   5. The graph textures stayed out of the document.
+  6. The shell never redefines a `window.*` name the editor already owns.
   6. The document contains no half-translated Bahasa Indonesia UI text.
 
 Exit code 1 on any failure, so CI fails instead of publishing an APK that cannot boot.
@@ -37,6 +38,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLE = ROOT / "app" / "src" / "main" / "assets" / "www" / "index.html"
+# The vendored, read-only document: the authority on what names the editor defines.
+SOURCE = ROOT / "web" / "index.html"
 
 # Names the bundle reaches through `window.X(` or `window.X?.(`. A function declared at
 # top level of a classic script becomes a global, but an *element* with a matching `id`
@@ -96,6 +99,40 @@ def main() -> int:
         ok = False
         print("\nThe mobile tab router does not accept the 'proyek' key the markup uses.",
               file=sys.stderr)
+
+    # The shell scripts run after the editor has bootstrapped, so any `window.X = ...`
+    # in them silently replaces the editor's own X. `window.omsDiagnostics` is an
+    # OMSDiagnosticsHub used by 155 call sites; an earlier shell overwrote it with an
+    # unrelated report tool, which quietly broke logging, snapshots and the settings
+    # panel. Names the editor defines must never be reassigned from the shell.
+    # `download` and `open` are replaced on purpose: both are platform entry points the
+    # shell must intercept (native save path, and keeping off-origin links inside the
+    # app). They are not the editor's own functions.
+    INTENTIONAL = {"download", "open"}
+
+    # Read the authored sources, not the copies in the bundle: a stale bundle would
+    # otherwise hide a collision until the next build.
+    for extra in ("native-shell.js", "report.js", "check.js"):
+        path = ROOT / "native-shell" / extra
+        if not path.exists():
+            continue
+        source = path.read_text(encoding="utf-8")
+        for match in re.finditer(r"window\.([A-Za-z_$][\w$]*)\s*=", source):
+            name = match.group(1)
+            if name in INTENTIONAL:
+                continue
+            # The editor's definitions live in web/index.html, which is never edited by
+            # the build. Checking the built bundle would miss a stale-build mismatch, so
+            # the source of truth is the vendored document.
+            source_html = SOURCE.read_text(encoding="utf-8") if SOURCE.exists() else html
+            if re.search(r"(?:const|let|var)\s+" + re.escape(name) + r"\b", source_html) or (
+                "window." + name + "=" in source_html
+            ):
+                ok = False
+                print(
+                    f"\n{extra} reassigns window.{name}, which the editor already defines.",
+                    file=sys.stderr,
+                )
 
     # 2.82 MB of base64 belongs in files, not in the parsed document.
     if 'data:image/webp;base64' in html:

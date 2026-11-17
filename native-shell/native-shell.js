@@ -747,41 +747,78 @@
     else toast('Diagnostics are still loading');
   }
 
-  function installDiagnosticsEntry() {
-    var brand = document.querySelector('.homeBrand');
-    if (brand && !brand.dataset.diagnosticsBound) {
-      brand.dataset.diagnosticsBound = '1';
-      brand.style.cursor = 'default';
-      var timer = 0;
-      brand.addEventListener('pointerdown', function () {
-        timer = setTimeout(openDiagnostics, 1200);
-      }, { passive: true });
-      ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (type) {
-        brand.addEventListener(type, function () { clearTimeout(timer); }, { passive: true });
-      });
-    }
-
-    var actions = document.querySelector('.homeTopActions');
-    if (actions && !document.getElementById('omsDiagnosticsBtn')) {
-      var btn = document.createElement('button');
-      btn.id = 'omsDiagnosticsBtn';
-      btn.type = 'button';
-      btn.className = 'rightBtn';
-      btn.title = 'Diagnostics';
-      btn.setAttribute('aria-label', 'Diagnostics');
-      btn.textContent = '!';
-      btn.style.cssText =
-        'width:34px;min-width:34px;padding:0;font-weight:900;color:#ffd166;' +
-        'border-color:#3a3320;background:#191712';
-      btn.addEventListener('click', openDiagnostics);
-      actions.appendChild(btn);
+  /**
+   * A floating report button, deliberately outside the Home header.
+   *
+   * The header's wordmark is turned into an About button by the editor
+   * (`logo.id='omsHomeAbout'`, role=button), so anything placed inside or beside it gets
+   * caught by that wrapper's hit area and a tap on the report button opens the About
+   * sheet instead. That is exactly what happened when this button was injected into
+   * `.homeTopActions`.
+   *
+   * It is therefore positioned fixed against the bottom-left edge, above the bottom
+   * navigation and clear of every existing control, and it stops propagation so no
+   * ancestor can claim the tap.
+   */
+  function openReport() {
+    try {
+      if (window.omsReport && window.omsReport.openWithSelfTest) {
+        window.omsReport.openWithSelfTest();
+      } else if (window.omsReport && window.omsReport.open) {
+        window.omsReport.open();
+      } else {
+        toast('Report tool is still loading');
+      }
+    } catch (e) {
+      toast('Report tool failed: ' + (e && e.message));
     }
   }
 
+  function installReportButton() {
+    if (document.getElementById('omsReportBtn')) return;
+    if (!document.body) return;
+    var btn = document.createElement('button');
+    btn.id = 'omsReportBtn';
+    btn.type = 'button';
+    btn.title = 'Report a problem';
+    btn.setAttribute('aria-label', 'Report a problem');
+    btn.textContent = '!';
+    btn.style.cssText = [
+      'position:fixed',
+      // Clear of the bottom navigation (~64px) and the safe area.
+      'left:8px',
+      'bottom:calc(78px + env(safe-area-inset-bottom, 0px))',
+      'width:30px',
+      'height:30px',
+      'border-radius:50%',
+      'border:1px solid #33313c',
+      'background:rgba(10,10,14,.82)',
+      'color:#ffd166',
+      'font:900 14px/1 system-ui,sans-serif',
+      'display:grid',
+      'place-items:center',
+      'padding:0',
+      'z-index:2147482000',
+      'opacity:.55',
+      'touch-action:manipulation',
+    ].join(';');
+    // The editor turns the wordmark into an About button; never let a tap on this
+    // button bubble into an ancestor's handler.
+    ['pointerdown', 'pointerup', 'click'].forEach(function (type) {
+      btn.addEventListener(type, function (event) {
+        event.stopPropagation();
+        if (type !== 'click') return;
+        event.preventDefault();
+        openReport();
+      });
+    });
+    document.body.appendChild(btn);
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', installDiagnosticsEntry, { once: true });
+    document.addEventListener('DOMContentLoaded', installReportButton, { once: true });
   } else {
-    installDiagnosticsEntry();
+    installReportButton();
   }
 
   window.dispatchEvent(new Event('omsnative:ready'));

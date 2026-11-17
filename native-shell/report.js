@@ -20,6 +20,11 @@
  *     before it reaches the app.
  *
  * Everything is read-only. Nothing is uploaded; the report is text on the clipboard.
+ *
+ * NAMING: this module must not touch `window.omsDiagnostics`. The editor already defines
+ * that name — an OMSDiagnosticsHub used by 155 call sites — and an earlier version of this
+ * file overwrote it, which silently broke logging, snapshots and the settings panel. This
+ * module therefore lives on `window.omsReport` and the self-test on `window.omsSelfTest`.
  */
 (function () {
   'use strict';
@@ -367,7 +372,7 @@
     });
   }
 
-  window.omsDiagnostics = {
+  window.omsReport = {
     open: open,
     openWithSelfTest: openWithSelfTest,
     collect: collect,
