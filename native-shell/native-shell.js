@@ -762,13 +762,37 @@
    */
   function openReport() {
     try {
-      if (window.omsReport && window.omsReport.openWithSelfTest) {
-        window.omsReport.openWithSelfTest();
-      } else if (window.omsReport && window.omsReport.open) {
-        window.omsReport.open();
-      } else {
+      if (!window.omsReport) {
         toast('Report tool is still loading');
+        return;
       }
+      if (!window.__omsDialog) {
+        window.omsReport.open();
+        return;
+      }
+      /*
+       * Two different jobs, offered side by side.
+       *
+       * "Check this screen" tests controls automatically, which is useful for finding a
+       * fault nobody has described yet. "Record my taps" is for a fault the user can
+       * demonstrate: it watches their real finger and reports what the page actually
+       * received. The second is the only one that can tell "the tap never arrived" from
+       * "the tap arrived and the app ignored it".
+       */
+      window.__omsDialog({
+        title: 'Report a problem',
+        message: 'Record my taps watches what happens when you tap a button that does ' +
+          'not work. Check this screen tests every control for you.',
+        acceptLabel: 'Record my taps',
+        cancelLabel: 'Check this screen',
+      }).then(function (record) {
+        if (record && window.omsTapProbe) {
+          // Close the sheet first, then start, so the sheet is not part of the recording.
+          setTimeout(function () { window.omsTapProbe.start(); }, 120);
+        } else if (window.omsReport.openWithSelfTest) {
+          window.omsReport.openWithSelfTest();
+        }
+      });
     } catch (e) {
       toast('Report tool failed: ' + (e && e.message));
     }

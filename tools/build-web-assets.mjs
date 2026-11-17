@@ -117,6 +117,7 @@ function patchEditorScope(html) {
 function injectShell(html) {
   if (html.includes('native-shell.js')) return html;
   const tag =
+    '<script src="./probe.js" defer id="oms-probe"></script>\n' +
     '<script src="./check.js" defer id="oms-check"></script>\n' +
     '<script src="./report.js" defer id="oms-report"></script>\n' +
     '<script src="./native-shell.js" defer id="oms-native-shell"></script>\n';
@@ -284,6 +285,7 @@ async function main() {
   // report.js / check.js and expose window.omsReport / window.omsSelfTest.
   await cp(path.join(shellDir, 'report.js'), path.join(outDir, 'report.js'));
   await cp(path.join(shellDir, 'check.js'), path.join(outDir, 'check.js'));
+  await cp(path.join(shellDir, 'probe.js'), path.join(outDir, 'probe.js'));
 
   if (vendoredMediabunny) {
     await cp(
