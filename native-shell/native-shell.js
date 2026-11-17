@@ -782,21 +782,53 @@
    * installed build removes that ambiguity for good — the user can read the version off
    * the screen instead of trusting a download timestamp.
    */
+  /**
+   * Names the installed build on the Home screen, once per install.
+   *
+   * A toast was not enough: it is dismissed by the splash, sits under the bottom
+   * navigation, and "did you see a message?" is not a question anyone should have to
+   * answer. This is a small badge pinned under the header, it says the version number,
+   * and tapping it dismisses it. It appears once per installed version and then never
+   * again, so it never becomes clutter.
+   */
   function announceBuildOnce() {
     var meta = document.querySelector('meta[name="editorshub-build"]');
     var id = meta ? meta.getAttribute('content') : 'unknown';
-    var KEY = 'omsBuildAnnounced';
+    var KEY = 'omsBuildBadgeSeen';
     try {
       if (localStorage.getItem(KEY) === id) return;
       localStorage.setItem(KEY, id);
     } catch (e) {
-      return; /* no storage: stay quiet rather than repeat on every launch */
+      return;
     }
     setTimeout(function () {
-      try {
-        if (typeof window.toast === 'function') window.toast('EditorsHub ' + id, 3200);
-      } catch (e) { /* toast is a nicety */ }
-    }, 2200);
+      if (document.getElementById('omsBuildBadgeHost')) return;
+      var host = document.createElement('div');
+      host.id = 'omsBuildBadgeHost';
+      host.textContent = 'Build ' + id;
+      host.title = 'Tap to dismiss';
+      host.style.cssText = [
+        'position:fixed',
+        'left:50%',
+        'transform:translateX(-50%)',
+        'top:calc(56px + env(safe-area-inset-top, 0px))',
+        'z-index:2147482500',
+        'padding:5px 11px',
+        'border-radius:999px',
+        'background:rgba(18,20,26,.94)',
+        'border:1px solid #2f3442',
+        'color:#ffd166',
+        'font:700 10.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace',
+        'letter-spacing:.02em',
+        'pointer-events:auto',
+        'box-shadow:0 6px 18px rgba(0,0,0,.5)',
+      ].join(';');
+      host.addEventListener('click', function (event) {
+        event.stopPropagation();
+        host.remove();
+      });
+      document.body.appendChild(host);
+    }, 1200);
   }
 
   function installReportButton() {

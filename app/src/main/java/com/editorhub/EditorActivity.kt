@@ -34,6 +34,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewClientCompat
 import kotlin.math.roundToInt
+import android.webkit.WebStorage
+import java.io.File
 
 /**
  * Native Android host for the EditorsHub editor.
@@ -130,6 +132,8 @@ class EditorActivity : ComponentActivity() {
             )
             .build()
 
+        purgeStaleBundle()
+
         webView = createWebView()
         webView.id = R.id.editor_webview
         root.addView(
@@ -159,6 +163,36 @@ class EditorActivity : ComponentActivity() {
     )
 
     @SuppressLint("SetJavaScriptEnabled")
+    /**
+     * Drops any cached copy of the bundled editor when the installed version changes.
+     *
+     * The document lives inside the APK, so an update is the only way its bytes can
+     * change — but WebView keeps its own cache across updates. `shouldInterceptRequest`
+     * now marks the response `no-store`, and this is the belt to that braces: on the
+     * first launch after an update the WebView cache is cleared and local storage is
+     * left untouched, so projects survive while the editor is re-read from the package.
+     *
+     * Without this, a build that fixes a fault can still behave exactly like the build
+     * that had it, with no way for the user or for a bug report to tell the difference.
+     */
+    private fun purgeStaleBundle() {
+        val prefs = getSharedPreferences("editorshub_shell", MODE_PRIVATE)
+        val installed = BuildConfig.VERSION_NAME
+        val seen = prefs.getString("bundle_version", null)
+        if (seen == installed) return
+        try {
+            WebStorage.getInstance().deleteAllData()
+        } catch (_: Exception) {
+            // Storage is a cache of a cache; failing to clear it must not block startup.
+        }
+        try {
+            val cacheDir = File(cacheDir, "WebView")
+            cacheDir.deleteRecursively()
+        } catch (_: Exception) {
+        }
+        prefs.edit().putString("bundle_version", installed).apply()
+    }
+
     private fun createWebView(): WebView {
         return WebView(this).apply {
             layoutParams = FrameLayout.LayoutParams(
@@ -221,8 +255,29 @@ class EditorActivity : ComponentActivity() {
                     view: WebView,
                     request: WebResourceRequest
                 ): WebResourceResponse? {
-                    assetLoader.shouldInterceptRequest(request.url)?.let { return it }
-                    return super.shouldInterceptRequest(view, request)
+                    val served = assetLoader.shouldInterceptRequest(request.url)
+                    if (served != null) {
+                        /*
+                         * Never let the bundled document be cached.
+                         *
+                         * The editor ships inside the APK, so its content changes only when
+                         * the APK changes -- but WebView will happily reuse a cached copy of
+                         * `index.html` across an app update if the response carries no
+                         * cache directive. The practical effect is that a fixed build runs
+                         * the old script: the buttons are still broken, the version banner
+                         * never appears, and every report describes code that is no longer
+                         * in the package. Nothing about that is visible from inside the
+                         * page, which is why it can masquerade as "still broken".
+                         *
+                         * `no-store` costs nothing here: the asset is read from the APK, not
+                         * from a network, and the document is loaded once per launch.
+                         */
+                        val headers = HashMap<String, String>()
+                        headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+                        headers["Pragma"] = "no-cache"
+                        served.responseHeaders = headers
+                    }
+                    return served ?: super.shouldInterceptRequest(view, request)
                 }
 
                 override fun shouldOverrideUrlLoading(
