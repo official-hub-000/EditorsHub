@@ -262,9 +262,11 @@ export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
   const out = hardenNewProjectButton(
-    fixTemplateButtons(
-      fixTutorialCards(
-        finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed))))
+    fixElementCard(
+      fixTemplateButtons(
+        fixTutorialCards(
+          finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed))))
+        )
       )
     )
   );
@@ -366,6 +368,31 @@ export function fixTemplateButtons(html) {
               }, 100);`;
   if (!html.includes(from)) {
     console.warn('! fixTemplateButtons: pattern not found');
+    return html;
+  }
+  return html.replace(from, to);
+}
+
+/**
+ * Makes the "Elements" object card say what it does.
+ *
+ * Under Elements there is a card labelled "Elements" (title "Elements & Projects",
+ * `data-obj="element"`). Tapping it runs `this.openTool('templates')` -- it silently
+ * switches to the Template tab and adds nothing. From the user's side the button did
+ * nothing at all, because the content that replaced it is a different grid.
+ *
+ * The honest behaviour is to hand off to the template picker deliberately and say so,
+ * rather than looking like a dead button that happens to relabel itself.
+ */
+export function fixElementCard(html) {
+  const from = `else if(o==='element'){this.openTool('templates');return}`;
+  const to =
+    `else if(o==='element'){` +
+    `this.openTool('templates');` +
+    `if(typeof toast==='function')toast('Templates are on the Template tab');` +
+    `return}`;
+  if (!html.includes(from)) {
+    console.warn('! fixElementCard: pattern not found');
     return html;
   }
   return html.replace(from, to);
