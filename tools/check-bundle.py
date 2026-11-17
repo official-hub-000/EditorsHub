@@ -23,6 +23,7 @@ What is verified here
   4. The mobile tab router accepts the key the markup actually uses.
   5. The graph textures stayed out of the document.
   6. The shell never redefines a `window.*` name the editor already owns.
+  7. No build step rewrote a JavaScript key into one that does not exist.
   6. The document contains no half-translated Bahasa Indonesia UI text.
 
 Exit code 1 on any failure, so CI fails instead of publishing an APK that cannot boot.
@@ -131,6 +132,23 @@ def main() -> int:
                 ok = False
                 print(
                     f"\n{extra} reassigns window.{name}, which the editor already defines.",
+                    file=sys.stderr,
+                )
+
+    # The i18n pass rewrites user-visible strings by byte offset. It cannot tell a label
+    # from a code key, and it once turned `switchMobileTab('proyek')` into
+    # `switchMobileTab('projects')` -- a key with no entry in the `views` map, so "View All"
+    # and the Projects tab silently did nothing. A key that the document compares against
+    # must exist in the map it is looked up in.
+    views = re.search(r"const views = \{(.*?)\};", html, re.S)
+    if views:
+        keys = set(re.findall(r"(\w+)\s*:", views.group(1)))
+        for match in re.finditer(r"switchMobileTab\(\s*'([^']+)'\s*\)", html):
+            if match.group(1) not in keys:
+                ok = False
+                print(
+                    f"\nswitchMobileTab('{match.group(1)}') has no entry in `views` "
+                    f"(known: {', '.join(sorted(keys))}). The call is a silent no-op.",
                     file=sys.stderr,
                 )
 
