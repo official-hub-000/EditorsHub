@@ -352,6 +352,94 @@
     } catch (e) { /* clipboard may be unavailable; the text is on screen anyway */ }
   }
 
+
+
+  var REPORT_STYLE_ID = 'omsReportStyle';
+
+  function installReportStyle() {
+    if (document.getElementById(REPORT_STYLE_ID)) return;
+    var style = document.createElement('style');
+    style.id = REPORT_STYLE_ID;
+    style.textContent = [
+      '#omsReportView{position:fixed;inset:0;z-index:2147483400;display:flex;flex-direction:column;',
+      'background:#000;color:#dfe6ef;',
+      'font:400 12.5px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;',
+      'padding:calc(12px + env(safe-area-inset-top,0px)) 12px ',
+      'calc(12px + env(safe-area-inset-bottom,0px))}',
+      '#omsReportHead{flex:0 0 auto;padding:2px 2px 10px;',
+      'font-family:system-ui,sans-serif;border-bottom:1px solid #1c1f27}',
+      '#omsReportHead b{display:block;font:700 15px/1.4 system-ui,sans-serif;color:#f3f6fa}',
+      '#omsReportHead span{display:block;margin-top:4px;font-size:11.5px;color:#6b7685}',
+      '#omsReportBody{flex:1 1 auto;min-height:0;overflow:auto;',
+      '-webkit-overflow-scrolling:touch;margin:0;padding:12px 2px;',
+      'white-space:pre-wrap;word-break:break-word;',
+      'user-select:text;-webkit-user-select:text;color:#b9c4d2}',
+      '#omsReportFoot{flex:0 0 auto;display:flex;gap:8px;justify-content:flex-end;',
+      'padding-top:10px;border-top:1px solid #1c1f27}',
+      '#omsReportFoot button{appearance:none;border:1px solid #2b3140;background:#14171e;',
+      'color:#c9d2e0;font:600 13px/1 system-ui,sans-serif;padding:13px 20px;border-radius:12px}',
+      '#omsReportFoot button.primary{background:#39ddcf;border-color:#39ddcf;color:#04120f}',
+      '#omsReportFoot button:active{transform:scale(.97)}',
+    ].join('');
+    document.head.appendChild(style);
+  }
+
+  /**
+   * Full-screen report viewer.
+   *
+   * The report is long — a few dozen lines — and the ordinary sheet is capped at 78vh with
+   * a scrollbar in the middle of it, which is why earlier reports came back looking
+   * truncated. This view takes the whole screen, keeps the text selectable, and puts Copy
+   * and Close where a thumb can reach them.
+   */
+  function showReport(title, text, note) {
+    installReportStyle();
+    dismissAllSheets();
+    var old = document.getElementById('omsReportView');
+    if (old) old.remove();
+
+    var wrap = document.createElement('div');
+    wrap.id = 'omsReportView';
+    wrap.setAttribute('role', 'dialog');
+    wrap.setAttribute('aria-modal', 'true');
+
+    var head = document.createElement('div');
+    head.id = 'omsReportHead';
+    var h = document.createElement('b');
+    h.textContent = title || 'Report';
+    var sub = document.createElement('span');
+    sub.textContent = note || '';
+    head.appendChild(h);
+    if (note) head.appendChild(sub);
+
+    var body = document.createElement('pre');
+    body.id = 'omsReportBody';
+    body.textContent = text;
+
+    var foot = document.createElement('div');
+    foot.id = 'omsReportFoot';
+    var copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'primary';
+    copyBtn.textContent = 'Copy';
+    copyBtn.addEventListener('click', function () { copy(text); });
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.textContent = 'Close';
+    closeBtn.addEventListener('click', function () { wrap.remove(); });
+    foot.appendChild(closeBtn);
+    foot.appendChild(copyBtn);
+
+    wrap.appendChild(head);
+    wrap.appendChild(body);
+    wrap.appendChild(foot);
+    document.body.appendChild(wrap);
+    body.scrollTop = 0;
+    return wrap;
+  }
+
+  window.omsShowReport = showReport;
+
   /**
    * The report says what the screen looks like; the self-test says whether pressing a
    * control does anything. Both sit behind the same button so the user does not have to

@@ -278,9 +278,11 @@ export function externaliseGraphTextures() {
  */
 export function stampBuildId(id) {
   return (html) => {
-    const anchor = 'id="oms-diagnostics"';
-    if (!html.includes(anchor)) {
-      console.warn('! stampBuildId: shell tags not found');
+    // Anchor on <title>, not on the shell's script tags: this runs before the shell is
+    // injected, so keying off those tags silently skipped the stamp and every report
+    // said "Build: (unknown)".
+    if (!html.includes('<title>')) {
+      console.warn('! stampBuildId: no <title> to anchor on');
       return html;
     }
     const meta = `<meta name="editorshub-build" content="${id}">\n`;
