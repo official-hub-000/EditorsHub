@@ -262,11 +262,13 @@ export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
   const out = hardenNewProjectButton(
-    fixDetachedGlobals(
-      fixElementCard(
+    fixNewProjectSeg(
+      fixDetachedGlobals(
+        fixElementCard(
         fixTemplateButtons(
         fixTutorialCards(
-            finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed))))
+              finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed))))
+            )
           )
         )
       )
@@ -524,4 +526,99 @@ export function fixLayerBarHistory(html) {
     return out;
   }
   return out.slice(0, blockStart) + patched + out.slice(blockEnd);
+}
+
+/**
+ * Makes the New Project sheet's PROJECT / ELEMENTS toggle real.
+ *
+ * `.seg` holds two buttons and there is no handler on either of them anywhere in the
+ * document -- the pair is decorative. The word "ELEMENTS" therefore opens nothing: it is
+ * the single most obvious dead control in the app, and it sits in the first sheet every
+ * new user sees.
+ *
+ * The editor's own shape catalog ("Elements" as Alight Motion means it) can only be used
+ * once a project exists, so the toggle now does the honest thing:
+ *
+ *   PROJECT   the existing setup form -- name, ratio, resolution, fps, duration, colour
+ *   ELEMENTS  creates a 9:16 1080p 30fps project and opens the Elements drawer, which is
+ *             where the shape catalog lives
+ *
+ * The tab highlights follow the selection so the sheet never looks like it ignored the
+ * tap, and the second button is relabelled from its clipped display.
+ */
+export function fixNewProjectSeg(html) {
+  const anchor = `<div class="seg"><button class="active">PROJECT</button><button>ELEMENTS</button></div>`;
+  if (!html.includes(anchor)) {
+    console.warn('! fixNewProjectSeg: seg markup not found');
+    return html;
+  }
+  const replacement =
+    `<div class="seg" id="omsNewProjectSeg">` +
+    `<button type="button" class="active" data-oms-seg="project">PROJECT</button>` +
+    `<button type="button" data-oms-seg="elements">ELEMENTS</button>` +
+    `</div>`;
+
+  const script = `
+<script id="oms-new-project-seg">
+(() => {
+  'use strict';
+  function wire() {
+    const seg = document.getElementById('omsNewProjectSeg');
+    if (!seg || seg.dataset.omsWired === '1') return;
+    seg.dataset.omsWired = '1';
+
+    const buttons = seg.querySelectorAll('[data-oms-seg]');
+    buttons.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const mode = button.dataset.omsSeg;
+        buttons.forEach((b) => b.classList.toggle('active', b === button));
+
+        if (mode !== 'elements') return;
+
+        // Build a project with the sheet's current settings, then land on Elements. The
+        // shape catalog needs a project to exist before it can add to one.
+        const modal = document.getElementById('newModal');
+        const close = document.getElementById('closeNew');
+        if (close) close.click();
+        if (modal) modal.classList.add('hidden');
+
+        const create = document.getElementById('createProject');
+        if (create) create.click();
+
+        // The editor builds its DOM on the next frame or two; retry briefly rather than
+        // guessing a single delay.
+        let tries = 0;
+        const openElements = () => {
+          tries += 1;
+          const editor = document.getElementById('editor');
+          const ready = editor && !editor.classList.contains('hidden') && window.ui;
+          if (!ready) {
+            if (tries < 40) setTimeout(openElements, 100);
+            return;
+          }
+          try {
+            window.ui.openTool('objects');
+          } catch (e) {
+            try { window.ui.openTool('templates'); } catch (e2) { /* give up quietly */ }
+          }
+        };
+        setTimeout(openElements, 120);
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wire, { once: true });
+  } else {
+    wire();
+  }
+  // The sheet markup exists in the initial document, but wire again after any re-render.
+  setTimeout(wire, 1500);
+})();
+</script>
+`;
+
+  return html.replace(anchor, replacement + script);
 }
