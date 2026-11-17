@@ -262,37 +262,14 @@ export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
   const out = hardenNewProjectButton(
-    fixTutorialCards(
-      fixMobileTabs(finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed)))))
+    fixTemplateButtons(
+      fixTutorialCards(
+        finishEnglish(themeConfirms(forceEnglish(singleCredit(renamed))))
+      )
     )
   );
   await writeFile(indexPath, out, 'utf8');
   return { html: out, renamed: count };
-}
-
-/**
- * Repairs the mobile tab router.
- *
- * The bottom bar's views are keyed `beranda / tutorial / proyek / template` (the upstream
- * author's Indonesian), but the handler branches on `projects`:
- *
- *     if (targetTab === 'projects') { ui.loadProjectList(); }
- *
- * `switchMobileTab('projects')` is also what "View All" calls, so that button was dead
- * too. The tab keys themselves are identifiers, not user-visible text, and are left
- * alone — only the comparison is widened to accept both spellings.
- *
- * Note: do *not* add a `projects:` alias to the views map. Two keys pointing at the same
- * element makes the toggle loop turn the project view on and then straight back off again.
- */
-export function fixMobileTabs(html) {
-  const from = "if (targetTab === 'projects') {";
-  const to = "if (targetTab === 'projects' || targetTab === 'proyek') {";
-  if (!html.includes(from)) {
-    console.warn('! fixMobileTabs: pattern not found');
-    return html;
-  }
-  return html.replace(from, to);
 }
 
 /**
@@ -332,6 +309,63 @@ export function hardenNewProjectButton(html) {
   })();`;
   if (!html.includes(from)) {
     console.warn('! hardenNewProjectButton: pattern not found');
+    return html;
+  }
+  return html.replace(from, to);
+}
+
+/**
+ * Repairs the one-tap template buttons on the Template tab.
+ *
+ * On a fresh install no project is open, so `useTemplate` takes its "create a fresh
+ * project first" branch, which calls:
+ *
+ *     model.createProject({ name, width, height, fps, background })
+ *
+ * There is no `Model.prototype.createProject`. Project creation is a global
+ * `createProject()` driven by the New Project form, and the model exposes
+ * `defaultProject(name, ratio, res, fps, duration, bg, customSize)` plus `reset()`.
+ * The call therefore throws, the `catch` swallows it, and the fallback opens the New
+ * Project sheet. The user taps "Use Template" on a template card and gets the composer
+ * instead of the template -- which reads as the button being broken.
+ *
+ * The replacement builds the project the same way `createProject()` does, then applies
+ * the template. Both calls already exist; nothing new is introduced.
+ */
+export function fixTemplateButtons(html) {
+  const from = `              model.createProject({
+                name: 'Project ' + tmplName.toUpperCase(),
+                width: 1080,
+                height: 1920,
+                fps: 30,
+                background: '#000000'
+              });
+              ui.authorizeEditorOpen?.();
+              ui.showEditor();
+              setTimeout(() => {
+                ui.applyTemplate(tmplName);
+                if (typeof toast === 'function') toast('Template applied');
+              }, 100);`;
+  const to = `              // No Model#createProject exists; build the project the way the New Project
+              // sheet does, then apply the template to it.
+              model.reset();
+              model.project = model.defaultProject(
+                'Project ' + tmplName.toUpperCase(), '9:16', 1080, 30, 10, '#000000', null
+              );
+              model.resetEditorCamera();
+              model.mode3d = false;
+              model.cameraView = true;
+              try { renderer.resize(); } catch (e) {}
+              history.clear();
+              ui.authorizeEditorOpen?.();
+              ui.showEditor();
+              history.push();
+              setTimeout(() => {
+                ui.applyTemplate(tmplName);
+                if (typeof toast === 'function') toast('Template applied');
+              }, 100);`;
+  if (!html.includes(from)) {
+    console.warn('! fixTemplateButtons: pattern not found');
     return html;
   }
   return html.replace(from, to);
