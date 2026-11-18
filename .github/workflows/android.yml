@@ -280,8 +280,13 @@ jobs:
           # The annotation channel dedups and truncates, so the same lines are emitted with a
           # unique index to keep all of them.
           i=0
-          cat /tmp/verify.log | head -20 | while IFS= read -r line; do
+          cat /tmp/verify.log | head -40 | while IFS= read -r line; do
             i=$((i+1)); echo "::error::V$i $line"
+          done
+          # The two facts that decide whether the app can be opened at all are surfaced
+          # separately: they matter more than a dex size line.
+          grep -E "launchable|label is|MAIN/LAUNCHER|no launchable" /tmp/verify.log | while IFS= read -r line; do
+            echo "::notice::LAUNCH $line"
           done
           grep "FAIL" /tmp/verify.log | while IFS= read -r line; do
             echo "::error::$line"
