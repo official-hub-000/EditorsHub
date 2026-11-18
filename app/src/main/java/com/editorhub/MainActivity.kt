@@ -132,6 +132,7 @@ class MainActivity : ComponentActivity() {
             }
         })
 
+        try {
         setContent {
             EditorTheme {
                 Box(Modifier.fillMaxSize().background(Ink.bg)) {
@@ -172,6 +173,16 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+        } catch (t: Throwable) {
+            // The first composition runs synchronously inside setContent, so a fault in the
+            // native screen is caught here and the known-good editor is opened instead. A
+            // later recomposition that throws still ends the process, but by then the crash
+            // log has it and the launcher offers to send it.
+            runCatching { CrashLog.recordNow(this, t, "first composition") }
+            Toast.makeText(this, "The editor could not start; opening the effects editor", Toast.LENGTH_LONG).show()
+            openWebEditor()
+            finish()
         }
     }
 

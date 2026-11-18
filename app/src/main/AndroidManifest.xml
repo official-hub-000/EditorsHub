@@ -31,20 +31,33 @@
           The native Kotlin editor. This is what the launcher opens: its own document model,
           keyframes, easing, renderer, timeline, inspector and MP4 export.
         -->
+        <!--
+          Launcher. Plain views only, on purpose: it must be able to open, and to show a crash
+          report, even when the editor screens are broken.
+        -->
         <activity
-            android:name=".MainActivity"
+            android:name=".HomeActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
             android:exported="true"
             android:launchMode="singleTop"
-            android:resizeableActivity="true"
-            android:screenOrientation="fullSensor"
-            android:theme="@style/Theme.EditorsHub"
-            android:windowSoftInputMode="adjustResize">
+            android:theme="@style/Theme.EditorsHub">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <!-- The native Kotlin editor. Opened from the launcher. -->
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:resizeableActivity="true"
+            android:screenOrientation="fullSensor"
+            android:theme="@style/Theme.EditorsHub"
+            android:windowSoftInputMode="adjustResize">
         </activity>
 
         <!--

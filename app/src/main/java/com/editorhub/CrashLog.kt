@@ -36,7 +36,31 @@ object CrashLog {
         }
     }
 
+    /**
+     * Records a caught failure.
+     *
+     * Used where the app survives: a fault that was handled still needs to reach the user,
+     * because a silently swallowed exception is a bug nobody can ever fix.
+     */
+    fun recordNow(context: Context, throwable: Throwable, where: String) {
+        runCatching { write(context, Throwable("$where: ${throwable.message}", throwable)) }
+    }
+
+    /**
+     * A real uncaught exception: the process is about to die.
+     *
+     * Only this path advances the streak, because only this path proves the launch failed.
+     * A caught fault is recorded but must not push the app into the fallback, or a handled
+     * problem in one dialog would start opening a different editor.
+     */
     private fun record(context: Context, thread: Thread, throwable: Throwable) {
+        runCatching {
+            write(context, throwable)
+            counterFile(context).writeText((streak(context) + 1).toString())
+        }
+    }
+
+    private fun write(context: Context, throwable: Throwable) {
         val stack = StringWriter().also { writer ->
             PrintWriter(writer).use { throwable.printStackTrace(it) }
         }.toString()
@@ -44,7 +68,7 @@ object CrashLog {
         val report = buildString {
             appendLine("EditorsHub crash report")
             appendLine("time      : $stamp")
-            appendLine("thread    : ${thread.name}")
+            appendLine("thread    : ${Thread.currentThread().name}")
             appendLine("exception : ${throwable.javaClass.name}: ${throwable.message}")
             appendLine("device    : ${Build.MANUFACTURER} ${Build.MODEL} (API ${Build.VERSION.SDK_INT})")
             appendLine("build     : ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
@@ -52,7 +76,6 @@ object CrashLog {
             appendLine(stack)
         }
         file(context).writeText(report)
-        counterFile(context).writeText((streak(context) + 1).toString())
     }
 
     private fun file(context: Context) = File(context.filesDir, FILE)

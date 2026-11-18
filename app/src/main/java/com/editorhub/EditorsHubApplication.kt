@@ -21,7 +21,10 @@ class EditorsHubApplication : Application() {
         // Installed before anything else can fail: a crash during startup is the one case
         // where the report matters most and where nothing else would have been able to help.
         CrashLog.install(this)
-        configureWebView()
+        // Each startup step is isolated. A failure in any of them used to take the whole
+        // process down before a single screen existed, which is indistinguishable from "the
+        // app is broken"; now it costs that feature only.
+        runCatching { configureWebView() }
     }
 
     /** WebView is a full browser engine; make it behave like an app-grade runtime. */
