@@ -132,7 +132,17 @@ jobs:
           # -F: these are literal strings, not patterns -- `)*(` in a basic regex silently
           # matched nothing and failed the build for the wrong reason.
           grep -qF 'function omsPreviewCanvasSize()' /tmp/apk-index.html
-          grep -qF '__cs=omsPreviewCanvasSize()' /tmp/apk-index.html
+          # The projection must normalise against the COMPOSITION size. Normalising against
+          # the canvas size is what drew every 3D layer at half position and put the
+          # selection box in the corner, so this asserts the corrected form.
+          grep -qF 'return{x:(nx*.5+.5)*omsCompositionWidth(),y:(1-(ny*.5+.5))*omsCompositionHeight(),z:nz,w:p.w}' /tmp/apk-index.html
+          grep -qF 'function omsCompositionWidth()' /tmp/apk-index.html
+          # The GPU context must not pay for a frame copy or multisampling nobody reads.
+          grep -qF "antialias:false,preserveDrawingBuffer:false,premultipliedAlpha:false,powerPreference:'high-performance'" /tmp/apk-index.html
+          # A resize mid-playback must be deferred, not presented as a blank buffer.
+          grep -qF '_omsPendingResize' /tmp/apk-index.html
+          # Easing and the curve graph must be one tap from the inspector root.
+          grep -qF 'omsEaseRow' /tmp/apk-index.html
           grep -qF 'x:(clientX-rect.left)*(W/Math.max(1,rect.width))' /tmp/apk-index.html
           grep -qF 'window.omsSetPreviewQuality=omsSetPreviewQuality' /tmp/apk-index.html
           # One sheet listing every tool, and the reachable preview-quality control.
