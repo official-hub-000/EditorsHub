@@ -28,6 +28,14 @@ jobs:
       - name: Install image tooling for the icon check
         run: python3 -m pip install --quiet --break-system-packages pillow
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install image tooling for the icon check
+        run: python3 -m pip install --quiet --break-system-packages pillow
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -39,25 +47,34 @@ jobs:
         with:
           packages: 'platforms;android-35 build-tools;35.0.0 platform-tools'
 
-      - name: Check the Kotlin sources are the only editor
+      - name: Prepare editor bundle
+        run: node tools/build-web-assets.mjs
+
+      - name: Verify bundled editor assets
         run: |
           set -e
-          # The app must be Kotlin and Compose only. A WebView, a bundled bundle, or a second
-          # editor activity means the shell came back, so the build fails loudly rather than
-          # shipping two apps in one APK again.
-          if grep -rq "android.webkit.WebView" app/src/main/java --include=*.kt; then
-            echo "::error::a WebView is back in the app sources"
+          test -f app/src/main/assets/www/index.html
+          test -f app/src/main/assets/www/native-shell.js
+          test -f app/src/main/assets/www/vendor/mediabunny/mediabunny.mjs
+          bytes=$(stat -c%s app/src/main/assets/www/index.html)
+          echo "Bundled index.html: $bytes bytes"
+          if [ "$bytes" -lt 1000000 ]; then
+            echo "::error::Bundled editor looks truncated"
             exit 1
           fi
-          if grep -rq "webkit" app/build.gradle.kts; then
-            echo "::error::the webkit dependency is back"
+          if grep -q 'cdn.jsdelivr.net/npm/mediabunny' app/src/main/assets/www/index.html; then
+            echo "::error::CDN mediabunny import survived the offline rewrite"
             exit 1
           fi
-          if [ -d app/src/main/assets/www ]; then
-            echo "::error::a bundled web editor is present in assets"
-            exit 1
-          fi
-          test -f app/src/main/java/com/editorhub/engine/gl/Compositor.kt
+
+      - name: Check the bundle can boot
+        run: |
+          set -e
+          # A missing element that startup code binds with $('#id').onclick throws an
+          # uncaught TypeError and leaves the app on its splash screen. The page still
+          # parses, so this has to be a separate check.
+          python3 tools/check-bundle.py
+          node --check app/src/main/assets/www/native-shell.js
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -175,10 +192,38 @@ jobs:
           if-no-files-found: warn
           retention-days: 90
 
+      - name: Verify the launcher icon is not blank
+        run: |
+          python3 - <<'EOF'
+          # An opaque adaptive-icon foreground renders as a blank tile on every launcher.
+          # A mark outside the 66dp safe circle is clipped. Both shipped once.
+          import sys
+          from PIL import Image
+          problems = []
+          for density in ("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"):
+              fg = Image.open(f"app/src/main/res/mipmap-{density}/ic_launcher_foreground.png").convert("RGBA")
+              w, h = fg.size
+              corners = [fg.getpixel(p)[3] for p in ((1, 1), (w - 2, 1), (1, h - 2), (w - 2, h - 2))]
+              if any(a != 0 for a in corners):
+                  problems.append(f"{density}: foreground is opaque at the corners")
+              if fg.getpixel((w // 2, h // 2))[3] != 255:
+                  problems.append(f"{density}: the mark is missing from the centre")
+              bbox = fg.getbbox()
+              if bbox:
+                  safe = int(w * (33.0 / 108.0) * 2)
+                  off = (w - safe) // 2
+                  if bbox[0] < off or bbox[1] < off or bbox[2] > off + safe or bbox[3] > off + safe:
+                      problems.append(f"{density}: mark {bbox} escapes the 66dp safe circle")
+              bg = Image.open(f"app/src/main/res/mipmap-{density}/ic_launcher_background.png").convert("RGBA")
+              if bg.getpixel((0, 0))[3] != 255:
+                  problems.append(f"{density}: background is not opaque")
+          for p in problems:
+              print(f"::error::ICON {p}")
+          sys.exit(1 if problems else 0)
+          EOF
+
       - name: Verify APK contents
         run: |
-          # Every check records its own result and the step fails once at the end. With `set -e`
-          # the first failure aborted silently and the diagnostics step had nothing to report.
           fail=0
           : > /tmp/verify.log
           say() { echo "APK-CHECK: $*"; echo "APK-CHECK: $*" >> /tmp/verify.log; }
@@ -188,118 +233,62 @@ jobs:
           say "apk=$apk"
           say "size=$(stat -c%s "$apk")"
           listing=$(unzip -l "$apk")
-          say "entries=$(grep -c . <<<"$listing")"
 
-          if grep -q "assets/www/" <<<"$listing"; then
-            say "FAIL: a bundled web editor is inside the APK"; fail=1
+          # The bundled editor must be in the APK: without it this app has no editor at all.
+          if grep -q "assets/www/index.html" <<<"$listing"; then
+            say "ok: bundled editor present"
           else
-            say "ok: no web bundle"
+            say "FAIL: the editor bundle is missing from the APK"; fail=1
           fi
-
-          if ! grep -q "classes.dex" <<<"$listing"; then
-            say "FAIL: no dex in the APK"; fail=1
-          else
+          if grep -q "classes.dex" <<<"$listing"; then
             say "ok: dex present"
-          fi
-
-          # A Compose app multidexes: the app's own classes may live in classes2.dex, so every
-          # dex in the APK is flattened into one string pool before the checks run.
-          dexcount=$(grep -c "classes[0-9]*\\.dex" <<<"$listing" || true)
-          say "dex files=$dexcount"
-          : > /tmp/dex.txt
-          for d in $(grep -o "classes[0-9]*\\.dex" <<<"$listing" | sort -u); do
-            unzip -p "$apk" "$d" > /tmp/one.dex 2>/dev/null
-            say "  $d bytes=$(stat -c%s /tmp/one.dex 2>/dev/null || echo 0)"
-            strings /tmp/one.dex >> /tmp/dex.txt 2>/dev/null || cat /tmp/one.dex >> /tmp/dex.txt
-          done
-          say "dex strings=$(wc -l < /tmp/dex.txt)"
-          # One annotation carries the fact that matters, because the channel truncates.
-          say "editorhub classes=$(grep -o 'Lcom/editorhub/[A-Za-z/]*;' /tmp/dex.txt | sort -u | wc -l)"
-          if [ "$dexsize" -lt 1000 ]; then
-            say "FAIL: the dex is empty"; fail=1
-          fi
-          for symbol in Compositor PreviewGLView EditorStore Exporter Keyframe Easing; do
-            if grep -q "Lcom/editorhub/.*$symbol;" /tmp/dex.txt || grep -q "$symbol" /tmp/dex.txt; then
-              say "ok: $symbol in dex"
-            else
-              say "FAIL: $symbol missing from dex"; fail=1
-            fi
-          done
-          if grep -q "gl_FragColor" /tmp/dex.txt; then
-            say "ok: shaders in dex"
           else
-            say "FAIL: shader sources missing from dex"; fail=1
+            say "FAIL: no dex"; fail=1
           fi
 
-          # There must be a launcher entry. An APK with no MAIN/LAUNCHER activity installs
-          # happily and then cannot be opened, which is exactly what shipped once: the manifest
-          # lost its only <activity> when a range edit removed the WebView activity.
+          # THE check that matters: an APK with no launcher activity installs and cannot be
+          # opened. That shipped once and cost two rounds.
           aapt2=$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}"/build-tools -name aapt2 2>/dev/null | sort | tail -1)
-          say "aapt2=$aapt2"
-          # Try aapt2, then aapt, then the SDK's build-tools directory listing, so a missing
-          # binary reports itself instead of silently skipping the checks.
-          if [ -n "$aapt2" ] && "$aapt2" dump badging "$apk" > /tmp/badging.txt 2>/tmp/aapt.err; then
-            say "badging via aapt2"
-          else
-            aapt=$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}"/build-tools -name aapt 2>/dev/null | sort | tail -1)
-            if [ -n "$aapt" ] && "$aapt" dump badging "$apk" > /tmp/badging.txt 2>/dev/null; then
-              say "badging via aapt"
+          if [ -n "$aapt2" ] && "$aapt2" dump badging "$apk" > /tmp/badging.txt 2>/dev/null; then
+            if grep -q "launchable-activity" /tmp/badging.txt; then
+              say "ok: $(grep 'launchable-activity' /tmp/badging.txt | head -1)"
             else
-              say "WARN: could not dump badging ($(head -1 /tmp/aapt.err 2>/dev/null))"
-              # The manifest is authoritative and is in the workspace; check it directly.
-              if grep -qE 'android\.intent\.action\.MAIN' app/src/main/AndroidManifest.xml \
-                 && grep -qE 'android\.intent\.category\.LAUNCHER' app/src/main/AndroidManifest.xml; then
-                say "ok: manifest declares MAIN/LAUNCHER (badging unavailable)"
-              else
-                say "FAIL: manifest has no MAIN/LAUNCHER activity"; fail=1
-              fi
+              say "FAIL: no launchable activity: the app cannot be opened"; fail=1
             fi
-          fi
-          if grep -q "launchable-activity" /tmp/badging.txt; then
-            say "ok: $(grep 'launchable-activity' /tmp/badging.txt | head -1)"
+            if grep -q "application-label:'EditorsHub'" /tmp/badging.txt; then
+              say "ok: label is EditorsHub"
+            else
+              say "FAIL: label is not EditorsHub"; fail=1
+            fi
           else
-            say "FAIL: no launchable activity: the app cannot be opened"; fail=1
-          fi
-          if grep -q "application-label:'EditorsHub'" /tmp/badging.txt; then
-            say "ok: label is EditorsHub"
-          else
-            say "FAIL: application label is not EditorsHub"; fail=1
+            # Fall back to the manifest, which is in the workspace and is authoritative.
+            if grep -q 'android.intent.category.LAUNCHER' app/src/main/AndroidManifest.xml; then
+              say "ok: manifest declares a LAUNCHER activity (badging unavailable)"
+            else
+              say "FAIL: manifest has no LAUNCHER activity"; fail=1
+            fi
           fi
 
           size=$(stat -c%s "$apk")
-          if [ "$size" -gt 16000000 ]; then
-            say "FAIL: APK past 16 MB ($size bytes)"; fail=1
+          if [ "$size" -gt 20000000 ]; then
+            say "FAIL: APK past 20 MB ($size bytes)"; fail=1
           else
             say "ok: size within budget"
           fi
 
-          { echo "### APK verification for \`${{ github.sha }}\`"; echo '```';
-            cat /tmp/verify.log; echo '--- dex listing head ---';
-            grep -o "Lcom/editorhub/[A-Za-z/]*;" /tmp/dex.txt 2>/dev/null | sort -u | head -40;
-            echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-          # The annotation channel dedups and truncates, so the same lines are emitted with a
-          # unique index to keep all of them.
+          { echo "### APK verification"; echo '```'; cat /tmp/verify.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           i=0
-          cat /tmp/verify.log | head -40 | while IFS= read -r line; do
+          grep -E "FAIL|ok: launchable" /tmp/verify.log | while IFS= read -r line; do
             i=$((i+1)); echo "::error::V$i $line"
           done
-          # The two facts that decide whether the app can be opened at all are surfaced
-          # separately: they matter more than a dex size line.
-          grep -E "launchable|label is|MAIN/LAUNCHER|no launchable" /tmp/verify.log | while IFS= read -r line; do
+          grep -E "ok: launchable|FAIL" /tmp/verify.log | while IFS= read -r line; do
             echo "::notice::LAUNCH $line"
           done
-          grep "FAIL" /tmp/verify.log | while IFS= read -r line; do
-            echo "::error::$line"
-          done
           if [ "$fail" -ne 0 ]; then
-            { echo "### APK verification failed for \`${{ github.sha }}\`"; echo '```';
-              cat /tmp/verify.log; echo '```'; } > /tmp/verify-diag.md
-            GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh issue comment 1 \
-              --repo "${{ github.repository }}" --body-file /tmp/verify-diag.md || true
-            echo "APK verification failed; reported to the diagnostics issue"
+            echo "APK verification failed"
             exit 1
           fi
-          echo "native app verified: no web bundle, editor classes and shaders present"
+          echo "verified: bundled editor, dex, launcher activity, label"
 
       - name: Report APK identity
         run: |

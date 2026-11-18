@@ -2,13 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-      Everything is local: the compositor is OpenGL ES in-process and the export is MediaCodec.
-      No network permission is requested, because the app never needs one.
-      No storage permission either: imports and exports go through the Storage Access
-      Framework, so the user grants exactly the files they choose.
+      Open Motion renders, composites and encodes video entirely on device.
+      Internet is used only for the optional Google Fonts catalog and the optional
+      portrait-matting model, and never for the editor itself (bundled offline).
+      No storage permissions are required: every import/export goes through the
+      Storage Access Framework, so the user only ever grants per-file access.
     -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <uses-feature android:glEsVersion="0x00020000" android:required="true" />
+    <uses-feature android:glEsVersion="0x00030000" android:required="false" />
 
     <application
         android:name=".EditorsHubApplication"
@@ -18,22 +21,14 @@
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.EditorsHub"
         android:usesCleartextTraffic="false">
 
-
-        <!--
-          The one and only activity, and the one and only launcher entry.
-
-          A previous edit removed the WebView activity with a range replacement that also took
-          this block with it. The APK still installed and still showed its icon everywhere, but
-          there was nothing for the launcher to start. CI now asserts a MAIN/LAUNCHER intent
-          filter exists, so an APK without a way in cannot be published.
-        -->
         <activity
-            android:name=".MainActivity"
+            android:name=".EditorActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
             android:exported="true"
             android:launchMode="singleTop"
@@ -47,16 +42,27 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Open a project straight from a file manager. -->
+            <!-- Open project bundles / Alight Motion XML straight from a file manager. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <data android:mimeType="application/json" />
+                <data android:mimeType="text/xml" />
+                <data android:mimeType="application/xml" />
+                <data android:mimeType="application/octet-stream" />
             </intent-filter>
 
-            <!-- And accept media from the share sheet. -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+                <data android:mimeType="audio/*" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
@@ -74,6 +80,7 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="true" />
         <meta-data android:name="android.max_aspect" android:value="2.4" />
     </application>
 
