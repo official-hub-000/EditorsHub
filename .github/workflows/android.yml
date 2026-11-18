@@ -192,7 +192,15 @@ jobs:
           fi
 
           { echo "### APK verification for \`${{ github.sha }}\`"; echo '```';
-            cat /tmp/verify.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+            cat /tmp/verify.log; echo '--- dex listing head ---';
+            grep -o "Lcom/editorhub/[A-Za-z/]*;" /tmp/dex.txt 2>/dev/null | sort -u | head -40;
+            echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          # The annotation channel dedups and truncates, so the same lines are emitted with a
+          # unique index to keep all of them.
+          i=0
+          cat /tmp/verify.log | head -20 | while IFS= read -r line; do
+            i=$((i+1)); echo "::error::V$i $line"
+          done
           grep "FAIL" /tmp/verify.log | while IFS= read -r line; do
             echo "::error::$line"
           done
