@@ -262,7 +262,10 @@ export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
   const out = addMoreTools(
+    addEaseAccess(
     addQualityAndTapFixes(
+      addResizeGuard(
+      addGpuContextTuning(
       addPreviewScale(
         addPlayheadThrottle(
           addNodeVideoImport(
@@ -289,6 +292,9 @@ export async function patchBranding(indexPath) {
             )
           )
         )
+      )
+      )
+      )
       )
     )
   );
@@ -1015,10 +1021,12 @@ export function addPreviewScale(html) {
   // hit testing, drag deltas and overlay drawing honest once the canvas is smaller.
   const screenAnchor = 'screenWorld(x,y,z,vp=this.vp){const p=Mat4.point(vp,x,y,z);if(p.w<=.00001)return null;const nx=p.x/p.w,ny=p.y/p.w,nz=p.z/p.w;if(nz<-1.2||nz>1.2)return null;return{x:(nx*.5+.5)*this.canvas.width,y:(1-(ny*.5+.5))*this.canvas.height,z:nz,w:p.w}}';
   const screenTo = `screenWorld(x,y,z,vp=this.vp){const p=Mat4.point(vp,x,y,z);if(p.w<=.00001)return null;const nx=p.x/p.w,ny=p.y/p.w,nz=p.z/p.w;if(nz<-1.2||nz>1.2)return null;
-    // Composition pixels, not canvas pixels: the preview canvas is scaled down, and every
-    // caller of this function (hit tests, polygons, overlays) works in composition space.
-    const __cs=omsPreviewCanvasSize(),__sx=__cs.scale||1;
-    return{x:(nx*.5+.5)*this.canvas.width/__sx,y:(1-(ny*.5+.5))*this.canvas.height/__sx,z:nz,w:p.w}}`;
+    // Composition pixels, not canvas pixels. The projection is built in composition units
+    // (ortho is -W/2..W/2), so the result is normalised against the COMPOSITION size --
+    // never against this.canvas.width, which is the scaled preview size and is stale the
+    // moment the quality changes. Using the canvas here drew every 3D layer at 1/scale and
+    // made the selection box a quarter-size in the corner.
+    return{x:(nx*.5+.5)*omsCompositionWidth(),y:(1-(ny*.5+.5))*omsCompositionHeight(),z:nz,w:p.w}}`;
   if (!out.includes(screenAnchor)) {
     console.warn('! addPreviewScale: screenWorld anchor missing — pointer maths left alone');
   } else {
@@ -1065,7 +1073,7 @@ export function addPreviewScale(html) {
   const cameraHitAnchor = 'const radius=Math.max(20,Math.min(this.canvas.width,this.canvas.height)*.028);';
   if (out.includes(cameraHitAnchor)) {
     out = out.split(cameraHitAnchor).join(
-      'const __c=omsPreviewCanvasSize(),radius=Math.max(20,Math.min(__c.width,__c.height)*(1/(__c.scale||1))*.028);'
+      'const radius=Math.max(20,Math.min(omsCompositionWidth(),omsCompositionHeight())*.028);'
     );
     console.log('  preview   camera handle radius kept in composition units');
   } else {
@@ -1074,10 +1082,25 @@ export function addPreviewScale(html) {
 
   // The selection overlay is drawn on its own canvas, which stays at project size, so its
   // strokes are scaled up by the canvas/project ratio to keep the same visual weight.
+  // The overlay canvas is composition sized, so a stroke weight expressed as a fraction of
+  // the composition short edge is the same visual weight at every preview quality.
   const overlayWidthAnchor = "c.lineWidth=Math.max(1.5,this.canvas.width*.0015);";
   if (out.includes(overlayWidthAnchor)) {
     out = out.split(overlayWidthAnchor).join(
-      "c.lineWidth=Math.max(1.5,this.canvas.width*.0015)*(this.overlay&&this.overlay.width?this.overlay.width/Math.max(1,this.canvas.width):1);"
+      "c.lineWidth=Math.max(1.5,Math.min(omsCompositionWidth(),omsCompositionHeight())*.0015);"
+    );
+  }
+  const overlayRadiusAnchor = "const handleR=Math.max(4,this.canvas.width*.0035);";
+  if (out.includes(overlayRadiusAnchor)) {
+    out = out.split(overlayRadiusAnchor).join(
+      "const handleR=Math.max(4,omsCompositionWidth()*.0035);"
+    );
+  }
+  // The white framing guide was drawn from the canvas size too.
+  const overlayFrameAnchor = "const W=this.canvas.width,H=this.canvas.height,eps=Math.max(1.25,c.lineWi";
+  if (out.includes(overlayFrameAnchor)) {
+    out = out.split(overlayFrameAnchor).join(
+      "const W=omsCompositionWidth(),H=omsCompositionHeight(),eps=Math.max(1.25,c.lineWi"
     );
   }
 
@@ -1324,6 +1347,10 @@ export const MORE_TOOLS_SCRIPT = `
       pro ? () => { view.close(); pro.openFlow(); } : missing('Optical flow'));
     row(view.body, '\\u2313', 'Keyframes', 'Graph editor for the selected layer.',
       ui ? () => { openSelected('keys')(); } : missing('Keyframes'));
+    row(view.body, '\\u223f', 'Easing', 'Ease in, ease out, overshoot, spring and custom Bezier.',
+      ui ? () => { view.close(); ui.openInspector('move'); requestAnimationFrame(() => { const b = document.getElementById('transformEaseSide'); if (b) b.click(); }); } : missing('Easing'));
+    row(view.body, '\\u2197', 'Curve graph', 'Value and speed curves with draggable Bezier handles.',
+      ui ? () => { view.close(); const l = window.model && model.selectedLayer ? model.selectedLayer() : null; const props = l && ui.transformModeProps ? ui.transformModeProps(l) : []; ui.openGraphEditor(props[0]); } : missing('Curve graph'));
 
     group(view.body, 'Track and cut out');
     row(view.body, '\\u2316', 'Motion tracking', 'Tracker point, corner pin and stabiliser.',
@@ -1637,4 +1664,210 @@ export function addQualityAndTapFixes(html) {
   if (close === -1) return html + QUALITY_AND_TAP_SCRIPT;
   console.log('  quality   preview control + row taps + FAB hit area');
   return html.slice(0, close) + QUALITY_AND_TAP_SCRIPT + html.slice(close);
+}
+
+/**
+ * The GPU context was configured for screenshots, not for playback.
+ *
+ * `preserveDrawingBuffer:true` forces the driver to keep a full copy of every frame after
+ * it is presented, and `antialias:true` turns on multisampling over the whole composition.
+ * Together they are two of the most expensive options a WebGL context accepts, and neither
+ * buys anything here: every capture in this editor (PNG export, video export, the colour
+ * picker) draws the canvas immediately after `render()` in the same task, which is exactly
+ * the case `preserveDrawingBuffer` is not needed for. The preview is also scaled down by
+ * CSS, so multisampling is thrown away before it ever reaches the screen.
+ */
+export function addGpuContextTuning(html) {
+  const anchor = "const options={alpha:false,antialias:true,preserveDrawingBuffer:true,premultipliedAlpha:false,powerPreference:'high-performance'};";
+  if (!html.includes(anchor)) {
+    console.warn('! addGpuContextTuning: context options anchor missing');
+    return html;
+  }
+  const replacement = `// antialias off: the preview canvas is down-scaled by CSS, so MSAA is discarded
+    // before it reaches the screen; on a phone it is a large per-frame cost for nothing.
+    // preserveDrawingBuffer off: every capture in this app reads the canvas immediately
+    // after render(), inside the same task, which is the case it is not required for.
+    const options={alpha:false,antialias:false,preserveDrawingBuffer:false,premultipliedAlpha:false,powerPreference:'high-performance'};`;
+  let out = html.split(anchor).join(replacement);
+  console.log('  gpu       multisampling + buffer copy disabled');
+  return out;
+}
+
+/**
+ * Prevents the preview from flashing to black when the quality changes mid-playback.
+ *
+ * Assigning `canvas.width` reallocates the drawing buffer, and a reallocated buffer is
+ * empty until the next draw. Doing that during playback shows a white or black frame for
+ * one or two frames -- a visible glitch on every quality change, and on every resize, which
+ * is why the preview looked like it was flickering. The resize is now held until the
+ * playhead is not moving, and the canvas is repainted in the same frame as the change when
+ * it does happen.
+ */
+export function addResizeGuard(html) {
+  const anchor = 'if(this.canvas.width!==w)this.canvas.width=w;if(this.canvas.height!==h)this.canvas.height=h;this.gl.viewport(0,0,w,h);';
+  if (!html.includes(anchor)) {
+    console.warn('! addResizeGuard: canvas resize anchor missing');
+    return html;
+  }
+  const replacement = `if(this.canvas.width!==w||this.canvas.height!==h){
+      // A reallocated drawing buffer is empty until something draws into it. During
+      // playback that is a visible flash, so the change waits for the playhead to stop.
+      if(model.playing&&!this.exporting&&!this._nativeExportTarget){
+        this._omsPendingResize={w,h};
+        if(!this._omsResizeResumeHooked){
+          this._omsResizeResumeHooked=true;
+          try{window.__omsBus?.on?.('playback:stop',()=>{const p=this._omsPendingResize;this._omsPendingResize=null;if(p){this.resize();this.render()}})}catch(e){}
+        }
+      }else{
+        this.canvas.width=w;this.canvas.height=h;this.gl.viewport(0,0,w,h);
+        // Repaint in the same frame, so the empty buffer is never presented.
+        if(!this.exporting&&!this._nativeExportTarget){try{this.render()}catch(e){}}
+      }
+    }`;
+  let out = html.split(anchor).join(replacement);
+  console.log('  preview   canvas resize held while playing');
+  return out;
+}
+
+/**
+ * Easing and the curve graph, reachable in one tap from the inspector.
+ *
+ * Both already exist: `#transformEaseSide` (the "EASE" button inside Transform) opens the
+ * easing editor, and `openGraphEditor` opens the full value/speed graph with Bezier handles
+ * and a preset rail. Neither could be found, because the first is two screens deep and
+ * refuses to open unless the playhead already sits between two keyframes, and the second
+ * is only reachable from the keyframe lane.
+ *
+ * Three changes, none of which add a second editor:
+ *
+ *   1. EASE and GRAPH buttons sit on the inspector root, next to the property grid.
+ *   2. EASE with no segment no longer dead-ends on a toast; it opens the curve graph, which
+ *      is where a segment is actually created.
+ *   3. The graph is reachable even from a layer with no keyframes: it says what to do
+ *      instead of opening an empty canvas with no explanation.
+ */
+export const EASE_ACCESS_SCRIPT = `
+<script id="oms-ease-access">
+(() => {
+  'use strict';
+  const ROW_ID = 'omsEaseRow';
+  const STYLE_ID = 'omsEaseStyle';
+
+  function style() {
+    if (document.getElementById(STYLE_ID)) return;
+    const s = document.createElement('style');
+    s.id = STYLE_ID;
+    s.textContent = [
+      '#' + ROW_ID + '{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0 2px}',
+      '#' + ROW_ID + ' button{appearance:none;min-height:44px;display:flex;align-items:center;',
+      'justify-content:center;gap:7px;border:1px solid #2b3444;background:#0f141c;',
+      'color:#dfe8f4;font:700 12.5px/1 system-ui,-apple-system,sans-serif;border-radius:12px}',
+      '#' + ROW_ID + ' button:active{border-color:#3ad9c6;background:#14212a}',
+      '#' + ROW_ID + ' i{font-style:normal;font-size:15px;color:#4fe0cd}',
+    ].join('');
+    document.head.appendChild(s);
+  }
+
+  function ui() { return window.__omsUi || null; }
+  function selectedLayer() {
+    const m = window.model;
+    return m && m.selectedLayer ? m.selectedLayer() : null;
+  }
+  function toast(message) {
+    if (typeof window.toast === 'function') window.toast(message);
+  }
+
+  // Opens the real easing editor. It needs a segment, so if there is none the graph is used
+  // instead of a dead end -- the graph is where a segment can be made.
+  function openEase() {
+    const layer = selectedLayer();
+    if (!layer) { toast('Select a layer first'); return; }
+    const u = ui();
+    if (!u) { toast('The editor is still loading'); return; }
+    try {
+      u.transformEaseEditorOpen = false;
+      u.openInspector('move');
+      requestAnimationFrame(() => {
+        const hasSegment = typeof u.transformModeHasEaseSegment === 'function'
+          ? u.transformModeHasEaseSegment(layer) : false;
+        const easeButton = document.getElementById('transformEaseSide');
+        if (hasSegment && easeButton) { easeButton.click(); return; }
+        // No segment yet: the graph is the place keyframes and easing are created.
+        const props = typeof u.transformModeProps === 'function' ? u.transformModeProps(layer) : [];
+        u.openGraphEditor && u.openGraphEditor(props[0]);
+      });
+    } catch (error) {
+      toast((error && error.message) || 'The easing editor could not open');
+    }
+  }
+
+  function openGraph() {
+    const layer = selectedLayer();
+    if (!layer) { toast('Select a layer first'); return; }
+    const u = ui();
+    if (!u || typeof u.openGraphEditor !== 'function') { toast('The editor is still loading'); return; }
+    try {
+      const props = typeof u.transformModeProps === 'function' ? u.transformModeProps(layer) : [];
+      const prop = props[0] || null;
+      u.openGraphEditor(prop);
+      // The graph draws from the keyframe list. A layer with none gets a sentence rather
+      // than an empty grid with no way forward.
+      const keys = prop && layer.kf && Array.isArray(layer.kf[prop]) ? layer.kf[prop] : [];
+      if (keys.length < 2) {
+        toast('Add a keyframe with ◇+ in Transform, then the curve appears here');
+      }
+    } catch (error) {
+      toast((error && error.message) || 'The curve editor could not open');
+    }
+  }
+
+  function addRow() {
+    const drawer = document.getElementById('drawer');
+    if (!drawer || drawer.querySelector('#' + ROW_ID)) return;
+    const grid = drawer.querySelector('.inspectorGrid');
+    if (!grid) return;
+    style();
+    const row = document.createElement('div');
+    row.id = ROW_ID;
+
+    const ease = document.createElement('button');
+    ease.type = 'button';
+    ease.innerHTML = '<i>\\u223f</i>Ease';
+    ease.setAttribute('aria-label', 'Ease the keyframes of the selected layer');
+    ease.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openEase(); });
+
+    const graph = document.createElement('button');
+    graph.type = 'button';
+    graph.innerHTML = '<i>\\u2197</i>Graph';
+    graph.setAttribute('aria-label', 'Open the curve graph for the selected layer');
+    graph.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openGraph(); });
+
+    row.append(ease, graph);
+    // Above the property grid: easing is what people look for first.
+    grid.insertAdjacentElement('beforebegin', row);
+  }
+
+  function watch() {
+    const drawer = document.getElementById('drawer');
+    if (!drawer) return;
+    try { new MutationObserver(addRow).observe(drawer, { childList: true, subtree: true }); } catch (e) { /* interval covers it */ }
+    addRow();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch, { once: true });
+  } else {
+    watch();
+  }
+  setTimeout(watch, 1500);
+  setInterval(addRow, 2000);
+})();
+</script>
+`;
+
+export function addEaseAccess(html) {
+  const close = html.lastIndexOf('</html>');
+  if (close === -1) return html + EASE_ACCESS_SCRIPT;
+  console.log('  ease      Ease + Graph on the inspector root');
+  return html.slice(0, close) + EASE_ACCESS_SCRIPT + html.slice(close);
 }
