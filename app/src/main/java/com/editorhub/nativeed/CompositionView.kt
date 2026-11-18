@@ -9,6 +9,8 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.os.Looper
+import android.view.Choreographer
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import kotlin.math.max
@@ -281,9 +283,27 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
     /**
      * Asks for one frame.
      *
-     * `postInvalidateOnAnimation` on a SurfaceView schedules a draw at the next frame, which
-     * coalesces a burst of edits (dragging a slider emits dozens) into a single surface
-     * update instead of a queue of them.
+     * A SurfaceView is NOT drawn by `invalidate`: the window never owns its pixels, so an
+     * invalidation reaches `View.draw` and stops there, leaving the surface showing whatever
+     * was last locked and posted. The frame must therefore be requested on the choreographer
+     * and painted through [drawNow], which is also what makes a burst of edits collapse into a
+     * single frame instead of a queue of them.
      */
-    fun requestRender() { postInvalidateOnAnimation() }
+    fun requestRender() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            post { requestRender() }
+            return
+        }
+        if (frameScheduled || !drawingEnabled) return
+        frameScheduled = true
+        Choreographer.getInstance().postFrameCallback(frameCallback)
+    }
+
+    private var frameScheduled = false
+    private val frameCallback = object : Choreographer.FrameCallback {
+        override fun doFrame(frameTimeNanos: Long) {
+            frameScheduled = false
+            drawNow()
+        }
+    }
 }

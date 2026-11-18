@@ -124,6 +124,10 @@ class Exporter(private val context: Context) {
                             codec.releaseOutputBuffer(outIndex, false)
                             if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) break
                         }
+                        // INFO_OUTPUT_BUFFERS_CHANGED (-3) and anything else unexpected: stop
+                        // draining this round. Falling through without progress is the classic
+                        // way this loop hangs forever on some encoders.
+                        else -> break
                     }
                 }
             }
