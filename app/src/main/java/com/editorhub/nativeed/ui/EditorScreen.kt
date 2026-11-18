@@ -90,6 +90,11 @@ fun EditorScreen(
     // a configuration change (the old surface is gone), and storing it in `mutableStateOf`
     // would make every read of it a snapshot read inside callbacks that run off the compositions.
     val previewRef = remember { java.util.concurrent.atomic.AtomicReference<CompositionView?>(null) }
+
+    // Audio for video and audio layers, one player per audible clip. Created before the
+    // effect that subscribes to the store, because that subscription references it.
+    val audio = remember { com.editorhub.nativeed.AudioPlayer(context.applicationContext) }
+    DisposableEffect(audio) { onDispose { audio.releaseAll() } }
     // Set while a slider or a canvas drag is reporting continuously. Continuous callbacks only
     // redraw the preview; panels refresh once, on gesture end. Otherwise a drag would rebuild
     // the whole inspector on every pixel and the drag itself would stutter -- the exact thing
@@ -144,10 +149,6 @@ fun EditorScreen(
         }
         if (decoded.isNotEmpty()) bitmaps = bitmaps + decoded
     }
-
-    // Audio for video and audio layers, one player per audible clip.
-    val audio = remember { com.editorhub.nativeed.AudioPlayer(context.applicationContext) }
-    DisposableEffect(audio) { onDispose { audio.releaseAll() } }
 
     // Video frames, decoded on a background thread and asked for at draw time.
     val videoFrames = remember(cache) { VideoFrames(cache) { renderRequest() } }

@@ -284,7 +284,9 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         // Overlays that sit on top of the layer's own pixels.
         if (layer.effects.containsKey(Effect.INVERT)) {
             canvas.drawRect(rect, android.graphics.Paint().apply {
-                xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.DIFFERENCE)
+                // PorterDuff has no DIFFERENCE mode on the app's minimum API; XOR against
+                // opaque white is the standard way to invert on a hardware canvas.
+                xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.XOR)
                 color = Color.WHITE
                 alpha = ((layer.effects[Effect.INVERT] ?: 1f) * 255).toInt().coerceIn(0, 255)
             })

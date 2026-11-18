@@ -39,10 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.editorhub.nativeed.BlendMode
 import com.editorhub.nativeed.Ease
-import com.editorhub.nativeed.Effect
-import com.editorhub.nativeed.Ease
-import com.editorhub.nativeed.EffectKind
+import com.editorhub.nativeed.EaseKind
 import com.editorhub.nativeed.EditorStore
+import com.editorhub.nativeed.Effect
 import com.editorhub.nativeed.Layer
 import com.editorhub.nativeed.LayerKind
 import com.editorhub.nativeed.ShapeKind
