@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -167,6 +169,12 @@ fun EditorScreen(
     @Suppress("UNUSED_EXPRESSION")
     rev
 
+    // How much room the inspector takes. Dragging it down to a handle is how the preview
+    // gets the whole screen for framing a shot; there is no other view mode to switch to,
+    // because a phone does not have the room for one and people forget which mode they
+    // are in anyway.
+    var inspectorHeight by remember { mutableStateOf(268.dp) }
+
     Column(Modifier.fillMaxSize().background(Ink.bg)) {
 
         // ------------------------------------------------------------- transport
@@ -193,7 +201,7 @@ fun EditorScreen(
         Hairline(Modifier.fillMaxWidth().height(1.dp))
 
         // ---------------------------------------------------------------- preview
-        Box(Modifier.fillMaxWidth().weight(1f).background(Color.Black)) {
+        Box(Modifier.fillMaxWidth().weight(1f).heightIn(min = 200.dp).background(Color.Black)) {
             PreviewSurface(
                 store = store,
                 bitmaps = bitmaps,
@@ -224,7 +232,10 @@ fun EditorScreen(
         }
 
         // --------------------------------------------------------------- timeline
-        Row(Modifier.fillMaxWidth().height(26.dp).padding(horizontal = Gap.md), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.fillMaxWidth().height(24.dp).padding(horizontal = Gap.md),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text("TIMELINE", color = Ink.dim, fontSize = 9.sp, letterSpacing = 1.sp)
             Spacer(Modifier.weight(1f))
             Text(
@@ -236,7 +247,7 @@ fun EditorScreen(
             store = store,
             version = rev,
             playhead = playhead,
-            modifier = Modifier.fillMaxWidth().height(196.dp),
+            modifier = Modifier.fillMaxWidth().height(176.dp),
             onSeek = { playback.seek(it) },
             onSeekEnd = { rev++ },
             onGestureStart = { gestureActive = true }
@@ -244,10 +255,47 @@ fun EditorScreen(
         Hairline(Modifier.fillMaxWidth().height(1.dp))
 
         // -------------------------------------------------------------- inspector
+        // Inspector: a fixed-height panel with a drag handle. The handle is the only thing
+        // that resizes it, so a swipe inside the controls still scrolls them.
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(22.dp)
+                .background(Ink.panel)
+                .pointerInput(Unit) {
+                    // Track the running total of the drag rather than each delta: a finger
+                    // wobbles, and deciding per-delta makes the panel flicker between open and
+                    // closed. The total is then clamped to a sane range so it can also be left
+                    // half-open, which is what you want while comparing a value against the
+                    // picture.
+                    var total = 0f
+                    detectVerticalDragGestures(
+                        onDragStart = { total = 0f },
+                        onDragEnd = {
+                            // A slow drag that ended near a stop snaps to it; anything else is
+                            // left where the finger put it.
+                            val px = inspectorHeight.value
+                            inspectorHeight = when {
+                                px < 80f -> 34.dp
+                                px > 300f -> 320.dp
+                                else -> px.dp
+                            }
+                        }
+                    ) { _, drag ->
+                        total += drag
+                        val next = (inspectorHeight.value - drag / 2f).coerceIn(0f, 360f)
+                        inspectorHeight = next.dp
+                    }
+                },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Box(Modifier.size(width = 48.dp, height = 4.dp).clip(RoundedCornerShape(2.dp)).background(Ink.line))
+        }
         Inspector(
             store = store,
             version = rev,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp, max = 320.dp),
+            modifier = Modifier.fillMaxWidth().height(inspectorHeight),
             onPickMedia = { pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onGestureStart = { gestureActive = true },
             onGestureEnd = { gestureActive = false; rev++ }
