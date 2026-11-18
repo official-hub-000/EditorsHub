@@ -371,6 +371,7 @@ private fun TrackArea(
             val layer = row.layer
             val startX = (layer.start * pixelsPerSecond).toFloat() - offsetX
             val endX = ((layer.start + layer.duration) * pixelsPerSecond).toFloat() - offsetX
+            val inset = 3.dp.toPx()
             // A bar narrower than the minimum, or one whose width came out negative, must not
             // reach drawRoundRect: it throws on a negative size and looks wrong at zero.
             val barWidth = (endX - startX).let { if (it.isFinite()) it else 4f }.coerceAtLeast(4f)
@@ -384,7 +385,6 @@ private fun TrackArea(
                 else -> Color(0xFF4A5568)
             }
             val selected = layer.id == store.selectedLayerId
-            val inset = 3.dp.toPx()
             drawRoundRect(
                 color = if (selected) barColor else barColor.copy(alpha = .55f),
                 topLeft = Offset(startX, top + inset),

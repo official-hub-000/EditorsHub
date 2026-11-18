@@ -149,8 +149,8 @@ fun EditorScreen(
     // number makes it actionable: this is what turns it into "34 fps, dropped 12 frames on
     // that scrub" and decides whether the fault is drawing, decoding or the clock.
     var showFps by remember { mutableStateOf(false) }
-    var fpsValue by remember { mutableIntStateOf(0) }
-    var droppedValue by remember { mutableIntStateOf(0) }
+    var fpsValue by remember { mutableStateOf(0) }
+    var droppedValue by remember { mutableStateOf(0) }
 
     val playback = remember(store) {
         Playback(
