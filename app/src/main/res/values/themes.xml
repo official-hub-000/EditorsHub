@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      EditorsHub is a full-screen creative tool: the status bar and navigation bar are
-      never part of the chrome. They are hidden for the whole session and only revealed
-      transiently by a swipe (Android's standard immersive behaviour).
+      EditorsHub draws edge to edge and owns its own insets.
+
+      windowFullscreen is deliberately NOT set: it hides the status bar for the whole session,
+      which fights WindowCompat.setDecorFitsSystemWindows and leaves the first screen underneath
+      the display cutout. The activity sets the bars transparent and lays out around them.
     -->
     <style name="Theme.EditorsHub" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/editorshub_background</item>
@@ -15,7 +17,6 @@
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
-        <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowDisablePreview">false</item>
         <item name="android:colorAccent">@color/editorshub_theme</item>

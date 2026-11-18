@@ -24,6 +24,45 @@
         android:usesCleartextTraffic="false">
 
 
+        <!--
+          The one and only activity, and the one and only launcher entry.
+
+          A previous edit removed the WebView activity with a range replacement that also took
+          this block with it. The APK still installed and still showed its icon everywhere, but
+          there was nothing for the launcher to start. CI now asserts a MAIN/LAUNCHER intent
+          filter exists, so an APK without a way in cannot be published.
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:resizeableActivity="true"
+            android:screenOrientation="fullSensor"
+            android:theme="@style/Theme.EditorsHub"
+            android:windowSoftInputMode="adjustResize">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Open a project straight from a file manager. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/json" />
+            </intent-filter>
+
+            <!-- And accept media from the share sheet. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+        </activity>
+
         <!-- Lets the app appear in Android's share sheet with exported videos. -->
         <provider
             android:name="androidx.core.content.FileProvider"

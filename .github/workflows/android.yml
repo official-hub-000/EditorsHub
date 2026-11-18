@@ -231,6 +231,22 @@ jobs:
             say "FAIL: shader sources missing from dex"; fail=1
           fi
 
+          # There must be a launcher entry. An APK with no MAIN/LAUNCHER activity installs
+          # happily and then cannot be opened, which is exactly what shipped once: the manifest
+          # lost its only <activity> when a range edit removed the WebView activity.
+          aapt2=$(find "$ANDROID_HOME"/build-tools -name aapt2 | sort | tail -1)
+          "$aapt2" dump badging "$apk" > /tmp/badging.txt 2>/dev/null || true
+          if grep -q "launchable-activity" /tmp/badging.txt; then
+            say "ok: $(grep 'launchable-activity' /tmp/badging.txt | head -1)"
+          else
+            say "FAIL: no launchable activity: the app cannot be opened"; fail=1
+          fi
+          if grep -q "application-label:'EditorsHub'" /tmp/badging.txt; then
+            say "ok: label is EditorsHub"
+          else
+            say "FAIL: application label is not EditorsHub"; fail=1
+          fi
+
           size=$(stat -c%s "$apk")
           if [ "$size" -gt 16000000 ]; then
             say "FAIL: APK past 16 MB ($size bytes)"; fail=1

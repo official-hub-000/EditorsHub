@@ -54,6 +54,9 @@ class MainActivity : ComponentActivity() {
     /** Export progress as Compose state, so the overlay recomposes as frames are encoded. */
     private var exportPercent by androidx.compose.runtime.mutableStateOf<Float?>(null)
 
+    /** The previous session's trace, if it died. Shown on the launcher so it can be sent. */
+    private var crashReport by androidx.compose.runtime.mutableStateOf<String?>(null)
+
     private val saveExport = registerForActivityResult(
         ActivityResultContracts.CreateDocument("video/mp4"),
     ) { uri ->
@@ -95,7 +98,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.setBackgroundDrawableResource(android.R.color.transparent)
         store = EditorStore(this)
+        crashReport = CrashLog.pending(this)
 
         setContent {
             EditorsHubTheme {
@@ -107,6 +112,12 @@ class MainActivity : ComponentActivity() {
                     bitmapFor = { layer -> synchronized(bitmaps) { bitmaps[layer.id] } },
                     onExport = { startExport() },
                     exportProgress = exportPercent,
+                    crashReport = crashReport,
+                    onSendCrash = { sendCrashReport() },
+                    onDismissCrash = {
+                        CrashLog.clear(this@MainActivity)
+                        crashReport = null
+                    },
                 )
             }
         }
@@ -137,6 +148,19 @@ class MainActivity : ComponentActivity() {
             }.onFailure {
                 exportPercent = null
             }
+        }
+    }
+
+    /** Hands the last trace to any app that can take text. */
+    private fun sendCrashReport() {
+        val report = crashReport ?: return
+        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(android.content.Intent.EXTRA_SUBJECT, "EditorsHub crash report")
+            putExtra(android.content.Intent.EXTRA_TEXT, report)
+        }
+        runCatching {
+            startActivity(android.content.Intent.createChooser(intent, "Send crash report"))
         }
     }
 
@@ -177,6 +201,9 @@ private fun App(
     bitmapFor: (Layer) -> android.graphics.Bitmap?,
     onExport: () -> Unit,
     exportProgress: Float?,
+    crashReport: String?,
+    onSendCrash: () -> Unit,
+    onDismissCrash: () -> Unit,
 ) {
     var screen by remember { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
@@ -194,6 +221,9 @@ private fun App(
                 },
                 onImport = onPickMedia,
                 onOpenProject = onOpen,
+                crashReport = crashReport,
+                onSendCrash = onSendCrash,
+                onDismissCrash = onDismissCrash,
             )
         } else {
             EditorScreen(

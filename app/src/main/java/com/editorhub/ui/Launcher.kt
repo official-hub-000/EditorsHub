@@ -4,6 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,9 +38,20 @@ fun LauncherScreen(
     onNew: () -> Unit,
     onImport: () -> Unit,
     onOpenProject: () -> Unit,
+    crashReport: String? = null,
+    onSendCrash: () -> Unit = {},
+    onDismissCrash: () -> Unit = {},
 ) {
-    Column(Modifier.fillMaxSize().background(Ink.bg).padding(20.dp)) {
-        Spacer(Modifier.height(24.dp))
+    // Insets are applied here rather than by the theme: the first screen must not start under
+    // the status bar or end under the gesture handle.
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(Ink.bg)
+            .windowInsetsPadding(WindowInsets.systemBars)
+            .padding(20.dp),
+    ) {
+        Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             // The mark is drawn, not typed: a glyph's metrics differ per device, and the brand
             // badge has to look identical to the launcher icon.
@@ -108,6 +123,37 @@ fun LauncherScreen(
                     )
                 }
                 Text("›", color = Ink.dim, fontSize = 20.sp)
+            }
+        }
+
+        if (crashReport != null) {
+            Spacer(Modifier.height(16.dp))
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(Corners.card))
+                    .background(Ink.panel)
+                    .border(1.dp, Ink.danger.copy(alpha = .5f), RoundedCornerShape(Corners.card))
+                    .padding(14.dp),
+            ) {
+                Text(
+                    "Last session ended unexpectedly",
+                    color = Ink.danger,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    crashReport.lineSequence().take(4).joinToString("\n"),
+                    color = Ink.dim,
+                    fontSize = 9.5.sp,
+                    maxLines = 4,
+                )
+                Spacer(Modifier.height(10.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButtonSmall("Send report", accent = true) { onSendCrash() }
+                    TextButtonSmall("Dismiss") { onDismissCrash() }
+                }
             }
         }
 

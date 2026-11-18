@@ -14,6 +14,9 @@ class EditorsHubApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        // Installed before anything else: a fault during startup is the one case where the app
+        // closes before the user can tell us anything at all.
+        CrashLog.install(this)
     }
 
     companion object {
