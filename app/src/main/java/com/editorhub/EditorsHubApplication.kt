@@ -23,6 +23,11 @@ class EditorsHubApplication : Application() {
             val info = NativeCodecs.describe()
             NativeLog.log("INFO", "codecs: $info", "app", 0)
         }
+        // The C++ core is probed here so a missing or stale library is visible in the log from
+        // the first line, rather than as a puzzling fallback to the JS path mid-session.
+        runCatching {
+            NativeLog.log("INFO", "core: ${NativeCore.describe()}", "app", 0)
+        }
     }
 
     /** WebView is a full browser engine; make it behave like an app-grade runtime. */

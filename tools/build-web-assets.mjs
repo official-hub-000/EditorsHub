@@ -164,6 +164,55 @@ function patchDefects(html) {
   return html;
 }
 
+/**
+ * Routes the editor's per-frame easing through the C++ core.
+ *
+ * `AnimationEngine.bezierYForX` is called for every animated property of every layer on every
+ * rendered frame, which makes it the hottest arithmetic in the app and the reason it was the
+ * first thing ported. The replacement keeps the original JavaScript body verbatim as the
+ * fallback, so behaviour on a device without the native library is byte-for-byte what it was;
+ * when libeditorhubcore is loaded the same call is answered in C++.
+ *
+ * The native implementation is covered by tests/native/test_core.cpp, which asserts it agrees
+ * with this JavaScript across the easing presets before either is shipped.
+ */
+const NATIVE_PATCHES = [
+  {
+    id: 'easing-to-native-core',
+    from:
+      'static bezierYForX(x,x1,y1,x2,y2){\n' +
+      '    const bx=t=>3*(1-t)*(1-t)*t*x1+3*(1-t)*t*t*x2+t*t*t;\n' +
+      '    const by=t=>3*(1-t)*(1-t)*t*y1+3*(1-t)*t*t*y2+t*t*t;\n' +
+      '    let lo=0,hi=1,t=x;for(let i=0;i<14;i++){t=(lo+hi)/2;if(bx(t)<x)lo=t;else hi=t}return by(t);\n' +
+      '  }',
+    to:
+      'static bezierYForX(x,x1,y1,x2,y2){\n' +
+      '    // Answered by the C++ core when the shared library is loaded; otherwise the\n' +
+      '    // JavaScript solver below is used unchanged. Both implementations are tested\n' +
+      '    // against each other, so which one answers cannot change the result.\n' +
+      '    const nativeCore=window.omsNativeCore;\n' +
+      '    if(nativeCore&&nativeCore.available){try{const r=nativeCore.bezierEase(x1,y1,x2,y2,x);if(r===r&&r>=0&&r<=1)return r}catch(e){}}\n' +
+      '    const bx=t=>3*(1-t)*(1-t)*t*x1+3*(1-t)*t*t*x2+t*t*t;\n' +
+      '    const by=t=>3*(1-t)*(1-t)*t*y1+3*(1-t)*t*t*y2+t*t*t;\n' +
+      '    let lo=0,hi=1,t=x;for(let i=0;i<14;i++){t=(lo+hi)/2;if(bx(t)<x)lo=t;else hi=t}return by(t);\n' +
+      '  }',
+  },
+];
+
+function patchNativeCallSites(html) {
+  for (const patch of NATIVE_PATCHES) {
+    const hits = html.split(patch.from).length - 1;
+    if (hits !== 1) {
+      // A call site that moved is a build failure, not a warning: shipping without the native
+      // routing would silently revert the port while every test still passed.
+      throw new Error(`native patch ${patch.id}: expected 1 match, found ${hits}`);
+    }
+    html = html.split(patch.from).join(patch.to);
+    console.log(`  native      ${patch.id} patched (${hits}x)`);
+  }
+  return html;
+}
+
 function injectShell(html) {
   if (html.includes('native-shell.js')) return html;
   const tag =
@@ -179,6 +228,7 @@ function injectShell(html) {
     '<script src="./perf-hud.js" defer id="oms-perf-hud"></script>\n' +
     '<script src="./codec-probe.js" defer id="oms-codec-probe"></script>\n' +
     '<script src="./touch-fixes.js" defer id="oms-touch-fixes"></script>\n' +
+    '<script src="./native-core.js" defer id="oms-native-core"></script>\n' +
     '<script src="./native-shell.js" defer id="oms-native-shell"></script>\n';
   // The upstream document keeps a large trailing <style> block after </body>, so the
   // tag is anchored on the closing </html> instead: defer still guarantees the adapter
@@ -294,6 +344,7 @@ async function main() {
   html = localiseVendorImports(html, { vendoredMediabunny });
   html = patchEditorScope(html);
   html = patchDefects(html);
+  html = patchNativeCallSites(html);
   html = injectShell(html);
 
   await rm(outDir, { recursive: true, force: true });
@@ -340,6 +391,7 @@ async function main() {
   }
   await cp(path.join(webDir, 'icons'), path.join(outDir, 'icons'), { recursive: true });
 
+  await cp(path.join(shellDir, 'native-core.js'), path.join(outDir, 'native-core.js'));
   await cp(path.join(shellDir, 'native-shell.js'), path.join(outDir, 'native-shell.js'));
   // Frame instrumentation. Loaded before the adapter so it measures from the first frame.
   await cp(path.join(shellDir, 'perf-hud.js'), path.join(outDir, 'perf-hud.js'));

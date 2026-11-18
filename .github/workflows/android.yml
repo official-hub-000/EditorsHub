@@ -45,10 +45,50 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: 'platforms;android-35 build-tools;35.0.0 platform-tools'
+          packages: 'platforms;android-35 build-tools;35.0.0 platform-tools ndk;27.0.12077973 cmake;3.22.1'
 
       - name: Prepare editor bundle
         run: node tools/build-web-assets.mjs
+
+      # The C++ core is compiled and unit-tested on the host before the APK is built. A failing
+      # assertion here is a real defect in shipped arithmetic, not a warning: the easing solver
+      # this covers runs for every animated property of every layer on every frame.
+      - name: Build and test the native core on the host
+        run: |
+          set -e
+          g++ -std=c++17 -O2 -fno-exceptions -fno-rtti -Wall -Wextra -Werror \
+            tests/native/test_core.cpp app/src/main/cpp/ohc_core.cpp \
+            -o /tmp/ohc_test -lm
+          /tmp/ohc_test | tee /tmp/native-tests.txt
+          grep -q ' 0 failures' /tmp/native-tests.txt
+          checks=$(grep -oE '^[0-9]+ checks' /tmp/native-tests.txt | head -1)
+          echo "::notice::NATIVE tests passed: $checks, 0 failures"
+
+      # A hidden JNI symbol only fails on the device, where it is hardest to diagnose, so the
+      # export surface is asserted from the source before anything is built.
+      - name: Verify the JNI surface is exported
+        run: |
+          set -e
+          n=0
+          for sym in nativeVersion nativeBlendModeName nativeBezierEase nativeEvalKeys \
+                     nativeComposite nativeTransformBlit nativeRgbaToNv12 nativeBoxBlur; do
+            grep -q "Java_com_editorhub_NativeCore_$sym" app/src/main/cpp/jni_bridge.cpp \
+              || { echo "::error::missing JNI export $sym"; exit 1; }
+            n=$((n+1))
+          done
+          echo "::notice::NATIVE JNI exports verified: $n entry points"
+
+      # The JS side must route through the native core, and the build must have proved the call
+      # site still exists. If this fails, the port silently reverted to JavaScript.
+      - name: Verify native routing in the bundle
+        run: |
+          set -e
+          test -f app/src/main/assets/www/native-core.js
+          grep -q 'oms-native-core' app/src/main/assets/www/index.html
+          node --check app/src/main/assets/www/native-core.js
+          grep -q 'omsNativeCore' app/src/main/assets/www/index.html
+          grep -q 'nativeCore.bezierEase' app/src/main/assets/www/index.html
+          echo "::notice::NATIVE routing present in the bundled editor"
 
       - name: Verify bundled editor assets
         run: |
@@ -309,6 +349,27 @@ jobs:
             exit 1
           fi
           echo "verified: bundled editor, dex, launcher activity, label"
+
+      # The native core is the point of this build: if the .so did not make it into the APK, the
+      # app silently runs the JS fallback and the port looks complete while being absent.
+      - name: Verify native core shipped in the APK
+        run: |
+          set -e
+          apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
+          unzip -l "$apk" | grep -E 'lib/(arm64-v8a|x86_64)/libeditorhubcore\.so' | tee /tmp/native-libs.txt
+          count=$(grep -c 'libeditorhubcore.so' /tmp/native-libs.txt)
+          if [ "$count" -lt 2 ]; then
+            echo "::error::libeditorhubcore.so missing or incomplete (found $count ABIs)"
+            exit 1
+          fi
+          unzip -p "$apk" lib/arm64-v8a/libeditorhubcore.so > /tmp/libcore.so
+          size=$(stat -c%s /tmp/libcore.so)
+          syms=$(nm -D --defined-only /tmp/libcore.so | grep -c 'Java_com_editorhub_NativeCore_' || true)
+          if [ "$syms" -lt 8 ]; then
+            echo "::error::shipped .so exports only $syms JNI symbols, expected 8"
+            exit 1
+          fi
+          echo "::notice::NATIVE core shipped: $count ABIs, arm64 .so $size bytes, $syms JNI symbols"
 
       - name: Report APK identity
         run: |

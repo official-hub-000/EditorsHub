@@ -62,6 +62,40 @@ class NativeBridge(
     @JavascriptInterface
     fun codecInfo(): String = com.editorhub.NativeCodecs.describe()
 
+    /**
+     * State of the C++ core: whether it loaded, its version, and how many blend modes it
+     * implements. The JS shell uses this to decide between the native and the JS implementation
+     * of the primitives it shares with the core.
+     */
+    @JavascriptInterface
+    fun coreInfo(): String = com.editorhub.NativeCore.describe()
+
+    /** Eased progress for a cubic-bezier curve, from the native core. */
+    @JavascriptInterface
+    fun bezierEase(x1: Double, y1: Double, x2: Double, y2: Double, t: Double): Double =
+        com.editorhub.NativeCore.bezierEase(x1, y1, x2, y2, t)
+
+    /**
+     * Evaluates a keyframe track natively. `handles` may be an empty array. Returns the caller's
+     * fallback when the core is unavailable, so the caller never has to branch on availability.
+     */
+    @JavascriptInterface
+    fun evalKeys(
+        times: DoubleArray,
+        values: DoubleArray,
+        interps: IntArray,
+        handles: DoubleArray,
+        time: Double,
+        fallback: Double,
+    ): Double = com.editorhub.NativeCore.evalKeys(
+        times,
+        values,
+        if (interps.isEmpty()) null else interps,
+        if (handles.isEmpty()) null else handles,
+        time,
+        fallback,
+    )
+
     // --------------------------------------------------------------- keep awake
 
     /** Keeps the device screen on during export, mirroring the editor's wake lock use. */
