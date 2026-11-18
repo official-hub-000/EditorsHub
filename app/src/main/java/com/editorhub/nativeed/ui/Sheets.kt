@@ -97,7 +97,13 @@ fun AddSheet(
  * Frame rate and duration are editable because export speed and file size depend on both.
  */
 @Composable
-fun ProjectSheet(store: EditorStore, onDismiss: () -> Unit, onChanged: () -> Unit) {
+fun ProjectSheet(
+    store: EditorStore,
+    onDismiss: () -> Unit,
+    onChanged: () -> Unit,
+    onSaveFile: () -> Unit = {},
+    onOpenFile: () -> Unit = {}
+) {
     var name by remember { mutableStateOf(store.project.name) }
     val presets = listOf(
         "9:16" to (1080 to 1920),
@@ -154,12 +160,19 @@ fun ProjectSheet(store: EditorStore, onDismiss: () -> Unit, onChanged: () -> Uni
             )
 
             Spacer(Modifier.height(Gap.md))
+            SectionLabel("Project file")
+            Spacer(Modifier.height(Gap.sm))
+            Row(horizontalArrangement = Arrangement.spacedBy(Gap.sm)) {
+                Pill("Save as…") { onSaveFile() }
+                Pill("Open…") { onOpenFile() }
+            }
+            Spacer(Modifier.height(Gap.md))
             Row(horizontalArrangement = Arrangement.spacedBy(Gap.sm)) {
                 Pill("New project") {
                     store.newProject(1080, 1920, 30, 10.0)
                     onChanged(); onDismiss()
                 }
-                Pill("Save now") { store.save(); onDismiss() }
+                Pill("Done") { store.save(); onDismiss() }
             }
         }
     }

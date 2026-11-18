@@ -72,7 +72,9 @@ fun EditorScreen(
     cache: MediaCache,
     onShare: () -> Unit = {},
     onExport: () -> Unit,
-    onOpenSettings: () -> Unit = {}
+    onOpenSettings: () -> Unit = {},
+    onSaveProject: () -> Unit = {},
+    onOpenProject: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var rev by remember { mutableStateOf(0) }
@@ -270,6 +272,12 @@ fun EditorScreen(
         )
     }
     if (sheet == 2) {
-        ProjectSheet(store, onDismiss = { sheet = 0 }, onChanged = { rev++ })
+        ProjectSheet(
+            store,
+            onDismiss = { sheet = 0 },
+            onChanged = { rev++ },
+            onSaveFile = { sheet = 0; onSaveProject() },
+            onOpenFile = { sheet = 0; onOpenProject() }
+        )
     }
 }

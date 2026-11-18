@@ -410,6 +410,30 @@ class EditorStore(private val context: Context) {
         if (content > project.duration) project.duration = content
     }
 
+    // ---------------------------------------------------------- file exchange
+
+    /** The document as the exact text a `.editorshub` project file holds. */
+    fun exportJson(): String = serialise(project).toString(2)
+
+    /**
+     * Replaces the document with one read from a file.
+     *
+     * Undoable: an import that turns out to be the wrong file is one tap from gone. Returns
+     * false when the text is not a project this build understands, and leaves the current
+     * document untouched in that case.
+     */
+    fun importJson(text: String): Boolean = runCatching {
+        val parsed = deserialise(JSONObject(text))
+        if (parsed.layers.isEmpty() && parsed.width <= 0) return false
+        checkpoint()
+        project = parsed
+        selectedLayerId = null
+        time = 0.0
+        save()
+        changed()
+        true
+    }.getOrDefault(false)
+
     // ------------------------------------------------------------- JSON form
 
     companion object {
