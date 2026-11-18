@@ -67,6 +67,19 @@ jobs:
       # Compile errors are re-announced as check-run annotations, in slices of ten because
       # GitHub caps annotations per step. Annotations are readable through the API, which the
       # raw job log and log artifacts are not from outside the run.
+      - name: Report compile errors
+        if: failure()
+        run: |
+          set +e
+          [ -f /tmp/build.log ] || exit 0
+          # Kotlin reports "e: file:///...:line:col message". Those lines are always near the
+          # top of a failure, so the tail-of-log steps never showed them.
+          grep -E '^e: ' /tmp/build.log | head -20 | while IFS= read -r line; do
+            file=$(sed -E 's#^e: file://[^/]*(/[^:]*):[0-9]+:[0-9]+.*#\1#' <<<"$line")
+            msg=$(sed -E 's#^e: file://[^ ]* ?##' <<<"$line")
+            echo "::error file=${file#/}::$msg"
+          done
+
       - name: Report build log 1/6
         if: failure()
         run: |
