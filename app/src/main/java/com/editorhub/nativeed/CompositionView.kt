@@ -170,16 +170,102 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         // twice -- which is exactly the class of bug that made the old preview glitch.
         for (layer in project.layers) {
             if (!layer.visible || !layer.covers(time)) continue
-            when (layer.kind) {
+            drawLayer(canvas, layer, time)
+        }
+        if (!forExport) drawSelection(canvas, project, selectionId, time)
+        canvas.restore()
+    }
+
+    /**
+     * One layer, with its grade and blend mode applied.
+     *
+     * A grade is a colour matrix; drawing a layer through it needs the layer rendered into
+     * its own buffer first, which is what `saveLayer` does. That costs one offscreen buffer
+     * per graded layer per frame, so it is skipped entirely when the grade is neutral -- an
+     * ungraded project pays nothing for the feature existing.
+     */
+    private fun drawLayer(canvas: Canvas, layer: Layer, time: Double) {
+        val needsPaint = layer.graded || layer.blendMode != BlendMode.NORMAL
+        if (!needsPaint) {
+            drawLayerContent(canvas, layer, time)
+            return
+        }
+        paint.reset()
+        paint.isAntiAlias = true
+        if (layer.graded) {
+            val matrix = colourMatrix(layer)
+            if (matrix != null) paint.colorFilter = android.graphics.ColorMatrixColorFilter(matrix)
+        }
+        layer.blendMode.androidMode?.let { mode ->
+            paint.xfermode = android.graphics.PorterDuffXfermode(mode)
+        }
+        // Bounds of the layer in composition space, used as the saved layer's extent. Using
+        // the whole composition would allocate a full-canvas buffer for a 40 px dot.
+        val halfW = kotlin.math.max(layer.width, layer.textSize * layer.text.length * .6f) / 2f + layer.blur
+        val halfH = kotlin.math.max(layer.height, layer.textSize * 1.4f) / 2f + layer.blur
+        val cx = layer.x.valueAt(time)
+        val cy = layer.y.valueAt(time)
+        rect.set(cx - halfW, cy - halfH, cx + halfW, cy + halfH)
+        val saved = canvas.saveLayer(rect, paint)
+        drawLayerContent(canvas, layer, time)
+        canvas.restoreToCount(saved)
+    }
+
+    /**
+     * The grade as a 4x5 colour matrix.
+     *
+     * Applied in the order saturate -> contrast -> brightness -> tint, because that is the
+     * order that behaves the way people expect: saturation looks wrong if it runs after a
+     * contrast boost, and a tint should land on top of the finished image rather than be
+     * stretched by the contrast term.
+     */
+    private fun colourMatrix(layer: Layer): FloatArray? {
+        if (!layer.graded) return null
+        val sat = layer.saturation.coerceIn(0f, 3f)
+        val contrast = layer.contrast.coerceIn(0f, 3f)
+        val brightness = (layer.brightness * 255f).coerceIn(-255f, 255f)
+        val t = 1f - sat
+        val r = .213f * t
+        val g = .715f * t
+        val b = .072f * t
+        // Saturation.
+        val m = floatArrayOf(
+            r + sat, g, b, 0f, 0f,
+            r, g + sat, b, 0f, 0f,
+            r, g, b + sat, 0f, 0f,
+            0f, 0f, 0f, 1f, 0f
+        )
+        // Contrast about mid-grey, then brightness as an offset.
+        val c = contrast
+        val off = 128f * (1f - c) + brightness
+        for (i in 0 until 3) {
+            m[i * 5 + 0] *= c
+            m[i * 5 + 1] *= c
+            m[i * 5 + 2] *= c
+            m[i * 5 + 4] = m[i * 5 + 4] * c + off
+        }
+        // Tint: pull each channel towards the tint's channel by `tintAmount`.
+        if (layer.tintAmount > 0f) {
+            val amount = layer.tintAmount.coerceIn(0f, 1f)
+            val tr = android.graphics.Color.red(layer.tint) / 255f
+            val tg = android.graphics.Color.green(layer.tint) / 255f
+            val tb = android.graphics.Color.blue(layer.tint) / 255f
+            // A blend of identity and a channel-gain matrix.
+            m[0] = m[0] * (1 - amount) + amount * tr * 1.4f
+            m[6] = m[6] * (1 - amount) + amount * tg * 1.4f
+            m[12] = m[12] * (1 - amount) + amount * tb * 1.4f
+        }
+        return m
+    }
+
+    private fun drawLayerContent(canvas: Canvas, layer: Layer, time: Double) {
+        when (layer.kind) {
                 LayerKind.SHAPE -> drawShape(canvas, layer, time)
                 LayerKind.TEXT -> drawText(canvas, layer, time)
                 LayerKind.IMAGE, LayerKind.VIDEO -> drawMedia(canvas, layer, time)
                 LayerKind.NULL -> drawNull(canvas, layer, time)
                 LayerKind.CAMERA, LayerKind.GROUP -> Unit
             }
-        }
-        if (!forExport) drawSelection(canvas, project, selectionId, time)
-        canvas.restore()
     }
 
     private fun applyTransform(canvas: Canvas, layer: Layer, time: Double) {
@@ -198,6 +284,7 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         paint.alpha = (layer.opacity.valueAt(time).coerceIn(0f, 1f) * 255).toInt()
         val w = layer.width
         val h = layer.height
+        if (layer.blur > 0f) paint.maskFilter = android.graphics.BlurMaskFilter(layer.blur, android.graphics.BlurMaskFilter.Blur.NORMAL)
         canvas.save()
         applyTransform(canvas, layer, time)
         rect.set(-w / 2f, -h / 2f, w / 2f, h / 2f)

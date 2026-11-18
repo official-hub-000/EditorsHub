@@ -174,6 +174,8 @@ fun EditorScreen(
         ) {
             GlyphButton("\u21B6", enabled = store.canUndo) { store.undo(); rev++ }
             GlyphButton("\u21B7", enabled = store.canRedo) { store.redo(); rev++ }
+            GlyphButton("\u2398", enabled = store.selectedLayerId != null) { store.copySelected() }
+            GlyphButton("\u2398\u002B", enabled = store.canPaste) { store.paste(); rev++ }
             Spacer(Modifier.weight(1f))
             Text(
                 store.project.name,
@@ -203,8 +205,16 @@ fun EditorScreen(
             }
             Box(Modifier.align(Alignment.BottomEnd).padding(Gap.md)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(Gap.sm)) {
+                    // Step to the previous keyframe: the fastest way to inspect an
+                    // animation is to jump between its keys instead of scrubbing.
+                    GlyphButton("\u25C0|") {
+                        store.previousKeyframe()?.let { playback.seek(it) }; rev++
+                    }
                     GlyphButton(if (playing) "\u275A\u275A" else "\u25B6") {
                         playback.toggle(); playing = playback.isPlaying; rev++
+                    }
+                    GlyphButton("|\u25B6") {
+                        store.nextKeyframe()?.let { playback.seek(it) }; rev++
                     }
                     GlyphButton("\u21BA") { playback.seek(0.0); rev++ }
                 }

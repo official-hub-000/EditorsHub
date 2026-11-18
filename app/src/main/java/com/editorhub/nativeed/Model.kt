@@ -146,6 +146,32 @@ enum class LayerKind { IMAGE, VIDEO, SHAPE, TEXT, NULL, CAMERA, GROUP }
 enum class ShapeKind { RECT, ELLIPSE, TRIANGLE }
 
 /**
+ * How a layer is composited onto the ones beneath it.
+ *
+ * The set that `PorterDuffXfermode` supports on the app's minimum API level. Anything newer
+ * (BlendMode arrived in API 29) would leave 26-to-28 devices with an invisible layer rather
+ * than a slightly different look, which is worse.
+ */
+enum class BlendMode {
+    NORMAL, MULTIPLY, SCREEN, OVERLAY, DARKEN, LIGHTEN, ADD;
+
+    val label: String get() = when (this) {
+        NORMAL -> "Normal"; MULTIPLY -> "Multiply"; SCREEN -> "Screen"
+        OVERLAY -> "Overlay"; DARKEN -> "Darken"; LIGHTEN -> "Lighten"; ADD -> "Add"
+    }
+
+    val androidMode: android.graphics.PorterDuff.Mode? get() = when (this) {
+        NORMAL -> null
+        MULTIPLY -> android.graphics.PorterDuff.Mode.MULTIPLY
+        SCREEN -> android.graphics.PorterDuff.Mode.SCREEN
+        OVERLAY -> android.graphics.PorterDuff.Mode.OVERLAY
+        DARKEN -> android.graphics.PorterDuff.Mode.DARKEN
+        LIGHTEN -> android.graphics.PorterDuff.Mode.LIGHTEN
+        ADD -> android.graphics.PorterDuff.Mode.ADD
+    }
+}
+
+/**
  * One layer.
  *
  * Properties are [Track]s rather than plain floats so animation is the same code path as a
@@ -179,6 +205,21 @@ class Layer(
     var textSize: Float = 96f
     var textBold: Boolean = false
 
+    /**
+     * Colour grade and compositing for this layer.
+     *
+     * Kept as plain floats rather than a bag of optional objects so it serialises trivially
+     * and so the renderer can build one colour matrix from it without any lookups.
+     */
+    var brightness: Float = 0f      // -1..1
+    var contrast: Float = 1f        // 0..3
+    var saturation: Float = 1f      // 0..3
+    var vibrance: Float = 0f        // -1..1
+    var tint: Int = 0x00FFFFFF      // rgb tint, alpha is ignored
+    var tintAmount: Float = 0f      // 0..1
+    var blur: Float = 0f            // 0..40 composition pixels
+    var blendMode: BlendMode = BlendMode.NORMAL
+
     var sourceUri: String? = null
 
     /** Volume 0..1 and playback speed, used by video and audio layers. */
@@ -190,6 +231,11 @@ class Layer(
 
     fun covers(time: Double): Boolean = time >= start && time <= start + duration
 
+    /** True when the grade would change anything; lets the renderer skip the matrix. */
+    val graded: Boolean
+        get() = brightness != 0f || contrast != 1f || saturation != 1f ||
+            vibrance != 0f || tintAmount > 0f
+
     fun copyOf(): Layer {
         val l = Layer(id = id, name = name, kind = kind, start = start, duration = duration)
         l.visible = visible; l.locked = locked
@@ -200,6 +246,9 @@ class Layer(
         l.cornerRadius = cornerRadius; l.text = text; l.textSize = textSize
         l.textBold = textBold; l.sourceUri = sourceUri
         l.volume = volume; l.speed = speed
+        l.brightness = brightness; l.contrast = contrast; l.saturation = saturation
+        l.vibrance = vibrance; l.tint = tint; l.tintAmount = tintAmount
+        l.blur = blur; l.blendMode = blendMode
         return l
     }
 

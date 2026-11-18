@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.OutlinedTextField
@@ -35,7 +37,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.editorhub.nativeed.BlendMode
 import com.editorhub.nativeed.Ease
+import com.editorhub.nativeed.BlendMode
 import com.editorhub.nativeed.EaseKind
 import com.editorhub.nativeed.EditorStore
 import com.editorhub.nativeed.Layer
@@ -362,6 +366,55 @@ private fun StyleTab(store: EditorStore, layer: Layer, gestureStart: () -> Unit,
                 onGestureStart = gestureStart, onGestureEnd = gestureEnd,
                 onChange = { layer.volume = it; store.scheduleSave(); tick++ }
             )
+        }
+    }
+
+    // Grade and blend, on every layer kind.
+    Spacer(Modifier.height(Gap.md))
+    SectionLabel("Colour grade")
+    LiveSlider(
+        label = "Brightness", value = layer.brightness, range = -1f..1f, store = store,
+        resetTo = 0f, format = { "${(it * 100).toInt()}" },
+        onGestureStart = gestureStart, onGestureEnd = gestureEnd,
+        onChange = { layer.brightness = it; store.scheduleSave(); tick++ }
+    )
+    LiveSlider(
+        label = "Contrast", value = layer.contrast, range = 0f..3f, store = store,
+        resetTo = 1f, format = { String.format("%.2f", it) },
+        onGestureStart = gestureStart, onGestureEnd = gestureEnd,
+        onChange = { layer.contrast = it; store.scheduleSave(); tick++ }
+    )
+    LiveSlider(
+        label = "Saturation", value = layer.saturation, range = 0f..3f, store = store,
+        resetTo = 1f, format = { String.format("%.2f", it) },
+        onGestureStart = gestureStart, onGestureEnd = gestureEnd,
+        onChange = { layer.saturation = it; store.scheduleSave(); tick++ }
+    )
+    LiveSlider(
+        label = "Blur", value = layer.blur, range = 0f..40f, store = store,
+        resetTo = 0f, format = { it.toInt().toString() },
+        onGestureStart = gestureStart, onGestureEnd = gestureEnd,
+        onChange = { layer.blur = it; store.scheduleSave(); tick++ }
+    )
+    LiveSlider(
+        label = "Tint strength", value = layer.tintAmount, range = 0f..1f, store = store,
+        resetTo = 0f, format = { "${(it * 100).toInt()}%" },
+        onGestureStart = gestureStart, onGestureEnd = gestureEnd,
+        onChange = { layer.tintAmount = it; store.scheduleSave(); tick++ }
+    )
+    SwatchRow(current = layer.tint) { picked ->
+        layer.tint = picked; store.scheduleSave(); store.onChange?.invoke(); tick++
+    }
+
+    Spacer(Modifier.height(Gap.sm))
+    SectionLabel("Blend")
+    Spacer(Modifier.height(Gap.xs))
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(Gap.sm)) {
+        items(BlendMode.values().size) { index ->
+            val mode = BlendMode.values()[index]
+            Pill(mode.label, active = layer.blendMode == mode) {
+                layer.blendMode = mode; store.scheduleSave(); store.onChange?.invoke(); tick++
+            }
         }
     }
 

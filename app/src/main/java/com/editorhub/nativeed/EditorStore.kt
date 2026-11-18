@@ -309,6 +309,67 @@ class EditorStore(private val context: Context) {
         changed()
     }
 
+    // ------------------------------------------------------------ navigation
+
+    /**
+     * Every keyframe time on the canvas, sorted.
+     *
+     * The playhead jumps between these, which is how you inspect an animation: place a key,
+     * shape it, jump to the next one. Distinct because several properties usually share a
+     * key time and the user wants one stop there, not six.
+     */
+    fun keyTimes(): List<Double> =
+        project.layers.flatMap { layer -> layer.tracks().values.flatMap { it.keys.map { k -> k.t } } }
+            .distinct().sorted()
+
+    /** Moves the playhead to the next keyframe after the current time, if any. */
+    fun nextKeyframe(): Double? = keyTimes().firstOrNull { it > time + 1e-4 }?.also { setTime(it) }
+
+    /** Moves the playhead to the previous keyframe before the current time, if any. */
+    fun previousKeyframe(): Double? = keyTimes().lastOrNull { it < time - 1e-4 }?.also { setTime(it) }
+
+    // ------------------------------------------------------------- clipboard
+
+    private var clipboard: Layer? = null
+
+    fun copySelected() {
+        clipboard = selected?.copyOf()
+    }
+
+    val canPaste: Boolean get() = clipboard != null
+
+    /** Pastes the copied layer on top, nudged so it is visibly a second copy. */
+    fun paste(): Layer? {
+        val source = clipboard ?: return null
+        checkpoint()
+        val copy = source.copyOf()
+        // A fresh id, or the two layers would collide in every map keyed by id.
+        val pasted = Layer(name = copy.name + " copy", kind = copy.kind).also { fresh ->
+            fresh.start = copy.start
+            fresh.duration = copy.duration
+            fresh.visible = copy.visible
+            fresh.x = copy.x.copyOf(); fresh.y = copy.y.copyOf()
+            fresh.scaleX = copy.scaleX.copyOf(); fresh.scaleY = copy.scaleY.copyOf()
+            fresh.rotation = copy.rotation.copyOf(); fresh.opacity = copy.opacity.copyOf()
+            fresh.width = copy.width; fresh.height = copy.height
+            fresh.shape = copy.shape; fresh.color = copy.color; fresh.cornerRadius = copy.cornerRadius
+            fresh.text = copy.text; fresh.textSize = copy.textSize; fresh.textBold = copy.textBold
+            fresh.sourceUri = copy.sourceUri
+            fresh.volume = copy.volume; fresh.speed = copy.speed
+            fresh.brightness = copy.brightness; fresh.contrast = copy.contrast
+            fresh.saturation = copy.saturation; fresh.vibrance = copy.vibrance
+            fresh.tint = copy.tint; fresh.tintAmount = copy.tintAmount
+            fresh.blur = copy.blur; fresh.blendMode = copy.blendMode
+            fresh.x.setKey(time, fresh.x.valueAt(time))
+        }
+        project.layers.add(pasted)
+        selectedLayerId = pasted.id
+        touchDuration()
+        save()
+        changed()
+        return pasted
+    }
+
     private fun replaceTrack(layer: Layer, name: String, track: Track) {
         when (name) {
             "x" -> layer.x = track
@@ -379,6 +440,10 @@ class EditorStore(private val context: Context) {
                         put("text", l.text); put("textSize", l.textSize); put("textBold", l.textBold)
                         put("source", l.sourceUri ?: JSONObject.NULL)
                         put("volume", l.volume); put("speed", l.speed)
+                        put("brightness", l.brightness); put("contrast", l.contrast)
+                        put("saturation", l.saturation); put("vibrance", l.vibrance)
+                        put("tint", l.tint); put("tintAmount", l.tintAmount)
+                        put("blur", l.blur); put("blend", l.blendMode.name)
                         put("tracks", JSONObject().also { tracks ->
                             l.tracks().forEach { (name, t) ->
                                 tracks.put(name, JSONObject().apply {
@@ -437,6 +502,15 @@ class EditorStore(private val context: Context) {
                 layer.sourceUri = if (o.isNull("source")) null else o.optString("source")
                 layer.volume = o.optDouble("volume", 1.0).toFloat()
                 layer.speed = o.optDouble("speed", 1.0).toFloat()
+                layer.brightness = o.optDouble("brightness", 0.0).toFloat()
+                layer.contrast = o.optDouble("contrast", 1.0).toFloat()
+                layer.saturation = o.optDouble("saturation", 1.0).toFloat()
+                layer.vibrance = o.optDouble("vibrance", 0.0).toFloat()
+                layer.tint = o.optInt("tint", 0x00FFFFFF)
+                layer.tintAmount = o.optDouble("tintAmount", 0.0).toFloat()
+                layer.blur = o.optDouble("blur", 0.0).toFloat()
+                layer.blendMode = runCatching { BlendMode.valueOf(o.optString("blend")) }
+                    .getOrDefault(BlendMode.NORMAL)
                 val tracks = o.optJSONObject("tracks")
                 tracks?.keys()?.forEach { name ->
                     val to = tracks.optJSONObject(name) ?: return@forEach
