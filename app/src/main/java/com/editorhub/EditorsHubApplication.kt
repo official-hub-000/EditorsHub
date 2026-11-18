@@ -17,6 +17,12 @@ class EditorsHubApplication : Application() {
         super.onCreate()
         instance = this
         configureWebView()
+        // Recorded once at startup: the export path and its safe resolution depend on this, and
+        // asking at export time is too late to influence the choice.
+        runCatching {
+            val info = NativeCodecs.describe()
+            NativeLog.log("INFO", "codecs: $info", "app", 0)
+        }
     }
 
     /** WebView is a full browser engine; make it behave like an app-grade runtime. */

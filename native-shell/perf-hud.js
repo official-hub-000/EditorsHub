@@ -183,8 +183,18 @@
           tapTimes = [];
           window.omsPerf.toggle();
           try {
+            var on = window.omsPerf.show();
             if (Native && Native.toast) {
-              Native.toast(window.omsPerf.show() ? 'fps counter on' : 'fps counter off');
+              Native.toast(on ? 'fps counter on' : 'fps counter off');
+            }
+            // The encoder question is worth answering at the same moment the frame question is,
+            // so the probe runs alongside the readout rather than behind a separate gesture.
+            if (on && window.omsCodecs) {
+              window.omsCodecs.run().then(function (report) {
+                if (state.hud) {
+                  state.hud.textContent += '\n' + report.verdict;
+                }
+              });
             }
           } catch (e) {}
         }

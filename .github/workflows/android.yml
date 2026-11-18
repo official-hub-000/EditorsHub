@@ -75,6 +75,10 @@ jobs:
             exit 1
           fi
           node --check app/src/main/assets/www/perf-hud.js
+          # The encoder probe must ship too, and must not draw.
+          test -f app/src/main/assets/www/codec-probe.js
+          grep -q 'oms-codec-probe' app/src/main/assets/www/index.html
+          node --check app/src/main/assets/www/codec-probe.js
 
       - name: Check the bundle can boot
         run: |

@@ -53,6 +53,15 @@ class NativeBridge(
     @JavascriptInterface
     fun log(level: String, message: String) = NativeLog.log(level, message, "js", 0)
 
+    /**
+     * The device's H.264 encoders, hardware first.
+     *
+     * Exposed so the export path can be chosen from what the phone actually has rather than from
+     * an assumption. See [com.editorhub.NativeCodecs].
+     */
+    @JavascriptInterface
+    fun codecInfo(): String = com.editorhub.NativeCodecs.describe()
+
     // --------------------------------------------------------------- keep awake
 
     /** Keeps the device screen on during export, mirroring the editor's wake lock use. */
