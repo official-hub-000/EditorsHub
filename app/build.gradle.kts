@@ -1,21 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.compose")
 }
-
-/*
- * The native editor.
- *
- * `app/src/main/java/com/editorhub/nativeed` is the Kotlin editor: its own document model,
- * keyframes, easing curves, canvas renderer, timeline and inspector. The WebView host
- * (`EditorActivity` + `NativeBridge`) stays in the APK as the media-import and
- * share/save gateway, and the web build stays installed as the fallback editor so nothing
- * that used to work stops working.
- *
- * Turning this off (`-Peditorshub.native=false`) builds exactly the previous shell.
- */
-val nativeEditorEnabled = (project.findProperty("editorshub.native") as String?) != "false"
 
 /*
  * The Android shell bundles the upstream Open Motion editor. `web/` is a read-only
@@ -82,7 +68,6 @@ android {
     buildFeatures {
         viewBinding = false
         buildConfig = true
-        compose = nativeEditorEnabled
     }
 
     // The editor bundle is ~10 MB of HTML. It is left `noCompress` on purpose: the asset
@@ -114,19 +99,4 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.webkit:webkit:1.12.1")
-
-    // Compose drives the native editor chrome (timeline, inspector, panels). The preview
-    // itself is a SurfaceView, which is why Compose here does not need to be on the hot path
-    // of playback: it only recomposes when the selection or a panel changes.
-    implementation(platform("androidx.compose:compose-bom:2024.10.01"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.foundation:foundation")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.activity:activity-compose:1.9.3")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
-    // lifecycleScope for the background export coroutine.
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
-    debugImplementation("androidx.compose.ui:ui-tooling")
 }

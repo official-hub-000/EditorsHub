@@ -27,40 +27,6 @@
         android:theme="@style/Theme.EditorsHub"
         android:usesCleartextTraffic="false">
 
-        <!--
-          Launcher. Plain views only, on purpose: it must open, and show a crash report, even
-          when an editor screen is broken. Its primary button opens the full editor.
-        -->
-        <activity
-            android:name=".HomeActivity"
-            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:theme="@style/Theme.EditorsHub.Splash">
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <!-- The Kotlin canvas editor: opened from the launcher as "Fast canvas". -->
-        <activity
-            android:name=".MainActivity"
-            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
-            android:exported="false"
-            android:launchMode="singleTop"
-            android:resizeableActivity="true"
-            android:screenOrientation="fullSensor"
-            android:theme="@style/Theme.EditorsHub"
-            android:windowSoftInputMode="adjustResize">
-        </activity>
-
-        <!--
-          The WebView editor, kept as the effects/legacy editor and as the media
-          import/share gateway. Still exported so "open with" and share intents land
-          somewhere that can read project bundles, XML and media.
-        -->
         <activity
             android:name=".EditorActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
@@ -70,6 +36,11 @@
             android:screenOrientation="fullSensor"
             android:theme="@style/Theme.EditorsHub"
             android:windowSoftInputMode="adjustResize">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
 
             <!-- Open project bundles / Alight Motion XML straight from a file manager. -->
             <intent-filter>

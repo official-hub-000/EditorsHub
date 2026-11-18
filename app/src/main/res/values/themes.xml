@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      EditorsHub is a full-screen creative tool: the system bars are part of the design, not
-      chrome around it. The window is the app's own near-black from the very first frame, and
-      the bars are transparent so the brand header runs to the edges.
+      EditorsHub is a full-screen creative tool: the status bar and navigation bar are
+      never part of the chrome. They are hidden for the whole session and only revealed
+      transiently by a swipe (Android's standard immersive behaviour).
     -->
     <style name="Theme.EditorsHub" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/editorshub_background</item>
@@ -15,16 +15,9 @@
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
+        <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowDisablePreview">false</item>
         <item name="android:colorAccent">@color/editorshub_theme</item>
-    </style>
-
-    <!--
-      A real splash on API 31+, instead of a black rectangle while Compose warms up. The
-      background is the brand gradient's midpoint so the hand-off to HomeActivity is invisible.
-    -->
-    <style name="Theme.EditorsHub.Splash" parent="Theme.EditorsHub">
-        <item name="android:windowSplashScreenBackground">@color/editorshub_background</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_brand_foreground</item>
     </style>
 </resources>
