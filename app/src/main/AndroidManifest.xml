@@ -28,19 +28,15 @@
         android:usesCleartextTraffic="false">
 
         <!--
-          The native Kotlin editor. This is what the launcher opens: its own document model,
-          keyframes, easing, renderer, timeline, inspector and MP4 export.
-        -->
-        <!--
-          Launcher. Plain views only, on purpose: it must be able to open, and to show a crash
-          report, even when the editor screens are broken.
+          Launcher. Plain views only, on purpose: it must open, and show a crash report, even
+          when an editor screen is broken. Its primary button opens the full editor.
         -->
         <activity
             android:name=".HomeActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.EditorsHub">
+            android:theme="@style/Theme.EditorsHub.Splash">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -48,7 +44,7 @@
             </intent-filter>
         </activity>
 
-        <!-- The native Kotlin editor. Opened from the launcher. -->
+        <!-- The Kotlin canvas editor: opened from the launcher as "Fast canvas". -->
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"

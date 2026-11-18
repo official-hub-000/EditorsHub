@@ -11,6 +11,9 @@ permissions:
   # `write` is only needed to refresh the rolling `android-latest` release that holds
   # the newest APK; the editor bundle and APK contents are still verified read-only.
   contents: write
+  # Needed to post build diagnostics to the diagnostics issue: the job log and its artifacts
+  # are both unreachable from outside a run in this repository.
+  issues: write
 
 concurrency:
   group: android-${{ github.ref }}
@@ -180,6 +183,25 @@ jobs:
           name: kotlin-compile-log
           path: /tmp/build.log
           if-no-files-found: warn
+
+      - name: Publish build diagnostics
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          [ -f /tmp/build.log ] || exit 0
+          {
+            echo "### Build failed for \`${{ github.sha }}\`"
+            echo ''
+            echo '```'
+            grep -E '\.kt:[0-9]+:[0-9]+|^e: |ERROR:|error: |FAILURE:|What went wrong' /tmp/build.log | head -60
+            echo ''
+            echo '--- last 40 lines ---'
+            tail -40 /tmp/build.log
+            echo '```'
+          } > /tmp/diag.md
+          gh issue comment 1 --repo "${{ github.repository }}" --body-file /tmp/diag.md
 
       - name: Build release APK (unsigned)
         run: ./gradlew --no-daemon :app:assembleRelease | tail -40

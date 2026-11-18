@@ -19,15 +19,16 @@ import androidx.activity.ComponentActivity
  *
  * WHY NOT COMPOSE
  *
- * The editor screen is Compose. If a fault in that screen kills the process on startup, a
- * Compose launcher cannot report it, because the report and the launcher die together. This
- * screen uses nothing but `LinearLayout`, `TextView` and `Button`: no Compose, no WebView, no
- * document store, no bitmap. There is almost nothing here that can fail, which is exactly the
- * requirement for a screen whose job is to hand over a crash report and get the user back into
- * a working editor.
+ * The editor screens are Compose and a WebView. If a fault in either kills the process on
+ * startup, a Compose launcher cannot report it, because the report and the launcher die
+ * together. This screen uses nothing but `LinearLayout`, `TextView` and `Button`: no Compose,
+ * no WebView, no document store, no bitmap. There is almost nothing here that can fail, which
+ * is exactly what a screen needs when its job is to hand over a crash report and get the user
+ * back into a working editor.
  *
- * It also gives the native editor a second door. Anything the native screen does wrong now
- * costs one screen, not the app.
+ * The primary action is the full editor. The Kotlin editor is the second door -- it is the
+ * faster canvas, but it started life as a smaller editor and the full one is what most work
+ * needs.
  */
 class HomeActivity : ComponentActivity() {
 
@@ -45,6 +46,14 @@ class HomeActivity : ComponentActivity() {
             setTextColor(Color.parseColor("#E9EDF2"))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
             setTypeface(typeface, Typeface.BOLD)
+        })
+
+        root.addView(TextView(this).apply {
+            text = "Motion graphics, keyframes and easing. Two ways in: the full editor, or the " +
+                "faster canvas."
+            setTextColor(Color.parseColor("#8A94A0"))
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f)
+            setPadding(0, dp(6), 0, dp(10))
         })
 
         val report = CrashLog.pending(this)
@@ -86,7 +95,7 @@ class HomeActivity : ComponentActivity() {
         }
 
         if (report != null) {
-            actions.addView(button("Send report") {
+            actions.addView(button("Send report", primary = false) {
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_SUBJECT, "EditorsHub crash report")
@@ -95,8 +104,10 @@ class HomeActivity : ComponentActivity() {
                 runCatching { startActivity(Intent.createChooser(intent, "Send crash report")) }
             })
         }
-        actions.addView(button("Editor") { open(MainActivity::class.java) })
-        actions.addView(button("Effects editor") { open(EditorActivity::class.java) })
+        // The editor with the full tool set is the default. The Kotlin canvas editor is the
+        // second door, offered by name so it is a choice rather than a surprise.
+        actions.addView(button("Editor", primary = true) { open(EditorActivity::class.java) })
+        actions.addView(button("Fast canvas", primary = false) { open(MainActivity::class.java) })
         root.addView(actions)
 
         setContentView(root)
@@ -106,12 +117,12 @@ class HomeActivity : ComponentActivity() {
         runCatching { startActivity(Intent(this, target)) }
     }
 
-    private fun button(label: String, onClick: () -> Unit): Button =
+    private fun button(label: String, primary: Boolean = true, onClick: () -> Unit): Button =
         Button(this).apply {
             text = label
             isAllCaps = false
-            setTextColor(Color.parseColor("#0B0D10"))
-            setBackgroundColor(Color.parseColor("#3AD9C6"))
+            setTextColor(Color.parseColor(if (primary) "#0B0D10" else "#E9EDF2"))
+            setBackgroundColor(Color.parseColor(if (primary) "#3AD9C6" else "#1C2128"))
             setOnClickListener { onClick() }
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 .also { it.setMargins(dp(4), 0, dp(4), 0) }

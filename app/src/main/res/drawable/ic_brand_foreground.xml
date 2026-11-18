@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The mark: an E built from three timeline bars and a stem, drawn in the app's own near-black.
+  Geometric on purpose: it has to read at 48 dp on a home screen and at 108 px in a header.
+  The arms are unequal lengths because an E with equal arms looks like a menu icon.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Stem. -->
+    <path
+        android:fillColor="#0B0D10"
+        android:pathData="M36,30 L48,30 L48,78 L36,78 Z" />
+    <!-- Top arm. -->
+    <path
+        android:fillColor="#0B0D10"
+        android:pathData="M48,30 L74,30 L74,42 L48,42 Z" />
+    <!-- Middle arm, shorter, with the playhead notch that ties it to the timeline. -->
+    <path
+        android:fillColor="#0B0D10"
+        android:pathData="M48,48 L66,48 L66,60 L48,60 Z" />
+    <path
+        android:fillColor="#0B0D10"
+        android:pathData="M70,48 L74,54 L70,60 Z" />
+    <!-- Bottom arm. -->
+    <path
+        android:fillColor="#0B0D10"
+        android:pathData="M48,66 L74,66 L74,78 L48,78 Z" />
+</vector>

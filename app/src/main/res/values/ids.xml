@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Lets the status-bar visibility check find the WebView without a layout file. -->
-    <item name="editor_webview" type="id" />
+    <!-- The Compose host view, used only if the activity ever needs to find it by id. -->
+    <item name="editor_root" type="id" />
 </resources>
