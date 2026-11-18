@@ -66,6 +66,15 @@ jobs:
             echo "::error::CDN mediabunny import survived the offline rewrite"
             exit 1
           fi
+          # The frame instrumentation must ship, and must be an observer: if it ever draws, it is
+          # no longer measuring the renderer, it is part of it.
+          test -f app/src/main/assets/www/perf-hud.js
+          grep -q 'oms-perf-hud' app/src/main/assets/www/index.html
+          if grep -qE "fillRect|drawImage|getContext\('2d'\)" app/src/main/assets/www/perf-hud.js; then
+            echo "::error::the perf layer draws: it must only measure"
+            exit 1
+          fi
+          node --check app/src/main/assets/www/perf-hud.js
 
       - name: Check the bundle can boot
         run: |
