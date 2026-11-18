@@ -88,7 +88,6 @@ fun EditorScreen(
             Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .weight(1f, true)
                 .padding(horizontal = 10.dp),
             contentAlignment = Alignment.Center,
         ) {
