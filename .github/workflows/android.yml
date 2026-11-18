@@ -11,6 +11,9 @@ permissions:
   # `write` is only needed to refresh the rolling `android-latest` release that holds
   # the newest APK; everything else in this workflow is read-only.
   contents: write
+  # Needed to post build diagnostics to the diagnostics issue, which is the only channel
+  # readable from outside a run in this repository.
+  issues: write
 
 concurrency:
   group: android-${{ github.ref }}
