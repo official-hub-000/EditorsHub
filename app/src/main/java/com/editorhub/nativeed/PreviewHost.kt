@@ -167,6 +167,7 @@ fun PreviewSurface(
     store: EditorStore,
     bitmaps: Map<String, Bitmap>,
     modifier: Modifier = Modifier,
+    videoFrames: VideoFrames? = null,
     onReady: (CompositionView) -> Unit = {}
 ) {
     AndroidView(
@@ -176,12 +177,26 @@ fun PreviewSurface(
                 view.store = store
                 val handler = PreviewTouchHandler(view, store)
                 view.setOnTouchListener { _, event -> handler.onTouch(event) }
+                if (videoFrames != null) {
+                    // Asked at draw time, so the frame always matches the playhead the frame
+                    // is being drawn for -- never one frame behind, never one layer ahead.
+                    view.videoFrame = { layer, time ->
+                        videoFrames.request(layer, time)
+                        videoFrames.frame(layer.id)
+                    }
+                }
                 onReady(view)
             }
         },
         update = { view ->
             view.store = store
             view.bitmaps = bitmaps
+            if (videoFrames != null) {
+                view.videoFrame = { layer, time ->
+                    videoFrames.request(layer, time)
+                    videoFrames.frame(layer.id)
+                }
+            }
             view.requestRender()
         }
     )

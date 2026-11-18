@@ -156,7 +156,16 @@ class MainActivity : ComponentActivity() {
         // A snapshot, not a live store: edits made during the encode must not change a frame
         // that has already been handed to the encoder, or the file would contain two versions
         // of the project spliced together.
-        val canvasView = com.editorhub.nativeed.CompositionView(this).apply { this.bitmaps = bitmaps }
+        val canvasView = com.editorhub.nativeed.CompositionView(this).apply {
+            this.bitmaps = bitmaps
+            // Export pulls the exact frame for each instant, snapped to the nearest keyframe
+            // only when the exact frame would be slow. That is what stops an exported video
+            // from being one still per layer.
+            this.videoFrame = { layer, time ->
+                val offset = ((time - layer.start) * 1000.0 * layer.speed).toLong().coerceAtLeast(0L)
+                cache.videoFrame(layer.sourceUri ?: "", layer.id, offset, targetWidth = project.width, exact = true)
+            }
+        }
 
         lifecycleScope.launch {
             val file = withContext(Dispatchers.Default) {

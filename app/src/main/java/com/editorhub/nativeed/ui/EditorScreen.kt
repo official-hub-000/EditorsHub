@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.editorhub.nativeed.CompositionView
 import com.editorhub.nativeed.PreviewSurface
+import com.editorhub.nativeed.VideoFrames
 import com.editorhub.nativeed.EditorStore
 import com.editorhub.nativeed.Layer
 import com.editorhub.nativeed.LayerKind
@@ -119,6 +120,12 @@ fun EditorScreen(
         if (decoded.isNotEmpty()) bitmaps = bitmaps + decoded
     }
 
+    // Video frames, decoded on a background thread and asked for at draw time.
+    val videoFrames = remember(cache) { VideoFrames(cache) { renderRequest() } }
+    DisposableEffect(videoFrames) {
+        onDispose { videoFrames.releaseAll() }
+    }
+
     val playback = remember(store) {
         Playback(
             store = store,
@@ -186,6 +193,7 @@ fun EditorScreen(
             PreviewSurface(
                 store = store,
                 bitmaps = bitmaps,
+                videoFrames = videoFrames,
                 modifier = Modifier.fillMaxSize(),
                 onReady = { view -> previewRef.set(view); previewView = view }
             )

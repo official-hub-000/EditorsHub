@@ -20,6 +20,15 @@ class MediaCache(private val context: Context) {
 
     private val bitmaps = ConcurrentHashMap<String, Bitmap>()
 
+    /**
+     * One retriever per video uri.
+     *
+     * Creating a `MediaMetadataRetriever` is the expensive part of pulling a frame -- several
+     * milliseconds of container parsing -- so they are kept alive and reused for the length of
+     * a session. They are released in [releaseRetrievers].
+     */
+    private val retrievers = ConcurrentHashMap<String, MediaMetadataRetriever>()
+
     /** Facts about a picked file, used to build the layer. */
     data class MediaInfo(val width: Int, val height: Int, val durationMs: Long, val name: String)
 
@@ -71,6 +80,32 @@ class MediaCache(private val context: Context) {
         return bitmap
     }
 
+    /**
+     * One video frame at [timeMs] into the clip, scaled down to the preview's needs.
+     *
+     * Uses `OPTION_CLOSEST_SYNC`: seeking to the nearest keyframe is dramatically faster than
+     * decoding forward to the exact frame, and while scrubbing a hundredth of a second's
+     * difference is not visible. Exact frames are used for export.
+     */
+    fun videoFrame(uriString: String, layerId: String, timeMs: Long, targetWidth: Int = 720, exact: Boolean = false): Bitmap? =
+        runCatching {
+            val retriever = retrievers.getOrPut(uriString) {
+                MediaMetadataRetriever().also { it.setDataSource(context, Uri.parse(uriString)) }
+            }
+            val option = if (exact) MediaMetadataRetriever.OPTION_CLOSEST
+            else MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+            val frame = retriever.getFrameAtTime(timeMs * 1000L, option) ?: return null
+            if (frame.width > targetWidth) {
+                val height = (frame.height.toFloat() * targetWidth / frame.width).toInt().coerceAtLeast(1)
+                Bitmap.createScaledBitmap(frame, targetWidth, height, true).also { frame.recycle() }
+            } else frame
+        }.getOrNull()
+
+    fun releaseRetrievers() {
+        retrievers.values.forEach { runCatching { it.release() } }
+        retrievers.clear()
+    }
+
     fun release(layerId: String) {
         bitmaps.remove(layerId)?.let { if (!it.isRecycled) it.recycle() }
     }
@@ -78,6 +113,7 @@ class MediaCache(private val context: Context) {
     fun releaseAll() {
         bitmaps.values.forEach { if (!it.isRecycled) it.recycle() }
         bitmaps.clear()
+        releaseRetrievers()
     }
 
     fun snapshot(): Map<String, Bitmap> = HashMap(bitmaps)

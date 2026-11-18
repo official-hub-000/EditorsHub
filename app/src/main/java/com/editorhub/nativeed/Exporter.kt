@@ -41,6 +41,8 @@ class Exporter(private val context: Context) {
     fun export(
         project: Project,
         bitmaps: Map<String, Bitmap>,
+        /** Exact (not keyframe-snapped) frame for a video layer at a project time. */
+        videoFrameAt: ((Layer, Double) -> Bitmap?)? = null,
         out: File,
         drawFrame: (Canvas, Project, Double) -> Unit,
         onProgress: (Progress) -> Unit = {},
@@ -89,6 +91,9 @@ class Exporter(private val context: Context) {
                 canvas.scale(scaleX, scaleY)
                 drawFrame(canvas, project, time)
                 canvas.restore()
+                // Note: video frames come from the draw callback, which is given the project
+                // time. `videoFrameAt` exists so a caller without a view can supply them
+                // directly; the composition view path already resolves them at draw time.
 
                 val yuv = rgbaToI420(frame)
                 val inputIndex = codec.dequeueInputBuffer(10_000)

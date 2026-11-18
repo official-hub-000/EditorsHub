@@ -41,9 +41,18 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
     var store: EditorStore? = null
         set(value) { field = value; requestRender() }
 
-    /** Bitmaps for media layers, keyed by layer id, supplied by [MediaCache]. */
+    /** Bitmaps for image layers, keyed by layer id, supplied by [MediaCache]. */
     var bitmaps: Map<String, Bitmap> = emptyMap()
         set(value) { field = value; requestRender() }
+
+    /**
+     * Supplies the current frame of a video layer.
+     *
+     * A callback rather than a map because a video's picture changes as the playhead moves:
+     * the frame cache is asked at draw time for the one that matches this instant, and it
+     * answers with the latest decoded frame while a new one is being pulled in the background.
+     */
+    var videoFrame: ((Layer, Double) -> Bitmap?)? = null
 
     /** Letterbox transform from composition space into this view, recomputed on resize. */
     private val contentMatrix = Matrix()
@@ -227,7 +236,10 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
     }
 
     private fun drawMedia(canvas: Canvas, layer: Layer, time: Double) {
-        val bitmap = bitmaps[layer.id] ?: return
+        val bitmap = when (layer.kind) {
+            LayerKind.VIDEO -> videoFrame?.invoke(layer, time) ?: bitmaps[layer.id]
+            else -> bitmaps[layer.id]
+        } ?: return
         paint.reset()
         paint.isAntiAlias = true
         paint.isFilterBitmap = true
