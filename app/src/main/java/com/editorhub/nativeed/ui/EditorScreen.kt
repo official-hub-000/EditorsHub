@@ -85,6 +85,11 @@ fun EditorScreen(
     // the whole inspector on every pixel and the drag itself would stutter -- the exact thing
     // this rewrite is meant to fix.
     var gestureActive by remember { mutableStateOf(false) }
+    // The playhead as Compose state. It is read inside canvas draw lambdas (which records a
+    // draw-scope read, not a recomposition) and by the time readout, so a moving playhead
+    // repaints the timeline without rebuilding it. Without this the playhead would sit still
+    // during playback while the preview animated, because store.time is not observable.
+    val playhead = remember { androidx.compose.runtime.mutableDoubleStateOf(store.time) }
     // The store's callbacks run from Compose's effect scope, so they read the atomic rather
     // than a captured state object that would be stale inside the SurfaceView.
     val renderRequest: () -> Unit = { previewRef.get()?.requestRender() }
@@ -93,7 +98,7 @@ fun EditorScreen(
     // it, so the panels rebuild once per edit while the preview is only asked for a frame.
     DisposableEffect(store) {
         store.onChange = { if (!gestureActive) rev++; renderRequest() }
-        store.onTimeChange = { renderRequest() }
+        store.onTimeChange = { time -> playhead.doubleValue = time; renderRequest() }
         onDispose { store.onChange = null; store.onTimeChange = null }
     }
 
@@ -203,12 +208,14 @@ fun EditorScreen(
             Text("TIMELINE", color = Ink.dim, fontSize = 9.sp, letterSpacing = 1.sp)
             Spacer(Modifier.weight(1f))
             Text(
-                "${String.format("%.2f", store.time)}s / ${String.format("%.2f", store.project.duration)}s \u00B7 ${store.project.fps}fps",
+                "${String.format("%.2f", playhead.doubleValue)}s / ${String.format("%.2f", store.project.duration)}s \u00B7 ${store.project.fps}fps",
                 color = Ink.dim, fontSize = 10.sp
             )
         }
         TimelinePanel(
             store = store,
+            version = rev,
+            playhead = playhead,
             modifier = Modifier.fillMaxWidth().height(196.dp),
             onSeek = { playback.seek(it) },
             onSeekEnd = { rev++ },
@@ -219,6 +226,7 @@ fun EditorScreen(
         // -------------------------------------------------------------- inspector
         Inspector(
             store = store,
+            version = rev,
             modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp, max = 320.dp),
             onPickMedia = { pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onGestureStart = { gestureActive = true },

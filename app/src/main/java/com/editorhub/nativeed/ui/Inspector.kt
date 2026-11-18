@@ -93,12 +93,16 @@ private fun LiveSlider(
 fun Inspector(
     store: EditorStore,
     modifier: Modifier = Modifier,
+    /** Bumped by the store on every edit; forces the controls to re-read their values. */
+    version: Int = 0,
     onPickMedia: () -> Unit = {},
     onGestureStart: () -> Unit = {},
     onGestureEnd: () -> Unit = {}
 ) {
     var tab by remember { mutableStateOf(0) }
     val tabs = listOf("Transform", "Style", "Ease")
+    @Suppress("UNUSED_EXPRESSION")
+    version
     val layer = store.selected
 
     Column(modifier.background(Ink.panel)) {

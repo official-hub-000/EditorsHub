@@ -2,6 +2,7 @@ package com.editorhub.nativeed.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -173,7 +175,9 @@ fun SheetScaffold(title: String, onDismiss: () -> Unit, content: @Composable () 
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
                 .background(Ink.panel)
-                .clickable(enabled = false) {}
+                // Consumes taps so a tap inside the sheet does not fall through to the scrim
+                // and dismiss it; `clickable(enabled=false)` does not consume anything.
+                .pointerInput(Unit) { detectTapGestures { } }
                 .padding(Gap.lg)
                 .heightIn(max = 520.dp)
                 .verticalScroll(rememberScrollState())

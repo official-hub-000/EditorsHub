@@ -23,6 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.MutableDoubleState
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -57,6 +59,10 @@ import com.editorhub.nativeed.LayerKind
 fun TimelinePanel(
     store: EditorStore,
     modifier: Modifier = Modifier,
+    /** Bumped by the store on every edit; forces the rows to rebuild. */
+    version: Int = 0,
+    /** The live playhead. Read inside draw lambdas so playback repaints, not recomposes. */
+    playhead: MutableDoubleState = remember { mutableDoubleStateOf(0.0) },
     onSeek: (Double) -> Unit,
     onSeekEnd: () -> Unit = {},
     onGestureStart: () -> Unit = {}
@@ -65,6 +71,8 @@ fun TimelinePanel(
     var scale by remember { mutableFloatStateOf(1f) }  // multiplier over the fitted scale
     var offsetX by remember { mutableFloatStateOf(0f) }
     val gutterWidth = 108.dp
+    @Suppress("UNUSED_EXPRESSION")
+    version
 
     Column(modifier.background(Ink.panel)) {
         // ---------------------------------------------------------------- ruler
@@ -77,7 +85,7 @@ fun TimelinePanel(
                     duration = project.duration,
                     scale = scale,
                     offsetX = offsetX,
-                    time = store.time,
+                    playhead = playhead,
                     onScale = { scale = it },
                     onOffset = { offsetX = it },
                     onSeek = onSeek,
@@ -106,13 +114,15 @@ fun TimelinePanel(
             Box(Modifier.weight(1f).fillMaxSize().background(Ink.bg)) {
                 TrackArea(
                     store = store,
+                    playhead = playhead,
                     scale = scale,
                     offsetX = offsetX,
                     onScale = { scale = it },
                     onOffset = { offsetX = it },
                     onSeek = onSeek,
                     onSeekEnd = onSeekEnd,
-                    onGestureStart = onGestureStart
+                    onGestureStart = onGestureStart,
+                    version = version
                 )
             }
         }
@@ -130,7 +140,7 @@ private fun RulerCanvas(
     duration: Double,
     scale: Float,
     offsetX: Float,
-    time: Double,
+    playhead: MutableDoubleState,
     onScale: (Float) -> Unit,
     onOffset: (Float) -> Unit,
     onSeek: (Double) -> Unit,
@@ -173,8 +183,8 @@ private fun RulerCanvas(
             }
             t += step
         }
-        // Playhead.
-        val px = (time.toFloat() * pixelsPerSecond) - offsetX
+        // Playhead. Read here, inside the draw scope, so a moving playhead only repaints.
+        val px = (playhead.doubleValue.toFloat() * pixelsPerSecond) - offsetX
         drawLine(Ink.accent, Offset(px, 0f), Offset(px, size.height), strokeWidth = 2.5f)
     }
 }
@@ -221,18 +231,22 @@ private fun LayerHead(
 @Composable
 private fun TrackArea(
     store: EditorStore,
+    playhead: MutableDoubleState,
     scale: Float,
     offsetX: Float,
     onScale: (Float) -> Unit,
     onOffset: (Float) -> Unit,
     onSeek: (Double) -> Unit,
     onSeekEnd: () -> Unit,
-    onGestureStart: () -> Unit
+    onGestureStart: () -> Unit,
+    /** Bumped by the store; rebuilds the bars when a layer moves or a key is added. */
+    version: Int = 0
 ) {
     val project = store.project
     val rowHeight = 38.dp
 
-    // Tapping a bar selects that layer and moves the playhead there.
+    @Suppress("UNUSED_EXPRESSION")
+    version
     // Dragging the playhead area scrubs; dragging a bar's body moves the layer in time.
     var scrubMode by remember { mutableStateOf(true) }
 
@@ -257,7 +271,7 @@ private fun TrackArea(
                         // Grabbing the playhead itself scrubs; grabbing anywhere else drags
                         // that layer's bar in time. This is the muscle memory of every NLE.
                         val pixelsPerSecond = (size.width / project.duration.toFloat()) * scale
-                        val playheadX = (store.time.toFloat() * pixelsPerSecond) - offsetX
+                        val playheadX = (playhead.doubleValue.toFloat() * pixelsPerSecond) - offsetX
                         scrubMode = kotlin.math.abs(offset.x - playheadX) < 24.dp.toPx() || row < 0
                         if (!scrubMode) {
                             store.select(project.layers.reversed().getOrNull(row)?.id)
@@ -342,7 +356,7 @@ private fun TrackArea(
             }
         }
         // Playhead over everything.
-        val px = (store.time.toFloat() * pixelsPerSecond) - offsetX
+        val px = (playhead.doubleValue.toFloat() * pixelsPerSecond) - offsetX
         drawLine(Ink.accent, Offset(px, 0f), Offset(px, size.height), strokeWidth = 2.5f)
         drawCircle(Ink.accent, radius = 5.dp.toPx(), center = Offset(px, 0f))
     }
