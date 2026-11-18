@@ -71,6 +71,15 @@ class MainActivity : ComponentActivity() {
     }
     private lateinit var cache: MediaCache
 
+    /**
+     * Which screen is showing.
+     *
+     * The launcher is the front door, not the editor: something has to ask which project you
+     * are working on before a canvas is useful, and that is also where the app introduces
+     * itself.
+     */
+    private var screen by mutableStateOf(0)  // 0 launcher, 1 editor
+
     private var exportState: ExportState by mutableStateOf(ExportState.Idle)
 
     /** Where the export is up to, for the overlay. */
