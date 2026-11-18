@@ -48,16 +48,11 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * The native editor.
+ * The editor, and the only screen in the app.
  *
- * Launcher of the app. Everything the user builds here lives in [EditorStore] and is written
- * to `filesDir/native-project.json` after every edit, so closing the app mid-project loses
- * nothing.
- *
- * The WebView editor is still installed and reachable from this screen's menu. It is not a
- * fallback that gets in the way: it is there because it has effects, LUTs and a 317-entry
- * catalogue that the native editor does not have yet, and hiding working features from the
- * user would be worse than keeping two doors.
+ * Everything the user builds lives in [EditorStore] and is written to
+ * `filesDir/native-project.json` after every edit, so closing the app mid-project loses
+ * nothing. There is no second editor behind this one.
  */
 class MainActivity : ComponentActivity() {
 
@@ -90,22 +85,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, true)
 
-        // A build that crashes on this device is worse than an older build that runs. After
-        // two consecutive crashes the app opens the WebView editor instead of the native one,
-        // so the user still has an editor and can still send the trace.
+        // Two crashed launches in a row means something about the saved document is fatal on
+        // this device. Starting clean, with the old file kept, is the only recovery -- a
+        // project the app cannot open would otherwise crash every launch forever.
         if (CrashLog.shouldFallBack(this)) {
-            // The native editor has failed on consecutive launches. Open the editor that is
-            // known to run, say why, and put the trace in front of the user in the same breath
-            // -- otherwise the only copy of the fault is on a device they cannot read.
             Toast.makeText(
                 this,
-                "The editor had a problem, so the effects editor opened instead",
+                "The saved project could not be opened. A new one was started; the old file was kept.",
                 Toast.LENGTH_LONG
             ).show()
             shareCrashReport()
-            openWebEditor()
-            finish()
-            return
+            runCatching { store.emergencyReset() }
         }
 
         try {
@@ -141,7 +131,6 @@ class MainActivity : ComponentActivity() {
                         cache = cache,
                         onShare = { /* handled inside the screen via FileProvider */ },
                         onExport = { showExportSheet = true },
-                        onOpenSettings = { openWebEditor() },
                         onSaveProject = { saveProjectFile() },
                         onOpenProject = { openProjectFile() },
                         hasCrashReport = CrashLog.pending(this@MainActivity) != null,
@@ -167,10 +156,6 @@ class MainActivity : ComponentActivity() {
                             onStart = { showExportSheet = false; startExport() }
                         )
                     }
-                    // A discreet way into the WebView editor without burying it in a menu.
-                    Box(Modifier.align(Alignment.TopEnd).padding(Gap.sm)) {
-                        Pill("Effects \u2197") { openWebEditor() }
-                    }
                 }
             }
         }
@@ -180,8 +165,7 @@ class MainActivity : ComponentActivity() {
             // later recomposition that throws still ends the process, but by then the crash
             // log has it and the launcher offers to send it.
             runCatching { CrashLog.recordNow(this, t, "first composition") }
-            Toast.makeText(this, "The editor could not start; opening the effects editor", Toast.LENGTH_LONG).show()
-            openWebEditor()
+            Toast.makeText(this, "The editor could not start", Toast.LENGTH_LONG).show()
             finish()
         }
     }
@@ -283,10 +267,6 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent.createChooser(intent, "Send crash report"))
             CrashLog.reportConsumed(this)
         }
-    }
-
-    private fun openWebEditor() {
-        startActivity(Intent(this, EditorActivity::class.java))
     }
 
     // Export options, chosen before a render starts.

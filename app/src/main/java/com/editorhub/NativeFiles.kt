@@ -1,19 +1,24 @@
 package com.editorhub
 
-import android.app.Activity
 import android.content.ContentResolver
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.provider.OpenableColumns
-import android.util.Base64
 import android.webkit.MimeTypeMap
-import android.webkit.WebChromeClient
+import java.io.File
 import java.util.Locale
 
-/** File plumbing shared by the WebView file-chooser and the JS bridge. */
+/**
+ * File plumbing.
+ *
+ * Everything the editor reads or writes goes through the Storage Access Framework, so the app
+ * asks for no storage permission at all: the user picks a file, or a place to put one, and
+ * that single grant is all the app ever gets.
+ */
 object NativeFiles {
+
+    /** A file the user picked, with the facts needed to place it on the canvas. */
+    data class Picked(val uri: Uri, val name: String, val type: String, val sizeBytes: Long)
 
     private val MIME_BY_EXTENSION = mapOf(
         "mp4" to "video/mp4",
@@ -25,103 +30,50 @@ object NativeFiles {
         "jpeg" to "image/jpeg",
         "webp" to "image/webp",
         "gif" to "image/gif",
-        "svg" to "image/svg+xml",
         "mp3" to "audio/mpeg",
         "wav" to "audio/wav",
         "m4a" to "audio/mp4",
         "aac" to "audio/aac",
         "ogg" to "audio/ogg",
         "json" to "application/json",
-        "xml" to "application/xml",
+        "editorshub" to "application/json",
         "ttf" to "font/ttf",
-        "otf" to "font/otf",
-        "woff" to "font/woff",
-        "woff2" to "font/woff2",
-        "zip" to "application/zip"
+        "otf" to "font/otf"
     )
 
-    fun mimeFor(name: String): String {
-        val ext = name.substringAfterLast('.', "").lowercase(Locale.US)
-        return MIME_BY_EXTENSION[ext]
-            ?: MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
-            ?: "application/octet-stream"
-    }
-
-    fun sanitiseFileName(name: String): String {
-        val trimmed = name.trim().ifEmpty { "open-motion-${System.currentTimeMillis()}" }
-        return trimmed.replace(Regex("[\\\\/:*?\"<>|\\u0000-\\u001f]"), "_").take(180)
-    }
-
-    /**
-     * Builds a picker that satisfies the editor's `<input type="file" accept="..." multiple>`
-     * declarations. Multiple types (image, video, audio) cannot be expressed as a single
-     * ACTION_GET_CONTENT filter, so we fall back to a wildcard MIME type and let the
-     * editor's own validation decide what it accepts.
-     */
-    fun createChooserIntent(params: WebChromeClient.FileChooserParams): Intent {
-        val accepted = params.acceptTypes.filter { it.isNotBlank() }
-        val allowMultiple = params.mode == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE
-        val simple = accepted.filter { !it.contains('*') && !it.startsWith('.') }
-
-        val intent = if (simple.size == 1 && accepted.size == 1) {
-            Intent(Intent.ACTION_GET_CONTENT).apply { type = simple.first() }
-        } else {
-            Intent(Intent.ACTION_GET_CONTENT).apply { type = "*/*" }
-        }
-
-        val extensionTypes = accepted.filter { it.startsWith('.') }
-        if (simple.size == 1 && extensionTypes.isEmpty()) {
-            intent.type = simple.first()
-        } else if (simple.isEmpty() && extensionTypes.isNotEmpty()) {
-            val mimes = extensionTypes.map { mimeFor("x$it") }.distinct().toTypedArray()
-            intent.type = "*/*"
-            intent.putExtra(Intent.EXTRA_MIME_TYPES, mimes)
-        } else if (simple.isNotEmpty()) {
-            intent.type = "*/*"
-            intent.putExtra(
-                Intent.EXTRA_MIME_TYPES,
-                simple.map { normaliseMime(it) }.distinct().toTypedArray()
-            )
-        }
-
-        intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple)
-        return Intent.createChooser(intent, "Select media")
-    }
-
-    private fun normaliseMime(mime: String): String =
-        if (mime.contains('/')) mime else mimeFor("x.$mime")
-
-    /** Reads URIs from a chooser result (single or multi-select). */
-    fun extractUris(resultCode: Int, data: Intent?): Array<Uri>? {
-        if (resultCode != Activity.RESULT_OK || data == null) return null
-        val clip = data.clipData
-        return if (clip != null && clip.itemCount > 0) {
-            Array(clip.itemCount) { clip.getItemAt(it).uri }
-        } else {
-            data.data?.let { arrayOf(it) }
-        }
-    }
-
-    fun displayName(context: Context, uri: Uri): String? {
-        if (uri.scheme == ContentResolver.SCHEME_FILE) return uri.lastPathSegment
-        runCatching {
-            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (index >= 0 && cursor.moveToFirst()) return cursor.getString(index)
+    /** Describes a picked uri. Never throws: a failed lookup returns null. */
+    fun describe(context: Context, uri: Uri): Picked? = runCatching {
+        val resolver: ContentResolver = context.contentResolver
+        var name = uri.lastPathSegment?.substringAfterLast('/') ?: "media"
+        var size = 0L
+        resolver.query(uri, null, null, null, null)?.use { cursor ->
+            val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+            if (cursor.moveToFirst()) {
+                if (nameIndex >= 0) cursor.getString(nameIndex)?.let { name = it }
+                if (sizeIndex >= 0 && !cursor.isNull(sizeIndex)) size = cursor.getLong(sizeIndex)
             }
         }
-        return uri.lastPathSegment
-    }
-
-    fun readAsBase64(context: Context, uri: Uri): String? = runCatching {
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            Base64.encodeToString(input.readBytes(), Base64.NO_WRAP)
-        }
+        val type = resolver.getType(uri)
+            ?: MIME_BY_EXTENSION[name.substringAfterLast('.', "").lowercase(Locale.US)]
+            ?: "application/octet-stream"
+        Picked(uri, name, type, size)
     }.getOrNull()
 
-    /** Whether the URI needs a persistable read grant (documents, not cache URIs). */
-    fun canPersistPermission(uri: Uri): Boolean =
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT &&
-            (uri.scheme == ContentResolver.SCHEME_CONTENT)
+    /** Copies a picked file into app storage so an expiring grant cannot lose the media. */
+    fun copyInto(context: Context, uri: Uri, name: String): File? = runCatching {
+        val dir = File(context.filesDir, "media").apply { mkdirs() }
+        val safeName = name.replace(Regex("[^A-Za-z0-9._-]"), "_")
+        val target = File(dir, "${System.currentTimeMillis()}-$safeName")
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            target.outputStream().use { output -> input.copyTo(output) }
+        }
+        target.takeIf { it.length() > 0 }
+    }.getOrNull()
+
+    fun mimeFor(name: String): String =
+        MIME_BY_EXTENSION[name.substringAfterLast('.', "").lowercase(Locale.US)] ?: "application/octet-stream"
+
+    fun extensionFor(mime: String): String =
+        MimeTypeMap.getSingleton().getExtensionFromMimeType(mime) ?: "bin"
 }
