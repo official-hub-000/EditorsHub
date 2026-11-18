@@ -170,9 +170,12 @@ jobs:
             say "ok: size within budget"
           fi
 
-          cat /tmp/verify.log >> /tmp/build.log 2>/dev/null || true
           if [ "$fail" -ne 0 ]; then
-            echo "APK verification failed; see APK-CHECK lines above"
+            { echo "### APK verification failed for \`${{ github.sha }}\`"; echo '```';
+              cat /tmp/verify.log; echo '```'; } > /tmp/verify-diag.md
+            GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh issue comment 1 \
+              --repo "${{ github.repository }}" --body-file /tmp/verify-diag.md || true
+            echo "APK verification failed; reported to the diagnostics issue"
             exit 1
           fi
           echo "native app verified: no web bundle, editor classes and shaders present"
