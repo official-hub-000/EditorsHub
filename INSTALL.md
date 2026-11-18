@@ -4,7 +4,7 @@
 
 **https://github.com/official-hub-000/EditorsHub/releases/download/android-latest/editorshub-debug.apk**
 
-That link always points at the newest build. The file is `editorshub-debug.apk`, about 12 MB.
+That link always points at the newest build. The file is `editorshub-debug.apk`, about 10 MB.
 
 ## Install on your phone
 
