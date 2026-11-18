@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   The mark: an E built from three timeline bars and a stem, drawn in the app's own near-black.
-  Geometric on purpose -- it has to read at 48 dp on a home screen and at 108 px in a header.
+  Geometric on purpose: it has to read at 48 dp on a home screen and at 108 px in a header.
   The arms are unequal lengths because an E with equal arms looks like a menu icon.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
