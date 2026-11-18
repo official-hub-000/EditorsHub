@@ -130,6 +130,15 @@ fun TimelinePanel(
 }
 
 /**
+ * Candidate ruler intervals, from a tenth of a second to two minutes.
+ *
+ * A top-level list rather than one allocated in the draw lambda: the ruler redraws on every
+ * frame of playback, and allocating a list per frame is exactly the sort of quiet allocation
+ * that shows up as the occasional dropped frame.
+ */
+private val TICK_STEPS = listOf(.1, .25, .5, 1.0, 2.0, 5.0, 10.0, 15.0, 30.0, 60.0, 120.0)
+
+/**
  * Ruler + playhead + pinch zoom.
  *
  * Separate from the panel so its canvas has its own draw scope: a layer rename does not
