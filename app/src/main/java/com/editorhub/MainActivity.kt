@@ -104,7 +104,9 @@ class MainActivity : ComponentActivity() {
                     onPickMedia = { pickImage.launch(arrayOf("image/*", "video/*")) },
                     onSave = { saveProject.launch("EditorsHub Project.json") },
                     onOpen = { openProject.launch(arrayOf("application/json")) },
-                    bitmapFor = { layer -> bitmaps[layer.id] },
+                    bitmapFor = { layer -> synchronized(bitmaps) { bitmaps[layer.id] } },
+                    onExport = { startExport() },
+                    exportProgress = exportPercent,
                 )
             }
         }
@@ -173,6 +175,8 @@ private fun App(
     onSave: () -> Unit,
     onOpen: () -> Unit,
     bitmapFor: (Layer) -> android.graphics.Bitmap?,
+    onExport: () -> Unit,
+    exportProgress: Float?,
 ) {
     var screen by remember { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
@@ -195,9 +199,9 @@ private fun App(
             EditorScreen(
                 store = store,
                 onBack = { screen = 0 },
-                onExport = { startExport() },
+                onExport = onExport,
                 onShare = onSave,
-                exportProgress = exportPercent,
+                exportProgress = exportProgress,
                 bitmapFor = bitmapFor,
             )
         }

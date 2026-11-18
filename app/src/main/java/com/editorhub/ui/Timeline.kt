@@ -213,8 +213,8 @@ fun Timeline(store: EditorStore, modifier: Modifier = Modifier) {
                             // One continuous playhead through every row.
                             drawLine(
                                 color = Ink.accent,
-                                start = Offset(comp.playhead * pixelsPerSecond, 0f),
-                                end = Offset(comp.playhead * pixelsPerSecond, size.height),
+                                start = Offset(store.playhead * pixelsPerSecond, 0f),
+                                end = Offset(store.playhead * pixelsPerSecond, size.height),
                                 strokeWidth = 1.5f,
                             )
                         }
