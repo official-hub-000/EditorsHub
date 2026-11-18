@@ -49,8 +49,8 @@ class Exporter(private val context: Context) {
         isCancelled: () -> Boolean = { false }
     ): File? {
         // H.264 wants even dimensions; odd project sizes would otherwise fail to configure.
-        val w = (project.width / 2) * 2
-        val h = (project.height / 2) * 2
+        val w = ((project.width / 2) * 2).coerceAtLeast(2)
+        val h = ((project.height / 2) * 2).coerceAtLeast(2)
         val fps = project.fps.coerceIn(1, 60)
         val total = (project.duration * fps).toInt().coerceAtLeast(1)
 

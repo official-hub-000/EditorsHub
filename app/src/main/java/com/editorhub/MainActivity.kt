@@ -213,34 +213,34 @@ class MainActivity : ComponentActivity() {
         startActivity(Intent(this, EditorActivity::class.java))
     }
 
-    /**
-     * Encodes the project off the main thread.
-     *
-     * The export runs on a background dispatcher because the frame loop is CPU-bound (the
-     * BGRA-to-YUV conversion is per pixel); running it on the main thread would freeze the
-     * UI for the whole encode. Progress hops back to the main thread per frame batch.
-     */
-    /** Export options, chosen before a render starts. */
+    // Export options, chosen before a render starts.
     private var exportWidth = 1080
     private var exportFps = 30
     private var showExportSheet by mutableStateOf(false)
 
+    /**
+     * Encodes the project off the main thread.
+     *
+     * The export runs on a background dispatcher because the frame loop is CPU-bound (the
+     * ARGB-to-YUV conversion is per pixel); running it on the main thread would freeze the
+     * UI for the whole encode. Progress hops back to the main thread per frame.
+     */
     private fun startExport() {
         if (exportState is ExportState.Running) return
         val project = store.project.copyOf()
         // Export at the requested size and rate, whatever the composition is set to: people
         // routinely edit at 1080 and publish at 720 to keep the upload quick.
+        val aspect = if (store.project.width > 0) store.project.height.toFloat() / store.project.width else 16f / 9f
         project.width = exportWidth
-        project.height = (exportWidth.toFloat() * store.project.height / store.project.width).toInt() / 2 * 2
+        project.height = ((exportWidth * aspect).toInt() / 2 * 2).coerceAtLeast(2)
         project.fps = exportFps
         if (project.layers.isEmpty()) {
             Toast.makeText(this, "Add a layer first", Toast.LENGTH_SHORT).show()
             return
         }
         exportState = ExportState.Running(0f)
-        val bitmaps: Map<String, Bitmap> = store.project.layers.associate { layer ->
-            layer.id to (cache.bitmap(layer.id, layer.sourceUri, project.width) ?: Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888))
-        }
+        // Decoding happens inside the coroutine below, not here: a 4K photo takes long enough
+        // to drop frames if it is decoded on the main thread while the overlay animates in.
         val dir = File(cacheDir, "export").apply { mkdirs() }
         val out = File(dir, "editorshub-${System.currentTimeMillis()}.mp4")
         val exporter = Exporter(this)
@@ -248,7 +248,6 @@ class MainActivity : ComponentActivity() {
         // that has already been handed to the encoder, or the file would contain two versions
         // of the project spliced together.
         val canvasView = com.editorhub.nativeed.CompositionView(this).apply {
-            this.bitmaps = bitmaps
             // Export pulls the exact frame for each instant, snapped to the nearest keyframe
             // only when the exact frame would be slow. That is what stops an exported video
             // from being one still per layer.
@@ -259,6 +258,13 @@ class MainActivity : ComponentActivity() {
         }
 
         lifecycleScope.launch {
+            val bitmaps = withContext(Dispatchers.IO) {
+                store.project.layers.associate { layer ->
+                    layer.id to (cache.bitmap(layer.id, layer.sourceUri, project.width)
+                        ?: Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888))
+                }
+            }
+            canvasView.bitmaps = bitmaps
             val file = withContext(Dispatchers.Default) {
                 exporter.export(
                     project = project,

@@ -87,8 +87,9 @@ class MediaCache(private val context: Context) {
      * decoding forward to the exact frame, and while scrubbing a hundredth of a second's
      * difference is not visible. Exact frames are used for export.
      */
-    fun videoFrame(uriString: String, layerId: String, timeMs: Long, targetWidth: Int = 720, exact: Boolean = false): Bitmap? =
-        runCatching {
+    fun videoFrame(uriString: String, layerId: String, timeMs: Long, targetWidth: Int = 720, exact: Boolean = false): Bitmap? {
+        if (uriString.isBlank()) return null
+        return runCatching {
             val retriever = retrievers.getOrPut(uriString) {
                 MediaMetadataRetriever().also { it.setDataSource(context, Uri.parse(uriString)) }
             }
@@ -100,6 +101,7 @@ class MediaCache(private val context: Context) {
                 Bitmap.createScaledBitmap(frame, targetWidth, height, true).also { frame.recycle() }
             } else frame
         }.getOrNull()
+    }
 
     fun releaseRetrievers() {
         retrievers.values.forEach { runCatching { it.release() } }

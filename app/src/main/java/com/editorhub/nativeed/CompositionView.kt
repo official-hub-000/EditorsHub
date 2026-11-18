@@ -102,7 +102,7 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
      */
     private fun recomputeLetterbox(w: Int, h: Int) {
         val project = store?.project ?: return
-        if (w <= 0 || h <= 0) return
+        if (w <= 0 || h <= 0 || project.width <= 0 || project.height <= 0) return
         scale = min(w.toFloat() / project.width, h.toFloat() / project.height)
         offsetX = (w - project.width * scale) * .5f
         offsetY = (h - project.height * scale) * .5f
@@ -121,10 +121,10 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
     val compositionScale: Float get() = scale
 
     /** View x -> composition x. */
-    fun toCompositionX(viewX: Float): Float = (viewX - offsetX) / scale
+    fun toCompositionX(viewX: Float): Float = if (scale > 0f) (viewX - offsetX) / scale else 0f
 
     /** View y -> composition y. */
-    fun toCompositionY(viewY: Float): Float = (viewY - offsetY) / scale
+    fun toCompositionY(viewY: Float): Float = if (scale > 0f) (viewY - offsetY) / scale else 0f
 
     fun consumeFrameCount(): Int { val f = frames; frames = 0; return f }
 
