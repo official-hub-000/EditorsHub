@@ -161,13 +161,19 @@ jobs:
             say "ok: dex present"
           fi
 
-          unzip -p "$apk" classes.dex > /tmp/dex.bin 2>/dev/null
-          dexsize=$(stat -c%s /tmp/dex.bin 2>/dev/null || echo 0)
-          say "dex bytes=$dexsize"
-          # `strings` extracts the dex string pool; grep -a on a binary can miss a match that
-          # spans a chunk boundary, which is what produced five false failures.
-          strings /tmp/dex.bin > /tmp/dex.txt 2>/dev/null || cp /tmp/dex.bin /tmp/dex.txt
+          # A Compose app multidexes: the app's own classes may live in classes2.dex, so every
+          # dex in the APK is flattened into one string pool before the checks run.
+          dexcount=$(grep -c "classes[0-9]*\\.dex" <<<"$listing" || true)
+          say "dex files=$dexcount"
+          : > /tmp/dex.txt
+          for d in $(grep -o "classes[0-9]*\\.dex" <<<"$listing" | sort -u); do
+            unzip -p "$apk" "$d" > /tmp/one.dex 2>/dev/null
+            say "  $d bytes=$(stat -c%s /tmp/one.dex 2>/dev/null || echo 0)"
+            strings /tmp/one.dex >> /tmp/dex.txt 2>/dev/null || cat /tmp/one.dex >> /tmp/dex.txt
+          done
           say "dex strings=$(wc -l < /tmp/dex.txt)"
+          # One annotation carries the fact that matters, because the channel truncates.
+          say "editorhub classes=$(grep -o 'Lcom/editorhub/[A-Za-z/]*;' /tmp/dex.txt | sort -u | wc -l)"
           if [ "$dexsize" -lt 1000 ]; then
             say "FAIL: the dex is empty"; fail=1
           fi
