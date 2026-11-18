@@ -65,10 +65,20 @@ object CrashLog {
     fun pending(context: Context): String? =
         file(context).takeIf { it.exists() && it.length() > 0 }?.readText()
 
-    /** Called after the editor has run for a while without crashing. */
-    fun clear(context: Context) {
+    /**
+     * Records that the app reached a normal exit.
+     *
+     * Only the streak is reset. The report itself is kept until it is actually sent, because
+     * a crash in the middle of a session is followed by a clean exit often enough that
+     * deleting the trace on exit would lose most of them.
+     */
+    fun markHealthy(context: Context) {
+        counterFile(context).writeText("0")
+    }
+
+    /** Called once the report has been handed to the share sheet. */
+    fun reportConsumed(context: Context) {
         file(context).delete()
-        counterFile(context).delete()
     }
 
     /**
@@ -76,6 +86,12 @@ object CrashLog {
      * again is more likely to waste the user's time than to work.
      */
     fun shouldFallBack(context: Context): Boolean = streak(context) >= MAX_STREAK && pending(context) != null
+
+    /** Lets the user ask for the native editor again after a fallback. */
+    fun resetStreak(context: Context) {
+        counterFile(context).writeText("0")
+        file(context).delete()
+    }
 
     /** Builds the share intent body for the pending report. */
     fun shareText(context: Context): String = pending(context) ?: "No crash recorded."

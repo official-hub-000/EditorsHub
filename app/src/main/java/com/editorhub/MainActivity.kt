@@ -94,6 +94,15 @@ class MainActivity : ComponentActivity() {
         // two consecutive crashes the app opens the WebView editor instead of the native one,
         // so the user still has an editor and can still send the trace.
         if (CrashLog.shouldFallBack(this)) {
+            // The native editor has failed on consecutive launches. Open the editor that is
+            // known to run, say why, and put the trace in front of the user in the same breath
+            // -- otherwise the only copy of the fault is on a device they cannot read.
+            Toast.makeText(
+                this,
+                "The editor had a problem, so the effects editor opened instead",
+                Toast.LENGTH_LONG
+            ).show()
+            shareCrashReport()
             openWebEditor()
             finish()
             return
@@ -234,19 +243,17 @@ class MainActivity : ComponentActivity() {
         runCatching { store.save() }
     }
 
-    override fun onResume() {
-        super.onResume()
-        // Reaching onResume means the screen was built and shown once. Clearing the streak
-        // here rather than in onCreate matters: a crash inside the first composition would
-        // never get this far, which is exactly the case the fallback is for.
-        if (startedAt == 0L) {
-            startedAt = System.currentTimeMillis()
-        } else if (System.currentTimeMillis() - startedAt > 1500) {
-            CrashLog.clear(this)
-        }
+    /**
+     * A finished activity means the user left on their own terms.
+     *
+     * The streak is cleared here and nowhere else: a crash kills the process before this runs,
+     * so consecutive crashed launches accumulate, while a session that ends with Back, Home
+     * or a task switch running normally does not.
+     */
+    override fun onDestroy() {
+        super.onDestroy()
+        if (isFinishing && !isChangingConfigurations) runCatching { CrashLog.markHealthy(this) }
     }
-
-    private var startedAt = 0L
 
     /**
      * Sends the last crash trace wherever the user wants.
@@ -261,7 +268,10 @@ class MainActivity : ComponentActivity() {
             putExtra(Intent.EXTRA_SUBJECT, "EditorsHub crash report")
             putExtra(Intent.EXTRA_TEXT, text)
         }
-        runCatching { startActivity(Intent.createChooser(intent, "Send crash report")) }
+        runCatching {
+            startActivity(Intent.createChooser(intent, "Send crash report"))
+            CrashLog.reportConsumed(this)
+        }
     }
 
     private fun openWebEditor() {

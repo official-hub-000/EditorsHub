@@ -208,7 +208,9 @@ fun EditorScreen(
             )
             Spacer(Modifier.weight(1f))
             if (hasCrashReport) {
-                // Small and out of the way, but present until a run completes cleanly.
+                // Small and out of the way, but present until a run finishes normally. Tapping
+                // it sends the trace; the point is that a fault on a phone in someone's hand
+                // is otherwise unreachable without a cable.
                 GlyphButton("\u26A0", tint = Ink.key) { onShareCrashReport() }
             }
             GlyphButton("\u21AA") { shareStill(context, store, bitmaps) }
