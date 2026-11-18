@@ -381,7 +381,9 @@ private fun TrackArea(
                 LayerKind.VIDEO -> Color(0xFF9B5DE5)
                 LayerKind.SHAPE -> Color(0xFF3AD9C6)
                 LayerKind.TEXT -> Color(0xFFFFC857)
+                LayerKind.AUDIO -> Color(0xFF35C759)
                 LayerKind.NULL -> Color(0xFF8A94A0)
+                LayerKind.ADJUSTMENT -> Color(0xFFFF9F43)
                 else -> Color(0xFF4A5568)
             }
             val selected = layer.id == store.selectedLayerId
@@ -431,7 +433,9 @@ fun kindGlyph(kind: LayerKind): String = when (kind) {
     LayerKind.VIDEO -> "VID"
     LayerKind.SHAPE -> "SHP"
     LayerKind.TEXT -> "TXT"
+    LayerKind.AUDIO -> "AUD"
     LayerKind.NULL -> "NUL"
     LayerKind.CAMERA -> "CAM"
     LayerKind.GROUP -> "GRP"
+    LayerKind.ADJUSTMENT -> "ADJ"
 }

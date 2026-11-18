@@ -39,7 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.editorhub.nativeed.BlendMode
 import com.editorhub.nativeed.Ease
-import com.editorhub.nativeed.EaseKind
+import com.editorhub.nativeed.Effect
+import com.editorhub.nativeed.Ease
+import com.editorhub.nativeed.EffectKind
 import com.editorhub.nativeed.EditorStore
 import com.editorhub.nativeed.Layer
 import com.editorhub.nativeed.LayerKind
@@ -344,15 +346,21 @@ private fun StyleTab(store: EditorStore, layer: Layer, gestureStart: () -> Unit,
         }
     }
 
-    if (layer.kind == LayerKind.IMAGE || layer.kind == LayerKind.VIDEO) {
+    if (layer.kind == LayerKind.IMAGE || layer.kind == LayerKind.VIDEO || layer.kind == LayerKind.AUDIO) {
         Spacer(Modifier.height(Gap.md))
         SectionLabel("Media")
         Text(
             layer.sourceUri?.substringAfterLast('/') ?: "no source",
             color = Ink.dim, fontSize = 11.sp, modifier = Modifier.padding(top = Gap.xs)
         )
-        if (layer.kind == LayerKind.VIDEO) {
+        if (layer.kind == LayerKind.VIDEO || layer.kind == LayerKind.AUDIO) {
             Spacer(Modifier.height(Gap.sm))
+            LiveSlider(
+                label = "Source start (trim)", value = layer.sourceStart.toFloat(), range = 0f..600f,
+                store = store, format = { String.format("%.2fs", it) },
+                onGestureStart = gestureStart, onGestureEnd = gestureEnd,
+                onChange = { layer.sourceStart = it.toDouble(); store.scheduleSave(); tick++ }
+            )
             LiveSlider(
                 label = "Speed", value = layer.speed, range = .25f..4f,
                 store = store, format = { String.format("%.2fx", it) },
@@ -364,6 +372,30 @@ private fun StyleTab(store: EditorStore, layer: Layer, gestureStart: () -> Unit,
                 store = store, format = { "${(it * 100).toInt()}%" },
                 onGestureStart = gestureStart, onGestureEnd = gestureEnd,
                 onChange = { layer.volume = it; store.scheduleSave(); tick++ }
+            )
+        }
+    }
+
+    // Effects, on every layer kind.
+    Spacer(Modifier.height(Gap.md))
+    SectionLabel("Effects")
+    Spacer(Modifier.height(Gap.xs))
+    Effect.values().forEach { effect ->
+        val amount = layer.effects[effect]
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) {
+                ToggleRow(effect.label, checked = amount != null) {
+                    if (amount == null) layer.effects[effect] = .5f else layer.effects.remove(effect)
+                    store.scheduleSave(); store.onChange?.invoke(); tick++
+                }
+            }
+        }
+        if (amount != null) {
+            LiveSlider(
+                label = "${effect.label} amount", value = amount, range = 0f..1f, store = store,
+                format = { "${(it * 100).toInt()}%" },
+                onGestureStart = gestureStart, onGestureEnd = gestureEnd,
+                onChange = { layer.effects[effect] = it; store.scheduleSave(); tick++ }
             )
         }
     }

@@ -48,8 +48,10 @@ fun AddSheet(
     onShape: (ShapeKind) -> Unit,
     onText: () -> Unit,
     onNull: () -> Unit,
+    onAdjustment: () -> Unit,
     onImage: () -> Unit,
-    onVideo: () -> Unit
+    onVideo: () -> Unit,
+    onAudio: () -> Unit
 ) {
     SheetScaffold(title = "Add layer", onDismiss = onDismiss) {
         val items = listOf(
@@ -59,6 +61,8 @@ fun AddSheet(
             Triple("T", "Text", onText),
             Triple("\u25A3", "Image", onImage),
             Triple("\u25B6", "Video", onVideo),
+            Triple("\u266B", "Audio", onAudio),
+            Triple("\u25D1", "Adjustment", onAdjustment),
             Triple("+", "Null", onNull)
         )
         Column {

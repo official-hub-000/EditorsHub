@@ -111,7 +111,13 @@ fun EditorScreen(
             if (!gestureActive) rev++
             renderRequest()
         }
-        store.onTimeChange = { time -> playhead.doubleValue = time; renderRequest() }
+        store.onTimeChange = { time ->
+            playhead.doubleValue = time
+            renderRequest()
+            // Audio follows the playhead. While paused this only re-positions the clips; while
+            // playing it starts whichever clip the playhead just entered.
+            audio.sync(store.project, time, playing)
+        }
         onDispose {
             store.onChange = null
             store.onTimeChange = null
@@ -138,6 +144,10 @@ fun EditorScreen(
         }
         if (decoded.isNotEmpty()) bitmaps = bitmaps + decoded
     }
+
+    // Audio for video and audio layers, one player per audible clip.
+    val audio = remember { com.editorhub.nativeed.AudioPlayer(context.applicationContext) }
+    DisposableEffect(audio) { onDispose { audio.releaseAll() } }
 
     // Video frames, decoded on a background thread and asked for at draw time.
     val videoFrames = remember(cache) { VideoFrames(cache) { renderRequest() } }
@@ -171,6 +181,17 @@ fun EditorScreen(
             displayName = info?.name ?: "image",
             width = info?.width ?: 1080,
             height = info?.height ?: 1080
+        )
+        rev++
+    }
+    // Audio has no photo-picker equivalent, so it uses the generic document picker.
+    val pickAudio = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val info = cache.describe(uri)
+        store.addAudio(
+            uri = uri,
+            displayName = info?.name ?: "audio",
+            durationSeconds = (info?.durationMs ?: 0L) / 1000.0
         )
         rev++
     }
@@ -271,7 +292,10 @@ fun EditorScreen(
                         store.previousKeyframe()?.let { playback.seek(it) }; rev++
                     }
                     GlyphButton(if (playing) "\u275A\u275A" else "\u25B6") {
-                        playback.toggle(); playing = playback.isPlaying; rev++
+                        playback.toggle()
+                        playing = playback.isPlaying
+                        audio.sync(store.project, store.time, playing)
+                        rev++
                     }
                     GlyphButton("|\u25B6") {
                         store.nextKeyframe()?.let { playback.seek(it) }; rev++
@@ -362,6 +386,11 @@ fun EditorScreen(
             onShape = { kind -> store.addShape(kind); rev++; sheet = 0 },
             onText = { store.addText("Text"); rev++; sheet = 0 },
             onNull = { store.addNull(); rev++; sheet = 0 },
+            onAdjustment = { store.addAdjustment(); rev++; sheet = 0 },
+            onAudio = {
+                sheet = 0
+                pickAudio.launch(arrayOf("audio/*"))
+            },
             onImage = {
                 sheet = 0
                 pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
