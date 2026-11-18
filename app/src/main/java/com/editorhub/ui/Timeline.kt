@@ -25,6 +25,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -46,8 +47,10 @@ private const val LABEL_WIDTH = 96
 @Composable
 fun Timeline(store: EditorStore, modifier: Modifier = Modifier) {
     val comp = store.composition
-    var pixelsPerSecond = 64f
-    val headWidth = with(androidx.compose.ui.platform.LocalDensity.current) { 0.dp }
+    // Zoom must be state: reassigning a plain local from a click would not recompose the ruler.
+    var pixelsPerSecond by androidx.compose.runtime.remember {
+        androidx.compose.runtime.mutableStateOf(64f)
+    }
 
     Column(modifier.background(Ink.panel)) {
         // Transport row: playhead readout, then the scale buttons.
