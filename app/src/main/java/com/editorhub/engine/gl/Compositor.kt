@@ -134,7 +134,7 @@ class Compositor(private val textures: TextureStore) {
             return
         }
 
-        val tex = when (layer.kind) {
+        val tex: TextureStore.Entry? = when (layer.kind) {
             LayerKind.IMAGE, LayerKind.VIDEO ->
                 layer.source?.let { textures.texture("$it@${layer.id}", { bitmaps(layer) }) }
             else -> null

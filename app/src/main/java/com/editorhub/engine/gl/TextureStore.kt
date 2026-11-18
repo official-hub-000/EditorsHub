@@ -14,7 +14,8 @@ import android.util.LruCache
  */
 class TextureStore(maxPixels: Int = 64 * 1024 * 1024) {
 
-    private class Entry(val texture: Int, val width: Int, val height: Int)
+    /** An uploaded texture and its pixel size. Public because [texture] returns it. */
+    class Entry(val texture: Int, val width: Int, val height: Int)
 
     private val cache = object : LruCache<String, Entry>(maxPixels) {
         override fun sizeOf(key: String, value: Entry): Int = value.width * value.height

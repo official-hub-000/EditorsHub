@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /** The app's palette. One near-black, one accent, and a small ramp of greys between them. */
@@ -25,17 +26,19 @@ object Ink {
     val audio = Color(0xFF9B7BFF)
 }
 
+/** Corner radii. Dp, because these are shapes rather than text. */
 object Corners {
-    val card = 14.sp
-    val pill = 999.sp
+    val card = 14.dp
+    val pill = 999.dp
 }
 
+/** Spacing scale. Dp, so it does not grow with the user's font size. */
 object Gap {
-    val xs = 4.sp
-    val sm = 8.sp
-    val md = 12.sp
-    val lg = 18.sp
-    val xl = 26.sp
+    val xs = 4.dp
+    val sm = 8.dp
+    val md = 12.dp
+    val lg = 18.dp
+    val xl = 26.dp
 }
 
 private val scheme = darkColorScheme(
