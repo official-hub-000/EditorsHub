@@ -79,7 +79,24 @@ jobs:
           restore-keys: gradle-${{ runner.os }}-
 
       - name: Build debug APK
-        run: ./gradlew --no-daemon --stacktrace :app:assembleDebug
+        # Compile errors are republished into the job summary as well as the log: the log is
+        # the only other place they appear, and it is not always retrievable from outside the
+        # run, which makes an ordinary Kotlin type error impossible to act on.
+        run: |
+          set +e
+          ./gradlew --no-daemon --stacktrace :app:assembleDebug > /tmp/build.log 2>&1
+          status=$?
+          if [ $status -ne 0 ]; then
+            {
+              echo '### Kotlin compile errors'
+              echo '```'
+              grep -E '^e: |^w: .*deprecat|error: |What went wrong|^Caused by' /tmp/build.log | head -120
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            tail -80 /tmp/build.log
+            exit $status
+          fi
+          tail -20 /tmp/build.log
 
       - name: Build release APK (unsigned)
         run: ./gradlew --no-daemon :app:assembleRelease | tail -40
