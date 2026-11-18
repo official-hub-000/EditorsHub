@@ -256,6 +256,20 @@ jobs:
             exit 1
           fi
 
+          # The brand must be in the APK: the adaptive icon and its gradient background.
+          for entry in res/drawable/ic_brand_foreground.xml res/drawable/ic_brand_background.xml \
+                       res/mipmap-anydpi-v26/ic_launcher.xml; do
+            if ! grep -q "$entry" <<<"$listing"; then
+              echo "::error::brand resource missing from APK: $entry"
+              exit 1
+            fi
+          done
+          # The application label must still be EditorsHub, or the launcher shows the wrong name.
+          if [ "$(grep -c 'EditorsHub' app/src/main/res/values/strings.xml)" -lt 1 ]; then
+            echo "::error::app_name is no longer EditorsHub"
+            exit 1
+          fi
+
           # Size sanity. The two-app build was 19.6 MB; a native-only build that grows past
           # 16 MB means something large crept back in.
           size=$(stat -c%s "$apk")
