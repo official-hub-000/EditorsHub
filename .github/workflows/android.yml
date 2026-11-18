@@ -54,9 +54,9 @@ jobs:
           status=$?
           if [ $status -ne 0 ]; then
             {
-              echo '### Kotlin compile errors'
+              echo '### Build errors'
               echo '```'
-              grep -E '^e: |^w: .*deprecat|error: |What went wrong|^Caused by' /tmp/build.log | head -120
+              grep -E '^e: |^ERROR:|error: |What went wrong|^Caused by|AAPT' /tmp/build.log | head -120
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
             tail -80 /tmp/build.log
@@ -72,7 +72,7 @@ jobs:
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          grep -E '^e: ' /tmp/build.log | sed -n '1,10p' | while IFS= read -r line; do
+          grep -E '^e: |^ERROR:|^error: ' /tmp/build.log | sed -n '1,10p' | while IFS= read -r line; do
             file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
             lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
             msg=$(echo "$line" | sed -E 's/^e: //')
@@ -84,7 +84,7 @@ jobs:
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          grep -E '^e: ' /tmp/build.log | sed -n '11,20p' | while IFS= read -r line; do
+          grep -E '^e: |^ERROR:|^error: ' /tmp/build.log | sed -n '11,20p' | while IFS= read -r line; do
             file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
             lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
             msg=$(echo "$line" | sed -E 's/^e: //')
@@ -96,7 +96,7 @@ jobs:
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          grep -E '^e: ' /tmp/build.log | sed -n '21,30p' | while IFS= read -r line; do
+          grep -E '^e: |^ERROR:|^error: ' /tmp/build.log | sed -n '21,30p' | while IFS= read -r line; do
             file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
             lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
             msg=$(echo "$line" | sed -E 's/^e: //')
@@ -108,7 +108,7 @@ jobs:
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          grep -E '^e: ' /tmp/build.log | sed -n '31,40p' | while IFS= read -r line; do
+          grep -E '^e: |^ERROR:|^error: ' /tmp/build.log | sed -n '31,40p' | while IFS= read -r line; do
             file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
             lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
             msg=$(echo "$line" | sed -E 's/^e: //')
@@ -120,7 +120,7 @@ jobs:
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          grep -E '^e: ' /tmp/build.log | sed -n '41,50p' | while IFS= read -r line; do
+          grep -E '^e: |^ERROR:|^error: ' /tmp/build.log | sed -n '41,50p' | while IFS= read -r line; do
             file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
             lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
             msg=$(echo "$line" | sed -E 's/^e: //')
@@ -132,7 +132,7 @@ jobs:
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          grep -E '^e: ' /tmp/build.log | sed -n '51,60p' | while IFS= read -r line; do
+          grep -E '^e: |^ERROR:|^error: ' /tmp/build.log | sed -n '51,60p' | while IFS= read -r line; do
             file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
             lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
             msg=$(echo "$line" | sed -E 's/^e: //')
