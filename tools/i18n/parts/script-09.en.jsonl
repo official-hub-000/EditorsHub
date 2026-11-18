@@ -1,0 +1,120 @@
+{"s":"Angle (°)"}
+{"s":"Rotation (°)"}
+{"s":"Layer locked."}
+{"s":"Choose a Text Animator on an active text layer."}
+{"s":"Text preset not found."}
+{"s":"The package effect renderer is not available yet: "}
+{"s":"Invalid package apply mode."}
+{"s":"Package effect unavailable."}
+{"s":"Package keyframe time is out of range."}
+{"s":"The package would exceed 64 effects on the layer; use Replace whole stack."}
+{"s":"Add a marker inside the layer duration first."}
+{"s":" is not available yet."}
+{"s":"This effect is only available on text layers."}
+{"s":"Motion follows markers after keyframes and before the Expression; no shader pass."}
+{"s":"Search text animation presets"}
+{"s":"Text animation preset categories"}
+{"s":"Custom preset name…"}
+{"s":"Custom preset name"}
+{"s":"Managed custom presets"}
+{"s":"Text expressions per target"}
+{"s":"Marker · transform active"}
+{"s":"Text · source active"}
+{"s":" effects stored."}
+{"s":"Tooth count"}
+{"s":"Side count"}
+{"s":"Waves only"}
+{"s":"Flare only"}
+{"s":"Glow only"}
+{"s":"Warm/cool and creative tint with soft light; not a measurement of camera Kelvin."}
+{"s":"Gradual exposure following angle and position, without adding alpha."}
+{"s":"Luma-detail sharpening; the radius follows project pixels. Threshold reduces noise amplification."}
+{"s":"0% visible, 100% gone. Completion can be animated with the ruler and keyframes."}
+{"s":"Time follows the layer timeline, with pre-roll. Max 100 waves; high lifespan/frequency costs more. The effect is limited to the layer area."}
+{"s":"Soft-knee highlight bloom with horizontal/vertical blur. Buffers are shared, not a frame cache."}
+{"s":"The streak follows the layer's horizontal axis. Reflection mirrors the streak, not the original photo. Large sizes are heavier."}
+{"s":"Separable highlight bloom with pixel radius, soft knee, tint and chromatic fringe. The legacy glow keeps the previous renderer."}
+{"s":"Duration (s)"}
+{"s":"Fragment count"}
+{"s":"Effect camera"}
+{"s":"The Shatter depth buffer is unavailable."}
+{"s":"Shatter rendering failed on WebGL."}
+{"s":"Model is not ready yet"}
+{"s":"Mask output format is not supported"}
+{"s":"Mask ready · "}
+{"s":"Not processed · original preview, export waits for the mask"}
+{"s":"Mask storage is unavailable"}
+{"s":"Mask not saved: "}
+{"s":"Invalid mask data"}
+{"s":"Invalid mask sample"}
+{"s":"Invalid mask header"}
+{"s":"Loading the stored model (25.9 MB)…"}
+{"s":"Downloading the 25.9 MB model · your photo/video stays on the device…"}
+{"s":"Model download failed (HTTP "}
+{"s":"The browser does not support streaming downloads"}
+{"s":"Download model: "}
+{"s":"MODNet weight size mismatch"}
+{"s":"AI exceeded the 120 second timeout"}
+{"s":"One AI job is still running"}
+{"s":"Finish the export first"}
+{"s":"AI only works on photo/video layers"}
+{"s":"The browser does not support local AI (Worker / OffscreenCanvas / WebCrypto)"}
+{"s":"Layer locked"}
+{"s":"Video media is unavailable"}
+{"s":"The video codec is not supported for AI preparation"}
+{"s":"Max 600 masks per layer; trim the video or pick 6 samples/second"}
+{"s":"The photo is not loaded yet"}
+{"s":"The decoder produced no AI samples "}
+{"s":"Video PTS does not match the AI samples "}
+{"s":"Processing "}
+{"s":"Project masks exceed the 96 MiB limit"}
+{"s":"The source range changed; restarting the AI pass"}
+{"s":"Too many active masks; reduce layers or AI resolution"}
+{"s":"The source changed; restarting the AI pass: "}
+{"s":"The AI mask is not ready for this frame yet: "}
+{"s":"Wait for the AI job to finish / cancel it first"}
+{"s":"AI Background Removal requires WebGL; export was cancelled so it does not use the original image"}
+{"s":"AI needs a photo/video, WebGL and mask preparation; human portraits only."}
+{"s":"AI masks require a precision export: choose GPU Fast, Video HW or Precision Stable"}
+{"s":"Invalid mask reference"}
+{"s":"Imported masks exceed 96 MiB"}
+{"s":"Wait for the AI pass to finish / cancel it first"}
+{"s":"<label class=\"miniNote\">Samples/second <select class=\"effectEnumSelect\" data-bg-fps><option value=\"6\">6 · light</option><option value=\"12\">12 · fast motion</option></select></label>"}
+{"s":"Not processed"}
+{"s":"Media unavailable or codec unsupported."}
+{"s":"Media unavailable"}
+{"s":"Empty frame"}
+{"s":"Thumbnail is not ready"}
+{"s":"The media could not be decoded"}
+{"s":"This slot contains locked layers. Unlock the layers in the timeline first."}
+{"s":" layer(s) use this source. Everyone using the same source will be replaced."}
+{"s":"Choose "}
+{"s":" · locked"}
+{"s":"▷ Play"}
+{"s":"Play preview"}
+{"s":"Invalid media metadata."}
+{"s":"Media was not ready within 15 seconds. Try a file with a codec the device supports."}
+{"s":"The file could not be read/decoded as "}
+{"s":". The old media was not replaced."}
+{"s":"Wait for the running replacement to finish."}
+{"s":"Media slot not found."}
+{"s":"The slot contains locked layers. Unlock them first."}
+{"s":"Choose a media file that is not empty."}
+{"s":"This slot requires "}
+{"s":"Wait for the export / AI pass to finish first."}
+{"s":"The project/slot changed; replacement cancelled."}
+{"s":"The replacement source could not be saved."}
+{"s":"The source has a different aspect ratio; layer size/transform are kept."}
+{"s":"The source is shorter: the missing part uses the last frame."}
+{"s":"The source is shorter: the missing part is silent."}
+{"s":"The old AI mask was released. Re-run the AI pass for the new media; the effect parameters stay."}
+{"s":"Local storage failed: download the project to save your changes."}
+{"s":" layer(s) replaced. "}
+{"s":"Open a project first."}
+{"s":"Back to editor"}
+{"s":">Animation is kept · replace with the same media type.</p><div class="}
+{"s":" data-template-empty hidden>No photos, video or audio yet. Add media in the timeline first.</div><div class="}
+{"s":"Compatibility reference — not an open-source list"}
+{"s":"Main application. This license does not change the licence of third-party components, models or project assets."}
+{"s":"Adapts the expression control scheme, wiggle formula, Text Animator, colour/Shatter effects, Template Editor and Effects Rack interaction. The interpreter, renderer and EditorsHub integration remain separate."}
+{"s":"Reference for text animation order and fade, slide and scale concepts. Motionity, Fabric.js and anime.js runtimes are not bundled."}

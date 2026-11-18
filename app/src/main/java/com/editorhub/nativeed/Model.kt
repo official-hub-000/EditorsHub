@@ -141,22 +141,7 @@ class Track(val base: Float, val keys: MutableList<Keyframe> = mutableListOf()) 
     fun copyOf(): Track = Track(base, keys.map { it.copy() }.toMutableList())
 }
 
-enum class LayerKind { IMAGE, VIDEO, SHAPE, TEXT, AUDIO, NULL, CAMERA, GROUP, ADJUSTMENT }
-
-/** A named effect that can be switched on and off per layer. */
-enum class Effect {
-    BLUR, SHARPEN, GLOW, VIGNETTE, PIXELATE, INVERT, GRAIN;
-
-    val label: String get() = when (this) {
-        BLUR -> "Blur"
-        SHARPEN -> "Sharpen"
-        GLOW -> "Glow"
-        VIGNETTE -> "Vignette"
-        PIXELATE -> "Pixelate"
-        INVERT -> "Invert"
-        GRAIN -> "Grain"
-    }
-}
+enum class LayerKind { IMAGE, VIDEO, SHAPE, TEXT, NULL, CAMERA, GROUP }
 
 enum class ShapeKind { RECT, ELLIPSE, TRIANGLE }
 
@@ -235,23 +220,7 @@ class Layer(
     var blur: Float = 0f            // 0..40 composition pixels
     var blendMode: BlendMode = BlendMode.NORMAL
 
-    /**
-     * Effects switched on for this layer, with their intensity.
-     *
-     * Kept as a map so an effect is a value the UI can toggle without a class per effect, and
-     * serialises to a small object. Intensity is 0..1.
-     */
-    val effects: MutableMap<Effect, Float> = linkedMapOf()
-
     var sourceUri: String? = null
-
-    /**
-     * Where a clip starts inside its own file, in seconds.
-     *
-     * A trimmed clip plays from here rather than from zero, which is what makes trimming
-     * usable: the layer's timeline position stays put and only the source window moves.
-     */
-    var sourceStart: Double = 0.0
 
     /** Volume 0..1 and playback speed, used by video and audio layers. */
     var volume: Float = 1f
@@ -261,15 +230,6 @@ class Layer(
         get() = listOf(x, y, scaleX, scaleY, rotation, opacity).any { it.animated }
 
     fun covers(time: Double): Boolean = time >= start && time <= start + duration
-
-    /**
-     * Time inside the source file for a project time.
-     *
-     * Honours both the trim offset and the clip's speed, so a 2x clip advances through its
-     * file twice as fast as the timeline and a trimmed clip starts where it was trimmed.
-     */
-    fun sourceTimeAt(time: Double): Double =
-        (sourceStart + (time - start).coerceAtLeast(0.0) * speed.coerceIn(.05f, 8f))
 
     /** True when the grade would change anything; lets the renderer skip the matrix. */
     val graded: Boolean
@@ -309,7 +269,7 @@ class Layer(
         copy.rotation = rotation.copyOf(); copy.opacity = opacity.copyOf()
         copy.width = width; copy.height = height; copy.shape = shape; copy.color = color
         copy.cornerRadius = cornerRadius; copy.text = text; copy.textSize = textSize
-        copy.textBold = textBold; copy.sourceUri = sourceUri; copy.sourceStart = sourceStart
+        copy.textBold = textBold; copy.sourceUri = sourceUri
         copy.volume = volume; copy.speed = speed
         copy.brightness = brightness; copy.contrast = contrast; copy.saturation = saturation
         copy.vibrance = vibrance; copy.tint = tint; copy.tintAmount = tintAmount

@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The app's own near-black. Matches Ink.bg in the Compose theme, so the window
-         background and the first drawn frame are the same colour and there is no flash. -->
-    <color name="editorshub_background">#0B0D10</color>
-    <!-- The accent, used for the status bar tint and the recents card. -->
-    <color name="editorshub_theme">#3AD9C6</color>
-    <!-- The icon's gradient start, kept as a flat colour for pre-adaptive surfaces. -->
-    <color name="editorshub_icon_background">#22B8D4</color>
+    <!-- Pulled from the app artwork: near-black studio backdrop. -->
+    <color name="editorshub_background">#000000</color>
+    <color name="editorshub_theme">#10121D</color>
+    <color name="editorshub_icon_background">#000000</color>
 </resources>

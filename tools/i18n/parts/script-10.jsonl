@@ -1,0 +1,120 @@
+{"s": "Proyek sumber"}
+{"s": "Parser JavaScript tersemat untuk bahasa ekspresi terbatas Open Motion. Ini bukan izin menjalankan JavaScript tanpa pembatasan."}
+{"s": "Pembacaan/penulisan media, demux/mux, decoder dan pipeline ekspor. Dimuat sesuai kebutuhan dari CDN; tidak diunduh saat halaman kredit dibuka. Tautan sumber menunjuk versi yang dipakai."}
+{"s": "Adaptasi camera solve, KLT, robust fitting, geometri dan bundle adjustment ke Web Worker/WASM. Memakai pilihan MIT dari MIT OR Apache-2.0. Pemberitahuan dependensi Rust yang sudah tersemat disertakan lengkap; UI, renderer, codec dan aset EffectCraft tidak ikut dibundel."}
+{"s": "Model terlatih untuk penghapusan latar potret. Bobot ONNX diambil hanya ketika fitur dipakai; Open Motion tidak melatih model ini. Sumber bobot dipatok pada revisi 0c91c39f."}
+{"s": "Proyek MODNet"}
+{"s": "Runtime inferensi WebAssembly untuk MODNet. Dimuat sesuai kebutuhan di worker; membuka kredit tidak mengunduh atau menjalankan model."}
+{"s": "Kontribusi thumbnail proyek di Home dan shortcut keyboard yang dapat dikonfigurasi. Kredit kontribusi asli dipertahankan."}
+{"s": "Thumbnail proyek · PR #32"}
+{"s": "Kontribusi antarmuka mobile/PWA, panel tambah objek, alur ekspor dan penerbitan AM Link yang tercatat dalam riwayat proyek."}
+{"s": "Mobile/PWA interface, Add Object panel, export workflow and AM Link publishing contributions recorded in project history."}
+{"s": "Status lisensi sumber belum diverifikasi · not labeled open-source"}
+{"s": "Referensi analisis untuk kompatibilitas proyek dan efek. Definisi/aset kompatibilitas ini tidak diberi label MIT, Apache atau MPL hanya karena dipakai Open Motion. Kredit bukan bukti izin atau sertifikasi lisensi."}
+{"s": "Terima kasih kepada pembuat pustaka, proyek rujukan, dan kontributor yang membantu Open Motion."}
+{"s": "Contoh: MIT, FishTools, Mediabunny…"}
+{"s": "Editor animasi dan video berbasis browser. Open Motion masih berupa prototipe yang terus dikembangkan."}
+{"s": "Tidak ada kredit yang cocok."}
+{"s": "Lisensi kode, model, dan referensi dicatat terpisah; kredit ini tidak mengganti lisensi sumber. Font dan media yang dimasukkan ke proyek mengikuti ketentuan pemiliknya masing-masing. Tidak menyatakan afiliasi atau dukungan dari proyek yang disebutkan."}
+{"s": "Hasil tracking terlalu besar"}
+{"s": "Tracker belum siap"}
+{"s": "Operasi tracker tidak dikenal"}
+{"s": "Tracking dibatalkan atau sumber/trim berubah"}
+{"s": "Tracking dibatalkan; hasil sebelumnya dipertahankan."}
+{"s": "Solver melewati batas waktu; trim shot atau gunakan FOV yang diketahui."}
+{"s": "Worker tracking tidak merespons"}
+{"s": "Modul tracker terlalu besar"}
+{"s": "Decoder video tidak bisa membaca frame tracking"}
+{"s": "Video belum mempresentasikan frame target"}
+{"s": "3D Camera Tracker memerlukan WebGL; browser sedang memakai renderer 2D fallback."}
+{"s": "Satu analisis tracking sudah berjalan"}
+{"s": "Pilih layer video yang tidak terkunci"}
+{"s": "Hentikan playback/export dahulu"}
+{"s": "Browser memerlukan Worker dan WebAssembly"}
+{"s": " sampel. Trim rentang atau turunkan FPS analisis; proyek tidak diubah."}
+{"s": "Tracking dibatalkan atau sumber berubah"}
+{"s": "Rentang memiliki freeze/edge extension; pilih hanya bagian video yang bergerak."}
+{"s": "File video tidak tersedia; tautkan ulang media dahulu"}
+{"s": "WebCodecs tidak mendukung codec video"}
+{"s": "Decoder tidak menghasilkan frame "}
+{"s": "PTS frame tidak cocok pada sampel "}
+{"s": "Melacak titik "}
+{"s": " aktif"}
+{"s": "Menghitung kamera 3D… Anda dapat membatalkan."}
+{"s": "Titik 3D terlalu sedikit; pilih video dengan detail dan gerakan kamera lebih jelas"}
+{"s": "Hasil tracking melewati batas penyimpanan"}
+{"s": "Gagal: "}
+{"s": "Analisis lain sedang berjalan"}
+{"s": "Analisis ulang sekali untuk menyimpan observasi re-solve."}
+{"s": "ID titik tracking tidak dikenal"}
+{"s": "Menyelesaikan ulang observasi tersimpan…"}
+{"s": "Titik tersisa terlalu sedikit untuk solve"}
+{"s": "Hasil tracking melewati batas penyimpanan; hasil sebelumnya dipertahankan."}
+{"s": "Re-solve gagal: "}
+{"s": "Hasil solver tidak valid"}
+{"s": "Pose kamera tidak valid"}
+{"s": "Titik 3D tidak valid"}
+{"s": "Hasil lama tidak cocok dengan sumber/trim. Analisis ulang."}
+{"s": "Belum dianalisis."}
+{"s": " (rotasi saja, kedalaman tidak dapat diukur)"}
+{"s": "Titik segaris; pilih tiga titik pada permukaan yang sama"}
+{"s": "Analisis tracking belum siap atau sudah kedaluwarsa"}
+{"s": "Pilihan titik tidak valid pada frame ini; pilih ulang titik yang terlihat."}
+{"s": "Pilih tiga titik yang tidak segaris pada satu permukaan"}
+{"s": "Tracking tidak valid"}
+{"s": "Pilih titik pada canvas dahulu"}
+{"s": "Pilih tiga titik satu permukaan untuk orientasi teks/shape"}
+{"s": "Tunggu tracking selesai atau batalkan sebelum Play"}
+{"s": "Pause playback/export sebelum memilih titik."}
+{"s": "Titik + tidak terlacak pada waktu ini. Pilih titik yang terlihat."}
+{"s": "Hasil tracking harus siap dan playback/export harus berhenti."}
+{"s": "Pilih satu titik + yang terlihat pada video yang tidak terkunci."}
+{"s": "Lintasan terlalu singkat. Pilih titik dengan minimal dua observasi berurutan."}
+{"s": "Lintasan terlalu panjang untuk keyframe 2D. Gunakan rentang analisis lebih pendek."}
+{"s": "Jumlah keyframe terlalu banyak. Gunakan rentang analisis lebih pendek."}
+{"s": "Lintasan terputus. Null tidak dibuat agar tidak menyambung titik yang hilang."}
+{"s": "Posisi keyframe tidak valid."}
+{"s": "Titik + ini belum valid untuk penempatan 3D pada frame ini. Gunakan Null 2D atau pilih titik lain."}
+{"s": "Ruang Null tracking tidak dikenal."}
+{"s": "Aktifkan Ruang 3D pada footage untuk Null pada bidang video."}
+{"s": "Footage sumber tidak lagi berada di proyek ini."}
+{"s": "Lintasan terlalu panjang untuk keyframe. Gunakan rentang analisis lebih pendek."}
+{"s": "Titik melewati batas kedalaman kamera utama. Gunakan Null 3D pada bidang video."}
+{"s": "Proyeksi Null 2D tidak valid."}
+{"s": "Kamera solve memerlukan footage 2D. Untuk footage 3D, gunakan Null 3D pada bidang video agar transform tidak terhitung dua kali."}
+{"s": "Sangat baik"}
+{"s": "Belum diketahui"}
+{"s": "Hasil tracking belum siap."}
+{"s": "Pilihan filter titik tidak valid."}
+{"s": " · estimasi kontinuitas/jumlah sampel; error pencocokan belum tersimpan"}
+{"s": "Kualitas belum terukur"}
+{"s": " titik pada frame ini · cakupan "}
+{"s": " Data lama: warna adalah estimasi kesinambungan; analisis ulang untuk error KLT."}
+{"s": " Analisis belum mencakup awal–akhir layer. Analisis ulang seluruh layer dengan sampel lebih rapat."}
+{"s": "Mask observasi 3D tidak valid"}
+{"s": "Dukungan kamera tidak valid"}
+{"s": "Error kamera tidak valid"}
+{"s": "Tanda + tracking yang lolos filter umur/kualitas; pilih saat pause"}
+{"s": " titik + lolos filter"}
+{"s": " / 3 titik dipilih untuk 3D"}
+{"s": "Titik + #"}
+{"s": " detik lintasan tersambung · "}
+{"s": " · tidak terlacak pada waktu ini"}
+{"s": "Pilih satu tanda + pada video untuk membuat Null."}
+{"s": "<p class=\"omsTrackNotice\">Tidak ada titik pada frame ini yang lolos filter. Turunkan batas umur/kualitas atau periksa cakupan analisis.</p>"}
+{"s": "Deteksi otomatis"}
+{"s": "Kamera bergerak"}
+{"s": "Tripod / rotasi saja"}
+{"s": "Transform parent tidak dapat dibalik"}
+{"s": "Null tracker berada di belakang kamera"}
+{"s": "Proyeksi parent tidak valid"}
+{"s": "Skala layer terlalu kecil untuk parenting"}
+{"s": "Parent tidak ditemukan"}
+{"s": "Parent tidak boleh membentuk siklus"}
+{"s": "Transform parenting tidak valid"}
+{"s": " Ruang 3D dan gerakan kamera diwarisi otomatis dari Null tracker. Posisi awal dipertahankan saat memilih parent."}
+{"s": "3D diwarisi dari Null tracker; lepas parent untuk kembali ke 2D."}
+{"s": "Ukuran frame tracking tidak cocok"}
+{"s": "Konfigurasi tracker tidak valid"}
+{"s": "Titik acuan tidak lengkap atau urutan bukan searah jarum jam"}
+{"s": "Tekstur terlalu sedikit. Pilih area dengan detail, bukan permukaan polos."}

@@ -1,0 +1,120 @@
+{"s": "Terlalu banyak sample waktu dalam Expression."}
+{"s": "Maksimal 32 Expression aktif per properti."}
+{"s": "Referensi Expression melingkar atau terlalu dalam."}
+{"s": "Nonaktif: keyframe asli digunakan."}
+{"s": "Controller • tidak menambah pass shader."}
+{"s": "Referensi layer gagal."}
+{"s": "Aktif • "}
+{"s": "Expression aktif"}
+{"s": "Controller aktif"}
+{"s": "Belum diterapkan: "}
+{"s": "Tambahkan Slider Control atau Expression Controls terlebih dahulu."}
+{"s": "Layer tidak tersedia atau terkunci."}
+{"s": "Maksimal "}
+{"s": "Waktu/durasi marker tidak valid."}
+{"s": "Marker harus berada di dalam durasi layer/komposisi."}
+{"s": "Huruf muncul dari bawah."}
+{"s": "Huruf memantul saat masuk."}
+{"s": "Tulis maju, hapus dari belakang."}
+{"s": "Gelombang vertikal selama layer aktif."}
+{"s": "Gangguan posisi deterministik."}
+{"s": "Atur Animate From / To sendiri."}
+{"s": "Muncul dan menghilang tanpa geser."}
+{"s": "Dari / ke kiri"}
+{"s": "Masuk dan keluar melalui kiri."}
+{"s": "Dari / ke kanan"}
+{"s": "Masuk dan keluar melalui kanan."}
+{"s": "Dari / ke atas"}
+{"s": "Masuk dan keluar melalui atas."}
+{"s": "Membesar dari nol lalu mengecil."}
+{"s": "Masuk dari besar, keluar membesar."}
+{"s": "Fade dari huruf terakhir."}
+{"s": "Fade dari Tengah"}
+{"s": "Fade menyebar dari tengah."}
+{"s": "Fade dari Tepi"}
+{"s": "Fade bertemu di tengah."}
+{"s": "Urutan fade acak dengan seed tetap."}
+{"s": "Tulis dari belakang, hapus dari depan."}
+{"s": "Typewriter Tengah"}
+{"s": "Tulis dari tengah ke luar."}
+{"s": "Tulis dari kedua tepi."}
+{"s": "Tulis satu kata pada setiap langkah."}
+{"s": "Tulis satu baris pada setiap langkah."}
+{"s": "Huruf naik masuk dan jatuh keluar."}
+{"s": "Diagonal Kiri"}
+{"s": "Masuk dan keluar secara diagonal kiri atas."}
+{"s": "Diagonal Kanan"}
+{"s": "Masuk dan keluar secara diagonal kanan atas."}
+{"s": "Zip dari Kiri"}
+{"s": "Geser cepat dari kiri ke kanan."}
+{"s": "Zip dari Kanan"}
+{"s": "Geser cepat dari kanan ke kiri."}
+{"s": "Kata bergeser tanpa memisahkan glyph."}
+{"s": "Baris masuk dan keluar dari atas."}
+{"s": "Masuk dari kiri, pergi ke kanan."}
+{"s": "Scale dengan overshoot Back."}
+{"s": "Scale dari Tengah"}
+{"s": "Zoom menyebar dari tengah."}
+{"s": "Zoom dari Besar"}
+{"s": "Scale dari 180% menuju ukuran asli."}
+{"s": "Zoom dari Kecil"}
+{"s": "Scale dari 20% menuju ukuran asli."}
+{"s": "Satu putaran dari kecil ke normal."}
+{"s": "Putaran berlawanan dari kecil."}
+{"s": "Tilt dari Kiri"}
+{"s": "Miring dan bergeser dari kiri."}
+{"s": "Tilt dari Kanan"}
+{"s": "Miring dan bergeser dari kanan."}
+{"s": "Setiap kata mengayun utuh."}
+{"s": "Gerak melingkar mengecil menuju posisi asli."}
+{"s": "Spiral dari Tengah"}
+{"s": "Spiral berurutan dari tengah."}
+{"s": "Putar semu 2D pada sumbu vertikal."}
+{"s": "Putar semu 2D pada sumbu horizontal."}
+{"s": "Flip dari Tengah"}
+{"s": "Flip horizontal menyebar dari tengah."}
+{"s": "Lengkungan mulai dari huruf terakhir."}
+{"s": "Pantulan dengan urutan acak tetap."}
+{"s": "Gelombang horizontal selama layer aktif."}
+{"s": "Ukuran berdenyut bergantian."}
+{"s": "Getaran posisi kecil, seed deterministik."}
+{"s": "Gelombang vertikal lambat dan lebar."}
+{"s": "Kata mengambang secara horizontal."}
+{"s": "Judul per kata dengan pantulan cepat."}
+{"s": "Judul per baris dengan gerak elastis."}
+{"s": "Kartu huruf berputar pada sumbu X dari pivot bawah."}
+{"s": "Rotasi Y dengan perspektif nyata, bukan scale X."}
+{"s": "Engsel Atas 3D"}
+{"s": "Huruf membuka dari pivot atas."}
+{"s": "Huruf membuka seperti pintu dari sisi kiri."}
+{"s": "Teks mendekat dari kedalaman tanpa memperbesar font."}
+{"s": "Setiap baris terbuka dari tepi bawah."}
+{"s": "Tilt Seluruh Teks"}
+{"s": "Semua baris berputar bersama dalam satu kartu."}
+{"s": "Flip Tengah 3D"}
+{"s": "Flip menyebar dari tengah."}
+{"s": "Urutan acak tetap dan rotasi dua sumbu."}
+{"s": "Gelombang rotasi XYZ selama layer aktif."}
+{"s": "Fade Setengah Teks"}
+{"s": "Animator hanya memengaruhi separuh awal target."}
+{"s": "Pop Bagian Tengah"}
+{"s": "Huruf tengah terpilih, bagian lain tetap."}
+{"s": "Pengaruh kedalaman meningkat dari kiri ke kanan."}
+{"s": "Pengaruh rotasi memuncak di tengah teks."}
+{"s": "Highlight Tengah"}
+{"s": "Warna per target menguat di tengah."}
+{"s": "Warna Menjadi Normal"}
+{"s": "Warna awal biru lalu kembali ke warna layer."}
+{"s": "Blur per huruf menghilang saat teks muncul."}
+{"s": "Jarak tambahan antar target menyusut menjadi normal."}
+{"s": "Outline tambahan dan warna emas per target."}
+{"s": "Teks Melengkung"}
+{"s": "Susunan huruf mengikuti arc dan arah tangent."}
+{"s": "Teks Jalur Wave"}
+{"s": "Teks Lingkaran"}
+{"s": "Teks tersusun pada lingkaran; Offset dapat diberi keyframe."}
+{"s": "Teks Bezier"}
+{"s": "Edit delapan koordinat control point dengan ruler/keyframe."}
+{"s": "Rotasi per target melalui interpreter terbatas."}
+{"s": "Depth menggunakan textIndex dan textTotal."}
+{"s": "Scale XY per target dengan rumus yang bisa diedit."}

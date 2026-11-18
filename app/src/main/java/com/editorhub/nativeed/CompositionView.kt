@@ -209,11 +209,7 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         // twice -- which is exactly the class of bug that made the old preview glitch.
         for (layer in project.layers) {
             if (!layer.visible || !layer.covers(time)) continue
-            if (layer.kind == LayerKind.ADJUSTMENT) {
-                drawAdjustment(canvas, layer, time, project, selectionId)
-            } else {
-                drawLayer(canvas, layer, time)
-            }
+            drawLayer(canvas, layer, time)
         }
         if (!forExport) drawSelection(canvas, project, selectionId, time)
         canvas.restore()
@@ -227,35 +223,8 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
      * per graded layer per frame, so it is skipped entirely when the grade is neutral -- an
      * ungraded project pays nothing for the feature existing.
      */
-    /**
-     * An adjustment layer re-grades what is already on the canvas.
-     *
-     * Drawing cannot read the pixels it has already drawn, so the only way to apply a grade to
-     * everything beneath is to draw it again into a fresh layer with the grade applied. That is
-     * what this does: the layers below are re-rendered through the adjustment's colour matrix.
-     * The cost is real, so an adjustment layer is a deliberate choice rather than something
-     * that happens by default -- and it is skipped entirely when the grade is neutral.
-     */
-    private fun drawAdjustment(canvas: Canvas, layer: Layer, time: Double, project: Project, selectionId: String?) {
-        val matrix = colourMatrix(layer) ?: return
-        val paint = android.graphics.Paint().apply {
-            isAntiAlias = true
-            colorFilter = android.graphics.ColorMatrixColorFilter(matrix)
-            alpha = (layer.opacity.valueAt(time).coerceIn(0f, 1f) * 255).toInt()
-        }
-        rect.set(0f, 0f, project.width.toFloat(), project.height.toFloat())
-        val saved = canvas.saveLayer(rect, paint)
-        // Redraw everything below this layer, without selection chrome.
-        project.layers.takeWhile { it.id != layer.id }.forEach { below ->
-            if (below.visible && below.covers(time) && below.kind != LayerKind.ADJUSTMENT) {
-                drawLayer(canvas, below, time)
-            }
-        }
-        canvas.restoreToCount(saved)
-    }
-
     private fun drawLayer(canvas: Canvas, layer: Layer, time: Double) {
-        val needsPaint = layer.graded || layer.blendMode != BlendMode.NORMAL || layer.effects.isNotEmpty()
+        val needsPaint = layer.graded || layer.blendMode != BlendMode.NORMAL
         if (!needsPaint) {
             drawLayerContent(canvas, layer, time)
             return
@@ -272,85 +241,14 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         // Bounds of the layer in composition space, used as the saved layer's extent. Using
         // the whole composition would allocate a full-canvas buffer for a 40 px dot.
         val blur = safe(layer.blur).coerceIn(0f, MAX_DIMENSION)
-        // Effects that need their own buffer (blur, glow) widen the saved layer's bounds.
-        val effectPad = (layer.effects[Effect.BLUR] ?: 0f) * 24f + (layer.effects[Effect.GLOW] ?: 0f) * 30f
-        val halfW = safe(kotlin.math.max(layer.width, layer.textSize * layer.text.length * .6f)) / 2f + blur + effectPad
-        val halfH = safe(kotlin.math.max(layer.height, layer.textSize * 1.4f)) / 2f + blur + effectPad
+        val halfW = safe(kotlin.math.max(layer.width, layer.textSize * layer.text.length * .6f)) / 2f + blur
+        val halfH = safe(kotlin.math.max(layer.height, layer.textSize * 1.4f)) / 2f + blur
         val cx = safe(layer.x.valueAt(time))
         val cy = safe(layer.y.valueAt(time))
         rect.set(cx - halfW, cy - halfH, cx + halfW, cy + halfH)
         val saved = canvas.saveLayer(rect, paint)
         drawLayerContent(canvas, layer, time)
-        // Overlays that sit on top of the layer's own pixels.
-        if (layer.effects.containsKey(Effect.INVERT)) {
-            canvas.drawRect(rect, android.graphics.Paint().apply {
-                // PorterDuff has no DIFFERENCE mode on the app's minimum API; XOR against
-                // opaque white is the standard way to invert on a hardware canvas.
-                xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.XOR)
-                color = Color.WHITE
-                alpha = ((layer.effects[Effect.INVERT] ?: 1f) * 255).toInt().coerceIn(0, 255)
-            })
-        }
-        if (layer.effects.containsKey(Effect.GLOW)) {
-            // A soft additive halo: the shape drawn again, blown out, in ADD mode.
-            val strength = layer.effects[Effect.GLOW] ?: .5f
-            val glowPaint = android.graphics.Paint().apply {
-                color = if (layer.kind == LayerKind.SHAPE) layer.color else Color.WHITE
-                alpha = (strength.coerceIn(0f, 1f) * 120).toInt()
-                maskFilter = android.graphics.BlurMaskFilter(
-                    (12f + strength * 28f).coerceAtLeast(1f),
-                    android.graphics.BlurMaskFilter.Blur.NORMAL
-                )
-                xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.ADD)
-            }
-            canvas.drawRoundRect(rect, 8f, 8f, glowPaint)
-        }
-        if (layer.effects.containsKey(Effect.VIGNETTE)) drawVignette(canvas, rect, layer.effects[Effect.VIGNETTE] ?: .5f)
-        if (layer.effects.containsKey(Effect.GRAIN)) drawGrain(canvas, rect, layer.effects[Effect.GRAIN] ?: .3f)
         canvas.restoreToCount(saved)
-    }
-
-    /** A soft dark edge: a radial gradient in the layer's own bounds. */
-    private fun drawVignette(canvas: Canvas, bounds: RectF, strength: Float) {
-        val paint = android.graphics.Paint().apply {
-            shader = android.graphics.RadialGradient(
-                bounds.centerX(), bounds.centerY(), kotlin.math.max(bounds.width(), bounds.height()) * .7f,
-                intArrayOf(0x00000000, 0x00000000, (0xCC000000).toInt()),
-                floatArrayOf(0f, .55f, 1f),
-                android.graphics.Shader.TileMode.CLAMP
-            )
-            alpha = (strength.coerceIn(0f, 1f) * 255).toInt()
-        }
-        canvas.drawRect(bounds, paint)
-    }
-
-    /**
-     * Film grain.
-     *
-     * A tiled noise bitmap at low alpha, generated once and reused. Generating noise per frame
-     * would cost more than every other effect combined, and a static grain is what a still
-     * frame of film actually looks like.
-     */
-    private fun drawGrain(canvas: Canvas, bounds: RectF, strength: Float) {
-        val tile = grainTile ?: buildGrain().also { grainTile = it }
-        val paint = android.graphics.Paint().apply {
-            shader = android.graphics.BitmapShader(tile, android.graphics.Shader.TileMode.REPEAT, android.graphics.Shader.TileMode.REPEAT)
-            alpha = (strength.coerceIn(0f, 1f) * 90).toInt()
-        }
-        canvas.drawRect(bounds, paint)
-    }
-
-    private var grainTile: Bitmap? = null
-
-    private fun buildGrain(): Bitmap {
-        val size = 128
-        val pixels = IntArray(size * size)
-        val random = java.util.Random(7)
-        for (i in pixels.indices) {
-            val v = random.nextInt(255)
-            pixels[i] = (0xFF shl 24) or (v shl 16) or (v shl 8) or v
-        }
-        return Bitmap.createBitmap(pixels, size, size, Bitmap.Config.ARGB_8888)
     }
 
     /**
@@ -401,17 +299,10 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
     }
 
     private fun drawLayerContent(canvas: Canvas, layer: Layer, time: Double) {
-        val blurAmount = (layer.effects[Effect.BLUR] ?: 0f) * 24f
         when (layer.kind) {
-            LayerKind.ADJUSTMENT -> Unit
-                LayerKind.SHAPE -> {
-                    // A blur effect on a shape is a masked blur, which the shape's own paint
-                    // mask filter already does; it is applied inside drawShape.
-                    drawShape(canvas, layer, time, blurAmount)
-                }
+                LayerKind.SHAPE -> drawShape(canvas, layer, time)
                 LayerKind.TEXT -> drawText(canvas, layer, time)
                 LayerKind.IMAGE, LayerKind.VIDEO -> drawMedia(canvas, layer, time)
-                LayerKind.AUDIO -> Unit
                 LayerKind.NULL -> drawNull(canvas, layer, time)
                 LayerKind.CAMERA, LayerKind.GROUP -> Unit
             }
@@ -442,7 +333,7 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         )
     }
 
-    private fun drawShape(canvas: Canvas, layer: Layer, time: Double, extraBlur: Float = 0f) {
+    private fun drawShape(canvas: Canvas, layer: Layer, time: Double) {
         paint.reset()
         paint.isAntiAlias = true
         paint.color = layer.color
@@ -452,7 +343,7 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         // A negative radius throws, and a radius larger than half the shape is just a
         // rectangle with rounded corners, which is what the caller meant anyway.
         val radius = safe(layer.cornerRadius).coerceIn(0f, kotlin.math.min(w, h) / 2f)
-        val blur = (safe(layer.blur).coerceIn(0f, MAX_DIMENSION) + extraBlur).coerceIn(0f, MAX_DIMENSION)
+        val blur = safe(layer.blur).coerceIn(0f, MAX_DIMENSION)
         if (blur > 0f) paint.maskFilter = android.graphics.BlurMaskFilter(blur, android.graphics.BlurMaskFilter.Blur.NORMAL)
         canvas.save()
         applyTransform(canvas, layer, time)
@@ -497,8 +388,6 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         // some devices and an exception on others.
         if (safe(layer.width) <= 0f || safe(layer.height) <= 0f) return
         val bitmap = when (layer.kind) {
-            // The frame cache is asked for the *source* time, so a trimmed or retimed clip
-            // shows the picture that belongs to this instant rather than its first frame.
             LayerKind.VIDEO -> videoFrame?.invoke(layer, time) ?: bitmaps[layer.id]
             else -> bitmaps[layer.id]
         } ?: return

@@ -9,11 +9,8 @@ on:
 
 permissions:
   # `write` is only needed to refresh the rolling `android-latest` release that holds
-  # the newest APK; everything else in this workflow is read-only.
+  # the newest APK; the editor bundle and APK contents are still verified read-only.
   contents: write
-  # Needed to post build diagnostics to the diagnostics issue, which is the only channel
-  # readable from outside a run in this repository.
-  issues: write
 
 concurrency:
   group: android-${{ github.ref }}
@@ -33,10 +30,44 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
           packages: 'platforms;android-35 build-tools;35.0.0 platform-tools'
+
+      - name: Prepare editor bundle
+        run: node tools/build-web-assets.mjs
+
+      - name: Verify bundled editor assets
+        run: |
+          set -e
+          test -f app/src/main/assets/www/index.html
+          test -f app/src/main/assets/www/native-shell.js
+          test -f app/src/main/assets/www/vendor/mediabunny/mediabunny.mjs
+          bytes=$(stat -c%s app/src/main/assets/www/index.html)
+          echo "Bundled index.html: $bytes bytes"
+          if [ "$bytes" -lt 1000000 ]; then
+            echo "::error::Bundled Open Motion editor looks truncated"
+            exit 1
+          fi
+          if grep -q 'cdn.jsdelivr.net/npm/mediabunny' app/src/main/assets/www/index.html; then
+            echo "::error::CDN mediabunny import survived the offline rewrite"
+            exit 1
+          fi
+
+      - name: Check the bundle can boot
+        run: |
+          set -e
+          # A missing element that startup code binds with $('#id').onclick throws an
+          # uncaught TypeError and leaves the app on its splash screen. The page still
+          # parses, so this has to be a separate check.
+          python3 tools/check-bundle.py
+          node --check app/src/main/assets/www/native-shell.js
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -57,9 +88,9 @@ jobs:
           status=$?
           if [ $status -ne 0 ]; then
             {
-              echo '### Build errors'
+              echo '### Kotlin compile errors'
               echo '```'
-              grep -E '^e: |^ERROR:|error: |What went wrong|^Caused by|AAPT' /tmp/build.log | head -120
+              grep -E '^e: |^w: .*deprecat|error: |What went wrong|^Caused by' /tmp/build.log | head -120
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
             tail -80 /tmp/build.log
@@ -70,140 +101,76 @@ jobs:
       # Compile errors are re-announced as check-run annotations, in slices of ten because
       # GitHub caps annotations per step. Annotations are readable through the API, which the
       # raw job log and log artifacts are not from outside the run.
-      - name: Publish build diagnostics
-        if: failure()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set +e
-          [ -f /tmp/build.log ] || exit 0
-          # The job log and its artifacts are not reachable from outside the run in this
-          # repository, which makes an ordinary compile error impossible to act on. Issue 1 is
-          # the diagnostics thread: the failure is posted there, where it can be read.
-          {
-            echo "### Build failed for \`${{ github.sha }}\`"
-            echo ''
-            echo '```'
-            grep -E '\.kt:[0-9]+:[0-9]+|^e: |ERROR:|error: |FAILURE:|What went wrong' /tmp/build.log | head -60
-            echo ''
-            echo '--- last 40 lines ---'
-            tail -40 /tmp/build.log
-            echo '```'
-          } > /tmp/diag.md
-          gh issue comment 1 --repo "${{ github.repository }}" --body-file /tmp/diag.md
-
-      - name: Report build log 1/6
+      - name: Report compile errors 1/6
         if: failure()
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          # Lines 1-10 from the end of the log, reported as annotations. Annotations are the
-          # only channel readable from outside the run: the raw log and its artifacts are both
-          # blocked for this repository. Filtering on error prefixes was not enough -- a Gradle
-          # daemon failure and an AAPT failure look nothing like a Kotlin error -- so the tail
-          # of the log is reported verbatim.
-          total=$(wc -l < /tmp/build.log)
-          start=$(( total - 10 ))
-          [ $start -lt 1 ] && start=1
-          end=$(( total - 0 ))
-          [ $end -gt $total ] && end=$total
-          sed -n "${start},${end}p" /tmp/build.log | grep -v '^\s*$' | head -10 | while IFS= read -r line; do
-            echo "::error::$line"
+          grep -E '^e: ' /tmp/build.log | sed -n '1,10p' | while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
+            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
+            msg=$(echo "$line" | sed -E 's/^e: //')
+            echo "::error file=$file,line=$lnum::$msg"
           done
 
-      - name: Report build log 2/6
+      - name: Report compile errors 2/6
         if: failure()
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          # Lines 11-20 from the end of the log, reported as annotations. Annotations are the
-          # only channel readable from outside the run: the raw log and its artifacts are both
-          # blocked for this repository. Filtering on error prefixes was not enough -- a Gradle
-          # daemon failure and an AAPT failure look nothing like a Kotlin error -- so the tail
-          # of the log is reported verbatim.
-          total=$(wc -l < /tmp/build.log)
-          start=$(( total - 20 ))
-          [ $start -lt 1 ] && start=1
-          end=$(( total - 10 ))
-          [ $end -gt $total ] && end=$total
-          sed -n "${start},${end}p" /tmp/build.log | grep -v '^\s*$' | head -10 | while IFS= read -r line; do
-            echo "::error::$line"
+          grep -E '^e: ' /tmp/build.log | sed -n '11,20p' | while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
+            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
+            msg=$(echo "$line" | sed -E 's/^e: //')
+            echo "::error file=$file,line=$lnum::$msg"
           done
 
-      - name: Report build log 3/6
+      - name: Report compile errors 3/6
         if: failure()
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          # Lines 21-30 from the end of the log, reported as annotations. Annotations are the
-          # only channel readable from outside the run: the raw log and its artifacts are both
-          # blocked for this repository. Filtering on error prefixes was not enough -- a Gradle
-          # daemon failure and an AAPT failure look nothing like a Kotlin error -- so the tail
-          # of the log is reported verbatim.
-          total=$(wc -l < /tmp/build.log)
-          start=$(( total - 30 ))
-          [ $start -lt 1 ] && start=1
-          end=$(( total - 20 ))
-          [ $end -gt $total ] && end=$total
-          sed -n "${start},${end}p" /tmp/build.log | grep -v '^\s*$' | head -10 | while IFS= read -r line; do
-            echo "::error::$line"
+          grep -E '^e: ' /tmp/build.log | sed -n '21,30p' | while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
+            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
+            msg=$(echo "$line" | sed -E 's/^e: //')
+            echo "::error file=$file,line=$lnum::$msg"
           done
 
-      - name: Report build log 4/6
+      - name: Report compile errors 4/6
         if: failure()
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          # Lines 31-40 from the end of the log, reported as annotations. Annotations are the
-          # only channel readable from outside the run: the raw log and its artifacts are both
-          # blocked for this repository. Filtering on error prefixes was not enough -- a Gradle
-          # daemon failure and an AAPT failure look nothing like a Kotlin error -- so the tail
-          # of the log is reported verbatim.
-          total=$(wc -l < /tmp/build.log)
-          start=$(( total - 40 ))
-          [ $start -lt 1 ] && start=1
-          end=$(( total - 30 ))
-          [ $end -gt $total ] && end=$total
-          sed -n "${start},${end}p" /tmp/build.log | grep -v '^\s*$' | head -10 | while IFS= read -r line; do
-            echo "::error::$line"
+          grep -E '^e: ' /tmp/build.log | sed -n '31,40p' | while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
+            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
+            msg=$(echo "$line" | sed -E 's/^e: //')
+            echo "::error file=$file,line=$lnum::$msg"
           done
 
-      - name: Report build log 5/6
+      - name: Report compile errors 5/6
         if: failure()
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          # Lines 41-50 from the end of the log, reported as annotations. Annotations are the
-          # only channel readable from outside the run: the raw log and its artifacts are both
-          # blocked for this repository. Filtering on error prefixes was not enough -- a Gradle
-          # daemon failure and an AAPT failure look nothing like a Kotlin error -- so the tail
-          # of the log is reported verbatim.
-          total=$(wc -l < /tmp/build.log)
-          start=$(( total - 50 ))
-          [ $start -lt 1 ] && start=1
-          end=$(( total - 40 ))
-          [ $end -gt $total ] && end=$total
-          sed -n "${start},${end}p" /tmp/build.log | grep -v '^\s*$' | head -10 | while IFS= read -r line; do
-            echo "::error::$line"
+          grep -E '^e: ' /tmp/build.log | sed -n '41,50p' | while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
+            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
+            msg=$(echo "$line" | sed -E 's/^e: //')
+            echo "::error file=$file,line=$lnum::$msg"
           done
 
-      - name: Report build log 6/6
+      - name: Report compile errors 6/6
         if: failure()
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          # Lines 51-60 from the end of the log, reported as annotations. Annotations are the
-          # only channel readable from outside the run: the raw log and its artifacts are both
-          # blocked for this repository. Filtering on error prefixes was not enough -- a Gradle
-          # daemon failure and an AAPT failure look nothing like a Kotlin error -- so the tail
-          # of the log is reported verbatim.
-          total=$(wc -l < /tmp/build.log)
-          start=$(( total - 60 ))
-          [ $start -lt 1 ] && start=1
-          end=$(( total - 50 ))
-          [ $end -gt $total ] && end=$total
-          sed -n "${start},${end}p" /tmp/build.log | grep -v '^\s*$' | head -10 | while IFS= read -r line; do
-            echo "::error::$line"
+          grep -E '^e: ' /tmp/build.log | sed -n '51,60p' | while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
+            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
+            msg=$(echo "$line" | sed -E 's/^e: //')
+            echo "::error file=$file,line=$lnum::$msg"
           done
 
       - name: Upload compile log on failure
@@ -228,56 +195,69 @@ jobs:
           retention-days: 90
 
       - name: Verify APK contents
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
           echo "APK: $apk ($(stat -c%s "$apk") bytes)"
           listing=$(unzip -l "$apk")
-
-          # There must be exactly one editor and no web runtime. These guards fail the build
-          # if a bundled site, the WebView support library or a second activity comes back:
-          # that combination is what made the app feel like two apps glued together.
-          if grep -qi 'assets/www/' <<<"$listing"; then
-            echo "::error::APK bundles a web editor under assets/www"
-            exit 1
-          fi
-          if grep -q 'androidx/webkit' <<<"$listing"; then
-            echo "::error::APK contains the WebView support library"
-            exit 1
-          fi
-          if [ "$(find app/src/main/java -name 'EditorActivity.kt' | wc -l)" -ne 0 ]; then
-            echo "::error::a second editor activity is present in the sources"
-            exit 1
-          fi
-
-          # The renderer must actually be in the APK, or the app opens onto a black screen.
-          if ! unzip -l "$apk" | grep -q 'classes.*\.dex'; then
-            echo "::error::APK has no dex"
-            exit 1
-          fi
-
-          # The brand must be in the APK: the adaptive icon and its gradient background.
-          for entry in res/drawable/ic_brand_foreground.xml res/drawable/ic_brand_background.xml \
-                       res/mipmap-anydpi-v26/ic_launcher.xml; do
+          # The diagnostics and self-test scripts are the only way a fault on a user's own
+          # device can be reported back. An APK that ships without them still installs and
+          # still runs, so a missing file is invisible until someone tries to use it.
+          for entry in assets/www/index.html assets/www/native-shell.js \
+                       assets/www/report.js assets/www/check.js assets/www/probe.js assets/www/elements.js assets/www/elements-ui.js assets/www/nodevideo.js assets/www/nodevideo-ui.js assets/www/nodevideo-pro.js assets/www/smooth-motion.js \
+                       assets/www/vendor/mediabunny/mediabunny.mjs; do
             if ! grep -q "$entry" <<<"$listing"; then
-              echo "::error::brand resource missing from APK: $entry"
+              echo "::error::missing $entry in APK"
               exit 1
             fi
           done
-          # The application label must still be EditorsHub, or the launcher shows the wrong name.
-          if [ "$(grep -c 'EditorsHub' app/src/main/res/values/strings.xml)" -lt 1 ]; then
-            echo "::error::app_name is no longer EditorsHub"
-            exit 1
-          fi
-
-          # Size sanity. The two-app build was 19.6 MB; a native-only build that grows past
-          # 16 MB means something large crept back in.
-          size=$(stat -c%s "$apk")
-          if [ "$size" -gt 16000000 ]; then
-            echo "::error::APK is $size bytes, over the 16 MB native-only budget"
-            exit 1
-          fi
-          echo "APK size $size bytes is within the native-only budget"
+          # The bundled document must carry the native adapter and no CDN module.
+          unzip -p "$apk" assets/www/index.html > /tmp/apk-index.html
+          grep -q 'oms-native-shell' /tmp/apk-index.html
+          grep -q 'oms-report' /tmp/apk-index.html
+          grep -q 'oms-check' /tmp/apk-index.html
+          grep -q 'oms-probe' /tmp/apk-index.html
+          grep -q 'oms-elements' /tmp/apk-index.html
+          # The Node Video entry point must survive into the packaged document, and the
+          # speed ceiling must actually have been widened, or slow motion is unreachable.
+          grep -q 'oms-nodevideo-entry' /tmp/apk-index.html
+          grep -q 'data-oms-nv' /tmp/apk-index.html
+          grep -q 'min="0.1" max="4"' /tmp/apk-index.html
+          grep -q 'oms-nodevideo-pro' /tmp/apk-index.html
+          # The preview must be drawn at a fraction of the project size, with the pointer
+          # maths and the projection moved to composition units to match. If any of these
+          # are missing the editor is either slow again or the hit boxes are wrong.
+          # -F: these are literal strings, not patterns -- `)*(` in a basic regex silently
+          # matched nothing and failed the build for the wrong reason.
+          grep -qF 'function omsPreviewCanvasSize()' /tmp/apk-index.html
+          # The projection must normalise against the COMPOSITION size. Normalising against
+          # the canvas size is what drew every 3D layer at half position and put the
+          # selection box in the corner, so this asserts the corrected form.
+          grep -qF 'return{x:(nx*.5+.5)*omsCompositionWidth(),y:(1-(ny*.5+.5))*omsCompositionHeight(),z:nz,w:p.w}' /tmp/apk-index.html
+          grep -qF 'function omsCompositionWidth()' /tmp/apk-index.html
+          # The GPU context must not pay for a frame copy or multisampling nobody reads.
+          grep -qF "antialias:false,preserveDrawingBuffer:false,premultipliedAlpha:false,powerPreference:'high-performance'" /tmp/apk-index.html
+          # A resize mid-playback must be deferred, not presented as a blank buffer.
+          grep -qF '_omsPendingResize' /tmp/apk-index.html
+          # Easing and the curve graph must be one tap from the inspector root.
+          grep -qF 'omsEaseRow' /tmp/apk-index.html
+          grep -qF 'x:(clientX-rect.left)*(W/Math.max(1,rect.width))' /tmp/apk-index.html
+          grep -qF 'window.omsSetPreviewQuality=omsSetPreviewQuality' /tmp/apk-index.html
+          # One sheet listing every tool, and the reachable preview-quality control.
+          grep -qF 'omsMoreToolsBtn' /tmp/apk-index.html
+          grep -qF 'omsPreviewQualitySheet' /tmp/apk-index.html
+          # Row taps: a switchRow whose label is tapped must toggle, on devices that send
+          # only pointer events and on devices that send both.
+          grep -qF '__omsSwitchRows' /tmp/apk-index.html
+          # The zip reader must be able to inflate without DecompressionStream, because the
+          # WebView on the reporting device does not have it.
+          unzip -p "$apk" assets/www/nodevideo.js > /tmp/apk-nodevideo.js
+          grep -qF 'function inflateRaw(' /tmp/apk-nodevideo.js
+          grep -qF 'inflateRaw(raw, entry.size)' /tmp/apk-nodevideo.js
+          ! grep -qF 'cdn.jsdelivr.net/npm/mediabunny' /tmp/apk-index.html
+          echo "editor bundle verified inside APK"
 
       - name: Report APK identity
         run: |

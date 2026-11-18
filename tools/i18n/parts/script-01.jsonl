@@ -1,0 +1,120 @@
+{"s": "Playhead masih berada pada layer terpilih"}
+{"s": "<button type=\"button\" class=\"multiTimeBtn\" data-multi-time=\"trimLeft\"><span>⋯│⊏</span><small>Trim Kiri</small></button><button type=\"button\" class=\"multiTimeBtn\" data-multi-time=\"split\"><span>⊐│⊏</span><small>Split</small></button><button type=\"button\" class=\"multiTimeBtn\" data-multi-time=\"trimRight\"><span>⊐│⋯</span><small>Trim Kanan</small></button>"}
+{"s": "Susun layer berurutan dari bawah ke atas"}
+{"s": "Pilih minimal satu layer visual atau audio yang terlihat"}
+{"s": "Tidak ada layer"}
+{"s": "Gaya ditempel: keyframe + efek"}
+{"s": "Selesai Memilih Layer"}
+{"s": "Pilih Beberapa Layer"}
+{"s": "Tutup mode pilih dan kembali ke klik Inspector normal"}
+{"s": "Aktifkan mode pilih, lalu klik layer di timeline"}
+{"s": "Pilih layer untuk menyalin atau menggandakan"}
+{"s": "Cubit preview untuk Free Perspective"}
+{"s": "Kembali ke Camera Perspective"}
+{"s": "Tidak ada layer 3D aktif"}
+{"s": "Efek"}
+{"s": "<button id=\"transformEditorModeToggle\" class=\"transformEditorModeToggle\" type=\"button\" aria-label=\"Buka Curve Editor\" title=\"Ganti ke Curve Editor\">CURVE</button>"}
+{"s": "<button id=\"transformEditorModeToggle\" class=\"transformEditorModeToggle\" type=\"button\" aria-label=\"Kembali ke Easing biasa\" title=\"Ganti ke Easing biasa\">EASING</button>"}
+{"s": "Tutup"}
+{"s": "Arahkan playhead di antara dua keyframe efek"}
+{"s": "Pilih layer target"}
+{"s": "Belum ada layer target"}
+{"s": "Belum ada layer yang dapat dijadikan target orbit. Tambahkan atau pilih layer selain kamera/audio terlebih dahulu."}
+{"s": "Orbit dinonaktifkan. Tekan <b>Terapkan Orbit</b> untuk melepas ikatan kamera sambil mempertahankan pose kamera saat ini."}
+{"s": "Ikatan orbit kamera dilepas"}
+{"s": "Pilih layer target lebih dulu"}
+{"s": "Target orbit tidak dapat digunakan"}
+{"s": "Sudut Bulat"}
+{"s": "Bulan Sabit"}
+{"s": "Garis"}
+{"s": "Garis Tebal"}
+{"s": "Tanda Tanya"}
+{"s": "Tanda Seru"}
+{"s": "Kunci"}
+{"s": "Kamera 3D"}
+{"s": "Objek Null"}
+{"s": "Grup Kosong"}
+{"s": "Elemen & Proyek"}
+{"s": "Gambar Bebas"}
+{"s": "Gambar Vektor"}
+{"s": "Kotak Sudut Bulat"}
+{"s": "Titik baru ditambah di awal path"}
+{"s": "Titik baru ditambah di akhir path"}
+{"s": "SIMETRI hanya tersedia untuk Bézier biasa"}
+{"s": "SIMETRI aktif: kedua handle memanjang bersama"}
+{"s": "Tutup Path membutuhkan minimal 3 titik"}
+{"s": "Titik dihapus"}
+{"s": "Hapus titik terpilih"}
+{"s": "Sisipkan titik pada posisi hijau"}
+{"s": "Tambah titik baru"}
+{"s": "Buka path"}
+{"s": "Tutup path"}
+{"s": "<div><b>Touchpad edit</b>Geser untuk memindahkan anchor/handle yang terpilih.</div>"}
+{"s": "<div><b>Touchpad edit</b>Pilih titik dari kanan, atau pilih + di ujung path untuk menambah titik baru.</div>"}
+{"s": "Tidak ada titik terpilih"}
+{"s": "Titik disisipkan pada garis"}
+{"s": "Touchpad Pen Tool dan Edit Points"}
+{"s": "Corner atau Smooth Bézier"}
+{"s": "Tambah titik"}
+{"s": "><div><b>Touchpad edit</b>Pilih titik dari kanan, lalu geser di sini untuk memindahkan anchor/handle.</div></div><div class="}
+{"s": "Edit Points aktif • kanan: navigator titik/segmen • +: sisip/hapus • tengah: edit geometry"}
+{"s": "aria-label=\"Buka Blending dan Opacity\""}
+{"s": "Tautkan Ulang"}
+{"s": "id=\"omsInspectorRelinkBtn\" aria-label=\"Tautkan ulang media\""}
+{"s": "Warna & Fill"}
+{"s": "Edit Teks"}
+{"s": "Edit Bentuk"}
+{"s": "<button class=\"mediaQuickBtn\" data-mediaquick=\"trimLeft\"><span class=\"mqIcon\">⋯│⊏</span><span class=\"mqLabel\">Trim Kiri</span></button><button class=\"mediaQuickBtn\" data-mediaquick=\"split\"><span class=\"mqIcon\">⊐│⊏</span><span class=\"mqLabel\">Split</span></button><button class=\"mediaQuickBtn\" data-mediaquick=\"trimRight\"><span class=\"mqIcon\">⊐│⋯</span><span class=\"mqLabel\">Trim Kanan</span></button>"}
+{"s": "kiri"}
+{"s": "kanan"}
+{"s": "Playhead masih berada pada layer"}
+{"s": "Ujung kiri diperpanjang ke playhead"}
+{"s": "Ujung kanan diperpanjang ke playhead"}
+{"s": "Ujung kiri layer dipindahkan ke playhead"}
+{"s": "Ujung kanan layer dipindahkan ke playhead"}
+{"s": "Bagian kiri di-trim"}
+{"s": "Bagian kanan di-trim"}
+{"s": "Clip di-split pada playhead"}
+{"s": "Cari nama font…"}
+{"s": "Local Font • tersimpan di perangkat"}
+{"s": "Font perangkat • tidak perlu jaringan"}
+{"s": "Google Fonts • akan dimuat saat diperlukan"}
+{"s": "Kiri"}
+{"s": "Tengah"}
+{"s": "Kanan"}
+{"s": "Alpha teks"}
+{"s": "Aktifkan Mask atau Exclude untuk menggunakan layer ini sebagai sumber."}
+{"s": "Belum ada parameter efek dengan keyframe"}
+{"s": "PILIH"}
+{"s": "Tempel efek yang terakhir disalin"}
+{"s": ">← Kembali</button><button id="}
+{"s": "><div><b>HOLD</b><br>Nilai ditahan hingga keyframe berikutnya.</div></div><div class="}
+{"s": "Arahkan playhead di antara dua keyframe untuk mengatur easing"}
+{"s": "Belum ada efek yang disalin"}
+{"s": "Efek yang disalin tidak tersedia"}
+{"s": "Aktif"}
+{"s": "Urutkan efek"}
+{"s": "Renderer aktif"}
+{"s": "Renderer belum tersedia"}
+{"s": "Menu efek"}
+{"s": "Buka atau tutup parameter"}
+{"s": "Hapus efek"}
+{"s": "<div class=\"miniNote\">Efek ini tidak memiliki parameter.</div>"}
+{"s": "<div class=\"effectStackEmpty\"><div><span>✦</span><b>Belum ada efek</b><small>Tambahkan efek untuk membangun stack pemrosesan layer ini.</small></div></div>"}
+{"s": "Cari efek..."}
+{"s": "Tambah Efek"}
+{"s": "Semua Efek"}
+{"s": "<i>Tidak ada parameter</i>"}
+{"s": "menu"}
+{"s": "Belum ada parameter efek dengan dua keyframe"}
+{"s": "Aktifkan efek"}
+{"s": "Tambahkan efek lain untuk mengubah urutan"}
+{"s": "Geser untuk mengubah urutan efek"}
+{"s": "Teks & Tipografi"}
+{"s": ">Batal</button><button type="}
+{"s": "<b>Zoom Lens:</b> kontrol Zoom, Focal Length, dan FOV tetap tersinkronisasi seperti sistem lensa kamera variabel."}
+{"s": "<b>Lensa Bebas:</b> FOV mengontrol framing, Focal Length mengontrol compression/expansion perspektif terhadap Focus tanpa mengubah FOV, dan Zoom melakukan crop canvas digital. Ketiganya dapat dianimasikan secara terpisah."}
+{"s": "Geser vertikal • atur panjang tali kamera"}
+{"s": "Geser horizontal untuk orbit X • vertikal untuk orbit Y"}
+{"s": "Geser vertikal • hanya X Rotation / Pitch"}
+{"s": "Geser horizontal • hanya Y Rotation / Yaw"}

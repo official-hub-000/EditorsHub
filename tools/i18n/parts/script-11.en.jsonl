@@ -1,0 +1,120 @@
+{"s":"The tracker has not started"}
+{"s":"Unknown tracking operation"}
+{"s":"The tracking worker timed out"}
+{"s":"The decoder cannot read the video"}
+{"s":"Another analysis is already running"}
+{"s":"Choose an unlocked 2D video without a parent/warp."}
+{"s":"Unknown tracking mode"}
+{"s":"Choose a range of 2–"}
+{"s":" samples; trim the shot or lower the FPS."}
+{"s":"Reference points are incomplete. Pick them on the reference frame first."}
+{"s":"The media file is unavailable; relink the video first"}
+{"s":"The range has freeze/edge extension; select the moving part of the video."}
+{"s":"The worker failed"}
+{"s":"The video frame is not available yet"}
+{"s":" points"}
+{"s":"The target was lost too quickly. Pick a textured point/area or increase the analysis FPS."}
+{"s":"The tracking result exceeds the storage budget"}
+{"s":"No transform to apply"}
+{"s":"The analysis is not ready or the source/trim has changed"}
+{"s":"Choose a separate, 2D, unparented, unlocked target"}
+{"s":"Invalid transform"}
+{"s":"Corner Pin became invalid"}
+{"s":"Use point analysis to create a Null"}
+{"s":"Use Stabilizer analysis on a 2D video without a parent/warp"}
+{"s":"The Stabilizer requires footage without skew/uneven stretch. Use the video's original size."}
+{"s":"Invalid reference frame range"}
+{"s":"2D tracking points; pick reference points while paused"}
+{"s":"Return to the reference frame before picking points"}
+{"s":" points selected"}
+{"s":"From (seconds)"}
+{"s":"To (seconds)"}
+{"s":"Samples / second"}
+{"s":"Re-analyse"}
+{"s":"><label>Result<select data-stab-lock><option value="}
+{"s":">Lock Camera</option></select></label><label>Smoothing (seconds)<input data-stab-smooth type="}
+{"s":"Pick points on the reference frame first"}
+{"s":"Maximum zoom reached; some edges may still be visible"}
+{"s":"Wait for the analysis to finish or cancel it first"}
+{"s":"<button data-tracking-refine>Re-solve observations</button><button data-tracking-delete>Delete + points and re-solve</button>"}
+{"s":"Pick the problem point first"}
+{"s":"Too many Expression dependencies."}
+{"s":"The parameter Expression must produce a finite number."}
+{"s":"</b><button type=\"button\" data-fx-close aria-label=\"Close\">×</button></header><div class=\"omsFxPopupBody239\">"}
+{"s":"The parameter cannot be edited."}
+{"s":"Choose an editable effect parameter first."}
+{"s":"<p>Value uses the unit shown on the control. Keyframes are still stored as base values.</p>"}
+{"s":"<output data-fx-status role=\"status\"></output><footer><button type=\"button\" data-fx-clear>Clear formula</button><button type=\"button\" data-fx-apply class=\"primary\">Apply</button></footer>"}
+{"s":"Active · "}
+{"s":"Preset storage is full. Export or delete old presets."}
+{"s":"Local storage is unavailable. Export the preset as a backup."}
+{"s":"Choose 1–64 effects to copy."}
+{"s":"Effects with masks/external AI results are not portable yet. Use Copy Effect for this source."}
+{"s":"The effect package is invalid or too large."}
+{"s":"Effect definition unavailable or duplicated ID: "}
+{"s":"The imported effect identity does not match."}
+{"s":"Invalid parameter value: "}
+{"s":"Invalid parameter keyframe."}
+{"s":"Invalid keyframe bounds/contents."}
+{"s":"Invalid parameter Expression."}
+{"s":"Choose an unlocked destination layer."}
+{"s":"The effect cannot be created."}
+{"s":" effects and keyframes copied"}
+{"s":"Effect clipboard"}
+{"s":"<div class=\"omsFxActionList239\"><button data-fx-copy-all>Copy all effects + keyframes</button><button data-fx-paste-all "}
+{"s":"Effect package pasted"}
+{"s":"Add an effect first."}
+{"s":"Save effect preset"}
+{"s":"<label>Preset name<input data-fx-preset-name maxlength=\"80\" value=\""}
+{"s":" · Effects"}
+{"s":"\"></label><p>Saves the effect order, values, keyframes/easing and expressions. Media, text content and matte references to other layers are not saved.</p><output role=\"status\"></output><footer><button class=\"primary\" data-fx-save>Save</button><button data-fx-download>Export directly</button></footer>"}
+{"s":"Effect presets"}
+{"s":"Invalid preset storage."}
+{"s":"<button data-fx-preset-mode=\"text\">Text animation</button>"}
+{"s":"<div data-spectrum-options hidden><label class=\"omsSpectrumReplace246\"><input type=\"checkbox\" data-spectrum-replace> Replace existing display keyframes/formulas</label><p>The audio source and source keyframes are always kept. Without a check, the old display keyframes/formulas are kept too.</p></div>"}
+{"s":"<small data-fx-preset-count></small><div data-fx-presets class=\"omsFxPresetList239\"></div><button data-spectrum-more hidden>Show more</button><p data-fx-preset-note></p><output role=\"status\" aria-live=\"polite\"></output>"}
+{"s":"<div data-spectrum-save-form hidden><label>Spectrum preset name<input data-spectrum-name maxlength=\"60\" placeholder=\"My own spectrum\"></label><p>Values, keyframes and easing; no audio, media or formulas.</p><button data-spectrum-save-confirm class=\"primary\">Save custom</button></div>"}
+{"s":"<footer><button data-spectrum-save hidden>Save this look</button><button data-fx-save-package hidden>Save effect package</button><button data-fx-export>Export custom</button><button data-fx-import>Import JSON</button><input data-fx-preset-file type=\"file\" accept=\".json,application/json\" hidden></footer>"}
+{"s":"<option value=\"\">All categories</option>"}
+{"s":"Values can be edited and keyframed. Animation categories use keyframes relative to the layer duration. Thumbnails are illustrative only; the real spectrum follows the audio. Undo is available."}
+{"s":"Presets still produce editable keyframes. Other effects are kept; Undo is available."}
+{"s":"\" aria-label=\"Delete "}
+{"s":" effects · keyframes + expression</small></button><button data-fx-preset-delete=\""}
+{"s":"\" aria-label=\"Delete preset\">×</button></div>"}
+{"s":"Choose an editable text animator."}
+{"s":" new keyframes"}
+{"s":"Custom presets deleted from this browser."}
+{"s":"The preset file is too large."}
+{"s":"Add Audio Spectrum first to import this preset."}
+{"s":"Unsupported preset format."}
+{"s":"Import preset"}
+{"s":"▣  Text animation preset · "}
+{"s":"<button type=\"button\" data-fx-back title=\"Back to layer\" aria-label=\"Back\">←</button><button type=\"button\" data-fx-key title=\"Add / remove a keyframe on the active parameter\" aria-label=\"Keyframe\">◇</button>"}
+{"s":"<button id=\"effectEaseSide\" type=\"button\" title=\"Curve / easing for the active parameter\" aria-label=\"Easing\"><span>╱</span><small id=\"effectEaseRailValue\">---</small><span id=\"effectEaseRailSub\" hidden></span></button>"}
+{"s":"<b>Effects</b><button type=\"button\" data-fx-presets>▣ <span>Presets</span></button><button type=\"button\" data-fx-save-preset>▤ <span>Save</span></button><button type=\"button\" id=\"addEffectBtn\" class=\"primary\">＋ <span>Add Effect</span></button><button type=\"button\" data-fx-close-drawer aria-label=\"Close panel\">×</button>"}
+{"s":"✎  Rename"}
+{"s":"Effect name"}
+{"s":"\" aria-label=\"Effect name\"><footer><button data-fx-rename-apply class=\"primary\">Save</button></footer>"}
+{"s":"<button data-fx-library-mode=\"all\">All</button><button data-fx-library-mode=\"favorites\">☆ Favorites</button><button data-fx-library-mode=\"recent\">◷ Recently used</button>"}
+{"s":"The GPU effect framebuffer is incomplete."}
+{"s":"Invalid GPU effect texture ownership."}
+{"s":"The Tiles framebuffer is incomplete"}
+{"s":"Position Blur"}
+{"s":"Scale Blur"}
+{"s":"Rotation Blur"}
+{"s":"AM Link shader · adaptive to the position, scale and rotation motion of the layer/parent. A still layer stays sharp. It does not track objects moving inside the video."}
+{"s":"Audio Source"}
+{"s":"This Layer"}
+{"s":"First with Audio"}
+{"s":"Band Count"}
+{"s":"Start Point X"}
+{"s":"Start Point Y"}
+{"s":"End Point X"}
+{"s":"End Point Y"}
+{"s":"Maximum Height (px)"}
+{"s":"Appearance"}
+{"s":"Inner Color"}
+{"s":"Outer Color"}
+{"s":"Point"}
+{"s":"Both Sides"}
+{"s":"Merge with the Original Layer"}

@@ -1,0 +1,120 @@
+{"s":"EditorsHub failed to load"}
+{"s":"Something went wrong while starting the app. Try updating Chrome / Android System WebView."}
+{"s":"EditorsHub is ready"}
+{"s":"unknown error"}
+{"s":"Loading app components..."}
+{"s":"Startup took longer than 30 seconds. Check your device compatibility and connection."}
+{"s":"IndexedDB failed to open"}
+{"s":"Catalog metadata is incomplete"}
+{"s":"Back"}
+{"s":"Search Google or local fonts…"}
+{"s":"Reload catalog"}
+{"s":"End of font list"}
+{"s":"No matching fonts."}
+{"s":"<div class=\"omsFontEmpty\">No matching fonts.</div>"}
+{"s":"This font is currently used by the selected layer"}
+{"s":"No local fonts yet"}
+{"s":"Tap a color on the canvas"}
+{"s":"Color could not be read • try another area"}
+{"s":"Cancel"}
+{"s":"Done"}
+{"s":"Color"}
+{"s":"All"}
+{"s":",Color:"}
+{"s":"New Project"}
+{"s":"Shape"}
+{"s":"Text"}
+{"s":"Image"}
+{"s":"Camera"}
+{"s":"Play, pause, loop, frame cadence and wall-clock."}
+{"s":"Codec, source FPS, bitrate, drift, dropped frames, HTMLVideo/WebCodecs and ring buffer."}
+{"s":"Audio proxy, hard sync, drift and analyser."}
+{"s":"Render time, layer count and the GPU/Canvas path."}
+{"s":"Export lifecycle, output, frames and muxing."}
+{"s":"Source decoding, texture upload, encoder and GPU Fast recovery."}
+{"s":"Timeline pre-render, cache hits/misses and cache mode."}
+{"s":"Heap, canvas/bitmap/texture estimates, AM buffers, decoders, queues and repeated playback trends."}
+{"s":"Drawers, tools, key gestures and UI changes."}
+{"s":"active category"}
+{"s":"COPY FAILED"}
+{"s":"MediaRecorder/captureStream is unavailable"}
+{"s":"MediaRecorder failed"}
+{"s":"Shader benchmark failed"}
+{"s":"WebGL is unavailable"}
+{"s":"Benchmark program failed"}
+{"s":"Video benchmark could not be decoded"}
+{"s":"Benchmark is still running"}
+{"s":"manual"}
+{"s":"Benchmark results were reset."}
+{"s":"Benchmark complete • limit found"}
+{"s":"Test did not finish"}
+{"s":"START"}
+{"s":"Choose a media source"}
+{"s":"<section><header><b>Choose "}
+{"s":"</b><button type=\"button\" data-picker-close aria-label=\"Close\">×</button></header><p>"}
+{"s":". Pick from the device or browse Files."}
+{"s":"Choose a photo, video, music, or browse Files."}
+{"s":"</p><div data-picker-options></div><small>If the gallery does not show a file, use Files. Unreadable formats show a message instead of being ignored.</small></section>"}
+{"s":"Files / all files"}
+{"s":"Web Audio is unavailable"}
+{"s":"Audio is empty"}
+{"s":"Waveform analysis failed:"}
+{"s":": file type does not match"}
+{"s":"Media source is unavailable"}
+{"s":"Media could not be read. Check the format/codec or choose another file."}
+{"s":"Media was not ready after 12 seconds. Try Files or another codec."}
+{"s":"WebCodecs scrub module is unavailable:"}
+{"s":"Stage 5 preview worker failed; falling back to Stage 4:"}
+{"s":"Stage 5 preview worker is unavailable; using Stage 4:"}
+{"s":"Blob preview is unavailable"}
+{"s":"WebCodecs/Mediabunny is unavailable"}
+{"s":"Media blob is unavailable"}
+{"s":"Codec is not supported by WebCodecs"}
+{"s":"CanvasSink sequential timestamp API is unavailable"}
+{"s":"Sequential pre-render decode failed:"}
+{"s":"WebCodecs frame decode failed; falling back to HTMLVideo:"}
+{"s":"preview codec could not be decoded"}
+{"s":"V4.94 shared preview decoder is unavailable:"}
+{"s":"V5.06 shared frame source failed:"}
+{"s":"V5.06 paused shared decode failed:"}
+{"s":"Media cannot play yet: "}
+{"s":"Audio source could not be analysed:"}
+{"s":"Live audio analyser failed, using the waveform fallback:"}
+{"s":"PINCH PREVIEW • BACK TO FREE PERSPECTIVE"}
+{"s":"The 3D renderer stopped. Reload the project"}
+{"s":"Shader failed"}
+{"s":"WebGL program failed"}
+{"s":"Relink the import source"}
+{"s":"Source is not available yet"}
+{"s":"1 FINGER ORBIT • 2 FINGERS PAN/ZOOM • ⌾ REVERT"}
+{"s":"Timeline zoom reset to 1.0×"}
+{"s":"Open group contents"}
+{"s":"Close group contents"}
+{"s":"Hardware video cache is unavailable:"}
+{"s":"Saving the video cache chunk failed:"}
+{"s":"Video decoder cache is unavailable:"}
+{"s":"Video cache promotion failed:"}
+{"s":"Off • uses no cache memory"}
+{"s":"Pre-render recording active • Strong mode"}
+{"s":"IndexedDB is unavailable"}
+{"s":"Emergency local save failed:"}
+{"s":"Project saved"}
+{"s":"IndexedDB save failed, using the local fallback:"}
+{"s":"Project saved (local fallback)"}
+{"s":"Browser storage failed. Export a JSON backup"}
+{"s":"Media persistence restore failed:"}
+{"s":"Autosave failed:"}
+{"s":"Fixed pivot (does not follow the target channel)"}
+{"s":" • Copy"}
+{"s":"Layer select mode finished"}
+{"s":"Layer select mode active"}
+{"s":"Layer select mode active • tap layers to select or deselect"}
+{"s":"No layer selected yet"}
+{"s":"Select at least two layers to stack"}
+{"s":"Layers are already stacked at that position"}
+{"s":"Start of the selected layers aligned"}
+{"s":"Layers stacked in order from bottom to top"}
+{"s":"End of the selected layers aligned"}
+{"s":"The playhead is not inside the selected layers"}
+{"s":"Trim start"}
+{"s":"Trim end"}

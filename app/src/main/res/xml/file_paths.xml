@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- Rendered videos, shared through the system sheet. Must match where Exporter writes. -->
-    <cache-path name="export" path="export/" />
-    <!-- Rendered stills, shared the same way. -->
-    <cache-path name="share" path="share/" />
-    <!-- Media copied out of a picker grant, so an expiring grant cannot lose it. -->
-    <files-path name="media" path="media/" />
+    <!-- Exports produced by the editor are written here and shared via the system sheet. -->
+    <files-path name="exports" path="exports/" />
+    <cache-path name="shared_cache" path="shared/" />
 </paths>

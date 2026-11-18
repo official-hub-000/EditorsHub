@@ -371,7 +371,6 @@ private fun TrackArea(
             val layer = row.layer
             val startX = (layer.start * pixelsPerSecond).toFloat() - offsetX
             val endX = ((layer.start + layer.duration) * pixelsPerSecond).toFloat() - offsetX
-            val inset = 3.dp.toPx()
             // A bar narrower than the minimum, or one whose width came out negative, must not
             // reach drawRoundRect: it throws on a negative size and looks wrong at zero.
             val barWidth = (endX - startX).let { if (it.isFinite()) it else 4f }.coerceAtLeast(4f)
@@ -381,12 +380,11 @@ private fun TrackArea(
                 LayerKind.VIDEO -> Color(0xFF9B5DE5)
                 LayerKind.SHAPE -> Color(0xFF3AD9C6)
                 LayerKind.TEXT -> Color(0xFFFFC857)
-                LayerKind.AUDIO -> Color(0xFF35C759)
                 LayerKind.NULL -> Color(0xFF8A94A0)
-                LayerKind.ADJUSTMENT -> Color(0xFFFF9F43)
                 else -> Color(0xFF4A5568)
             }
             val selected = layer.id == store.selectedLayerId
+            val inset = 3.dp.toPx()
             drawRoundRect(
                 color = if (selected) barColor else barColor.copy(alpha = .55f),
                 topLeft = Offset(startX, top + inset),
@@ -433,9 +431,7 @@ fun kindGlyph(kind: LayerKind): String = when (kind) {
     LayerKind.VIDEO -> "VID"
     LayerKind.SHAPE -> "SHP"
     LayerKind.TEXT -> "TXT"
-    LayerKind.AUDIO -> "AUD"
     LayerKind.NULL -> "NUL"
     LayerKind.CAMERA -> "CAM"
     LayerKind.GROUP -> "GRP"
-    LayerKind.ADJUSTMENT -> "ADJ"
 }

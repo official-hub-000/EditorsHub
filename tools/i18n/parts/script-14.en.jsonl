@@ -1,0 +1,76 @@
+{"s":"Video HW did not get a shared frame: "}
+{"s":"GPU Fast could not create a framebuffer "}
+{"s":"The container does not support codec "}
+{"s":" packets; output rejected to avoid corruption"}
+{"s":"Video HW finished • double-buffer + direct encoder • "}
+{"s":"Video blob is unavailable: "}
+{"s":"The video codec cannot be decoded by WebCodecs: "}
+{"s":"The shared decoder produced no frames: "}
+{"s":"Experimental finished • "}
+{"s":" frames; output rejected to avoid corruption"}
+{"s":"Frame-by-frame export finished • "}
+{"s":"Current editor preview quality "}
+{"s":"%. Export still uses full quality. Video scrubbing uses WebCodecs when available and falls back automatically when it is not."}
+{"s":"Choose a matching "}
+{"s":" file"}
+{"s":" project media is not available yet. Select the layer, then use “Relink media”."}
+{"s":" media has been downloaded but cannot be decoded yet. Check the original file format."}
+{"s":" media layers cannot be opened yet. Layers, keyframes, effects and clip timing will not be replaced."}
+{"s":"Warning: the replacement media is only "}
+{"s":" seconds long, while the layer needs up to "}
+{"s":" seconds of source. "}
+{"s":" seconds that are missing will be filled with "}
+{"s":"Warning: the replacement media aspect ratio "}
+{"s":" differs from the original layer ratio "}
+{"s":". Size, trim, keyframes, transform and the old layer duration are kept, so the replacement media will fit the existing layer frame."}
+{"s":"The selected file is not a matching "}
+{"s":" file."}
+{"s":" seconds since the tab opened. Logs are capped at 1,800 events / 4 MiB estimated payload; trends are capped at 180 samples and 60 playback boundaries. Changes are not proof of a leak."}
+{"s":" still held) · "}
+{"s":"Signal: not available ("}
+{"s":" markers · "}
+{"s":"<label class=\"omsExprName\">Reference name<input data-expression-name maxlength=\"80\" value=\""}
+{"s":"\" aria-label=\"Controller or expression name\"></label>"}
+{"s":"<label>Angle "}
+{"s":"<button data-group-select-close aria-label=\"Finish selecting layers\">×</button><b>Selecting "}
+{"s":"<button data-group-root title=\"Back to the main timeline\">« "}
+{"s":"<div class=\"drawerBody omsGroupSettings249\"><label>Group name<input data-group-name value=\""}
+{"s":"Drag the canvas and timeline width"}
+{"s":"Drag to set the canvas width"}
+{"s":"oms-desktop-manual-ratio"}
+{"s":"Drag to set the canvas and timeline width"}
+{"s":"Play"}
+{"s":"Play (Loop)"}
+{"s":"Loop Playback Mode: On"}
+{"s":"Single Play Mode: On"}
+{"s":"Faster access & fullscreen"}
+{"s":"On Safari: tap the Share ⎋ button, then choose \"Add to Home Screen\""}
+{"s":"Chrome blocks PWA install on local HTTP IPs. Open the Chrome ⋮ menu → \"Add to Home Screen\", or open the HTTPS version on GitHub."}
+{"s":"Chrome blocks PWA install on HTTP LAN. Tap Chrome menu ⋮ → \"Add to Home Screen\", or open HTTPS on GitHub."}
+{"s":"PWA install is only available from an HTTPS site. Open EditorsHub through GitHub Pages."}
+{"s":"Tap the browser ⋮ menu, then choose \"Install app\" / \"Add to home screen\"."}
+{"s":"Tap browser menu ⋮ then select \"Install app\"."}
+{"s":"[EditorsHub PWA] install prompt failed:"}
+{"s":"The install prompt is not available yet. Try the browser ⋮ menu."}
+{"s":"Install prompt unavailable. Try browser menu ⋮."}
+{"s":"EditorsHub was installed successfully."}
+{"s":"[EditorsHub PWA] service worker failed:"}
+{"s":"projects"}
+{"s":"<div class=\"mRecentEmptyHint\">No projects yet. Press <b>＋</b> to create your first project!</div>"}
+{"s":"Template applied"}
+{"s":"Project "}
+{"s":"1. Select a layer in the timeline to open the Inspector panel.\\n2. Tap \"Transform\", then move the playhead to the start time.\\n3. Press the \"+\" Keyframe button to mark the first position.\\n4. Move the playhead and move the object.\\n5. Open the \"Easing Curve\" button to soften the motion!"}
+{"s":"3D Composition Space & Camera"}
+{"s":"1. In the timeline, select the layer you want to move into 3D space.\\n2. Open the Inspector and enable \"TRUE 3D\".\\n3. Use the Z axis to set the layer depth.\\n4. Press the Camera button in the preview tools to look from the camera's point of view!"}
+{"s":"Effect Catalog & Audio Spectrum"}
+{"s":"1. Select a layer, then press the \"Effects\" tile in the Inspector.\\n2. Browse hundreds of effects: Chroma Key, Glow, Wave Warp, Spectrum Preset.\\n3. Adjust effect parameters live with a real-time preview!"}
+{"s":"Full Resolution 60 FPS Video Export"}
+{"s":"1. Press the Export button in the top right of the editor.\\n2. Choose 720p, 1080p or 4K Ultra resolution.\\n3. Choose 30 or 60 FPS frame rate.\\n4. Use WebCodecs GPU Fast for super fast export right in the browser."}
+{"s":"Tap to rename the project"}
+{"s":"Rename project"}
+{"s":"Untitled"}
+{"s":"Project name: "}
+{"s":"layer panel"}
+{"s":"<button type=\"button\" data-layer-bar-back aria-label=\"Leave the layer panel\" title=\"Exit\">←</button>"}
+{"s":"<input type=\"text\" class=\"omsLayerBarName\" data-layer-bar-name maxlength=\"80\" spellcheck=\"false\" autocomplete=\"off\" aria-label=\"Layer name\" title=\"Tap to rename the layer\">"}
+{"s":"<button type=\"button\" class=\"omsLayerBarDelete\" data-layer-bar-delete aria-label=\"Delete layer\" title=\"Delete layer\">"}

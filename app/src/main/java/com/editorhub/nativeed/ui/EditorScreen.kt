@@ -77,7 +77,6 @@ fun EditorScreen(
     onOpenSettings: () -> Unit = {},
     onSaveProject: () -> Unit = {},
     onOpenProject: () -> Unit = {},
-    onBackToHome: () -> Unit = {},
     /** True when the previous run crashed; a small button appears so it can be sent. */
     hasCrashReport: Boolean = false,
     onShareCrashReport: () -> Unit = {}
@@ -91,11 +90,6 @@ fun EditorScreen(
     // a configuration change (the old surface is gone), and storing it in `mutableStateOf`
     // would make every read of it a snapshot read inside callbacks that run off the compositions.
     val previewRef = remember { java.util.concurrent.atomic.AtomicReference<CompositionView?>(null) }
-
-    // Audio for video and audio layers, one player per audible clip. Created before the
-    // effect that subscribes to the store, because that subscription references it.
-    val audio = remember { com.editorhub.nativeed.AudioPlayer(context.applicationContext) }
-    DisposableEffect(audio) { onDispose { audio.releaseAll() } }
     // Set while a slider or a canvas drag is reporting continuously. Continuous callbacks only
     // redraw the preview; panels refresh once, on gesture end. Otherwise a drag would rebuild
     // the whole inspector on every pixel and the drag itself would stutter -- the exact thing
@@ -117,13 +111,7 @@ fun EditorScreen(
             if (!gestureActive) rev++
             renderRequest()
         }
-        store.onTimeChange = { time ->
-            playhead.doubleValue = time
-            renderRequest()
-            // Audio follows the playhead. While paused this only re-positions the clips; while
-            // playing it starts whichever clip the playhead just entered.
-            audio.sync(store.project, time, playing)
-        }
+        store.onTimeChange = { time -> playhead.doubleValue = time; renderRequest() }
         onDispose {
             store.onChange = null
             store.onTimeChange = null
@@ -161,8 +149,8 @@ fun EditorScreen(
     // number makes it actionable: this is what turns it into "34 fps, dropped 12 frames on
     // that scrub" and decides whether the fault is drawing, decoding or the clock.
     var showFps by remember { mutableStateOf(false) }
-    var fpsValue by remember { mutableStateOf(0) }
-    var droppedValue by remember { mutableStateOf(0) }
+    var fpsValue by remember { mutableIntStateOf(0) }
+    var droppedValue by remember { mutableIntStateOf(0) }
 
     val playback = remember(store) {
         Playback(
@@ -183,17 +171,6 @@ fun EditorScreen(
             displayName = info?.name ?: "image",
             width = info?.width ?: 1080,
             height = info?.height ?: 1080
-        )
-        rev++
-    }
-    // Audio has no photo-picker equivalent, so it uses the generic document picker.
-    val pickAudio = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        val info = cache.describe(uri)
-        store.addAudio(
-            uri = uri,
-            displayName = info?.name ?: "audio",
-            durationSeconds = (info?.durationMs ?: 0L) / 1000.0
         )
         rev++
     }
@@ -222,31 +199,23 @@ fun EditorScreen(
 
     Column(Modifier.fillMaxSize().background(Ink.bg)) {
 
-        // ------------------------------------------------------------- brand bar
-        // The identity lives here rather than in a splash: a small studio header that says what
-        // this app is, with the project name as the thing you can tap. It is the difference
-        // between "a video editor" and "EditorsHub".
+        // ------------------------------------------------------------- transport
         Row(
-            Modifier
-                .fillMaxWidth()
-                .height(54.dp)
-                .background(Ink.panel)
-                .padding(horizontal = Gap.md),
+            Modifier.fillMaxWidth().height(52.dp).padding(horizontal = Gap.sm),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(Modifier.clickable { onBackToHome() }) { BrandBadge(size = 26) }
-            Spacer(Modifier.width(Gap.sm))
-            Column {
-                Wordmark(fontSize = 15)
-                Text(
-                    store.project.name.uppercase(),
-                    color = Ink.dim,
-                    fontSize = 8.sp,
-                    letterSpacing = 1.2.sp,
-                    maxLines = 1,
-                    modifier = Modifier.clickable { sheet = 2 }
-                )
-            }
+            GlyphButton("\u21B6", enabled = store.canUndo) { store.undo(); rev++ }
+            GlyphButton("\u21B7", enabled = store.canRedo) { store.redo(); rev++ }
+            GlyphButton("\u2398", enabled = store.selectedLayerId != null) { store.copySelected() }
+            GlyphButton("\u2398\u002B", enabled = store.canPaste) { store.paste(); rev++ }
+            Spacer(Modifier.weight(1f))
+            Text(
+                store.project.name,
+                color = Ink.text,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clickable { sheet = 2 }
+            )
             Spacer(Modifier.weight(1f))
             if (hasCrashReport) {
                 // Small and out of the way, but present until a run finishes normally. Tapping
@@ -255,26 +224,7 @@ fun EditorScreen(
                 GlyphButton("\u26A0", tint = Ink.key) { onShareCrashReport() }
             }
             GlyphButton("\u21AA") { shareStill(context, store, bitmaps) }
-            GlyphButton("\u2B07", tint = Ink.accent) { onExport() }
-        }
-
-        // ------------------------------------------------------------- transport
-        Row(
-            Modifier.fillMaxWidth().height(46.dp).background(Ink.panel).padding(horizontal = Gap.sm),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            GlyphButton("\u21B6", enabled = store.canUndo) { store.undo(); rev++ }
-            GlyphButton("\u21B7", enabled = store.canRedo) { store.redo(); rev++ }
-            Box(Modifier.width(1.dp).height(20.dp).background(Ink.line))
-            GlyphButton("\u2398", enabled = store.selectedLayerId != null) { store.copySelected() }
-            GlyphButton("\u2398\u002B", enabled = store.canPaste) { store.paste(); rev++ }
-            Spacer(Modifier.weight(1f))
-            Text(
-                String.format("%.2f", playhead.doubleValue) + "s",
-                color = Ink.text,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+            GlyphButton("\u2B07") { onExport() }
         }
         Hairline(Modifier.fillMaxWidth().height(1.dp))
 
@@ -321,10 +271,7 @@ fun EditorScreen(
                         store.previousKeyframe()?.let { playback.seek(it) }; rev++
                     }
                     GlyphButton(if (playing) "\u275A\u275A" else "\u25B6") {
-                        playback.toggle()
-                        playing = playback.isPlaying
-                        audio.sync(store.project, store.time, playing)
-                        rev++
+                        playback.toggle(); playing = playback.isPlaying; rev++
                     }
                     GlyphButton("|\u25B6") {
                         store.nextKeyframe()?.let { playback.seek(it) }; rev++
@@ -415,11 +362,6 @@ fun EditorScreen(
             onShape = { kind -> store.addShape(kind); rev++; sheet = 0 },
             onText = { store.addText("Text"); rev++; sheet = 0 },
             onNull = { store.addNull(); rev++; sheet = 0 },
-            onAdjustment = { store.addAdjustment(); rev++; sheet = 0 },
-            onAudio = {
-                sheet = 0
-                pickAudio.launch(arrayOf("audio/*"))
-            },
             onImage = {
                 sheet = 0
                 pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))

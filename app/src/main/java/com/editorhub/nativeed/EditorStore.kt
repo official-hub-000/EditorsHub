@@ -245,24 +245,6 @@ class EditorStore(private val context: Context) {
         }
     )
 
-    /** An audio-only clip: no picture, it exists for its sound. */
-    fun addAudio(uri: android.net.Uri, displayName: String, durationSeconds: Double) = addLayer(
-        Layer(name = displayName, kind = LayerKind.AUDIO).apply {
-            sourceUri = uri.toString()
-            duration = if (durationSeconds > .1) durationSeconds else 5.0
-        }
-    )
-
-    /** A layer that grades everything beneath it. */
-    fun addAdjustment() = addLayer(
-        Layer(name = "Adjustment", kind = LayerKind.ADJUSTMENT).apply {
-            duration = project.duration
-            // Starts with a visible but gentle grade so the layer does something immediately.
-            contrast = 1.15f
-            saturation = 1.1f
-        }
-    )
-
     fun addNull() = addLayer(
         Layer(name = "Null", kind = LayerKind.NULL).apply {
             x = Track(project.width / 2f)
@@ -533,15 +515,11 @@ class EditorStore(private val context: Context) {
                         put("cornerRadius", l.cornerRadius)
                         put("text", l.text); put("textSize", l.textSize); put("textBold", l.textBold)
                         put("source", l.sourceUri ?: JSONObject.NULL)
-                        put("sourceStart", l.sourceStart)
                         put("volume", l.volume); put("speed", l.speed)
                         put("brightness", l.brightness); put("contrast", l.contrast)
                         put("saturation", l.saturation); put("vibrance", l.vibrance)
                         put("tint", l.tint); put("tintAmount", l.tintAmount)
                         put("blur", l.blur); put("blend", l.blendMode.name)
-                        put("effects", JSONObject().also { fx ->
-                            l.effects.forEach { (effect, amount) -> fx.put(effect.name, amount) }
-                        })
                         put("tracks", JSONObject().also { tracks ->
                             l.tracks().forEach { (name, t) ->
                                 tracks.put(name, JSONObject().apply {
@@ -598,7 +576,6 @@ class EditorStore(private val context: Context) {
                 layer.textSize = o.optDouble("textSize", 96.0).toFloat()
                 layer.textBold = o.optBoolean("textBold", false)
                 layer.sourceUri = if (o.isNull("source")) null else o.optString("source")
-                layer.sourceStart = o.optDouble("sourceStart", 0.0)
                 layer.volume = o.optDouble("volume", 1.0).toFloat()
                 layer.speed = o.optDouble("speed", 1.0).toFloat()
                 layer.brightness = o.optDouble("brightness", 0.0).toFloat()
@@ -610,11 +587,6 @@ class EditorStore(private val context: Context) {
                 layer.blur = o.optDouble("blur", 0.0).toFloat()
                 layer.blendMode = runCatching { BlendMode.valueOf(o.optString("blend")) }
                     .getOrDefault(BlendMode.NORMAL)
-                o.optJSONObject("effects")?.keys()?.forEach { name ->
-                    val effect = runCatching { Effect.valueOf(name) }.getOrNull() ?: return@forEach
-                    layer.effects[effect] = o.optJSONObject("effects")
-                        ?.optDouble(name, .5)?.toFloat() ?: .5f
-                }
                 val tracks = o.optJSONObject("tracks")
                 tracks?.keys()?.forEach { name ->
                     val to = tracks.optJSONObject(name) ?: return@forEach

@@ -1,0 +1,120 @@
+{"s": "Tracker belum dimulai"}
+{"s": "Operasi tracking tidak dikenal"}
+{"s": "Worker tracking melewati batas waktu"}
+{"s": "Decoder tidak dapat membaca video"}
+{"s": "Satu analisis lain sedang berjalan"}
+{"s": "Pilih video 2D tanpa parent/warp yang tidak terkunci."}
+{"s": "Mode tracking tidak dikenal"}
+{"s": "Pilih rentang 2–"}
+{"s": " sampel; trim shot atau turunkan FPS."}
+{"s": "Titik acuan tidak lengkap. Pilih pada frame acuan terlebih dahulu."}
+{"s": "File media tidak tersedia; tautkan ulang video dahulu"}
+{"s": "Rentang memiliki freeze/edge extension; pilih bagian video bergerak."}
+{"s": "Worker gagal"}
+{"s": "Frame video belum tersedia"}
+{"s": " titik"}
+{"s": "Target hilang terlalu cepat. Pilih titik/area bertekstur atau tingkatkan FPS analisis."}
+{"s": "Hasil tracking melebihi anggaran penyimpanan"}
+{"s": "Tidak ada transform sebelum penerapan"}
+{"s": "Analisis belum siap atau sumber/trim sudah berubah"}
+{"s": "Pilih target terpisah, 2D, tanpa parent, dan tidak terkunci"}
+{"s": "Transform tidak valid"}
+{"s": "Corner Pin menjadi tidak valid"}
+{"s": "Gunakan analisis titik untuk membuat Null"}
+{"s": "Gunakan analisis Stabilizer pada video 2D tanpa parent/warp"}
+{"s": "Stabilizer memerlukan footage tanpa skew/stretch tidak seragam. Gunakan ukuran asli video."}
+{"s": "Rentang frame acuan tidak valid"}
+{"s": "Titik tracking 2D; pilih titik acuan saat pause"}
+{"s": "Kembali ke frame acuan sebelum memilih titik"}
+{"s": " titik dipilih"}
+{"s": "Dari (detik)"}
+{"s": "Sampai (detik)"}
+{"s": "Sampel / detik"}
+{"s": "Analisis ulang"}
+{"s": "><label>Hasil<select data-stab-lock><option value="}
+{"s": ">Lock Camera</option></select></label><label>Smoothing (detik)<input data-stab-smooth type="}
+{"s": "Pilih titik pada Frame acuan terlebih dahulu"}
+{"s": "Maximum zoom tercapai; sebagian tepi mungkin masih terlihat"}
+{"s": "Tunggu analisis selesai atau batalkan dahulu"}
+{"s": "<button data-tracking-refine>Re-solve observasi</button><button data-tracking-delete>Hapus titik + Re-solve</button>"}
+{"s": "Pilih titik yang bermasalah dahulu"}
+{"s": "Terlalu banyak dependensi Expression."}
+{"s": "Expression parameter harus menghasilkan angka terbatas."}
+{"s": "</b><button type=\"button\" data-fx-close aria-label=\"Tutup\">×</button></header><div class=\"omsFxPopupBody239\">"}
+{"s": "Parameter tidak dapat diedit."}
+{"s": "Pilih parameter efek yang bisa diedit terlebih dahulu."}
+{"s": "<p>Value memakai satuan yang ditampilkan pada kontrol. Keyframe tetap tersimpan sebagai nilai dasar.</p>"}
+{"s": "<output data-fx-status role=\"status\"></output><footer><button type=\"button\" data-fx-clear>Hapus rumus</button><button type=\"button\" data-fx-apply class=\"primary\">Terapkan</button></footer>"}
+{"s": "Aktif · "}
+{"s": "Penyimpanan preset penuh. Ekspor atau hapus preset lama."}
+{"s": "Penyimpanan lokal tidak tersedia. Ekspor preset sebagai cadangan."}
+{"s": "Pilih 1–64 efek untuk disalin."}
+{"s": "Efek dengan mask/hasil AI eksternal belum portabel. Gunakan Salin Efek satuan untuk sumber ini."}
+{"s": "Paket efek tidak valid atau terlalu besar."}
+{"s": "Definisi efek tidak tersedia atau ID berulang: "}
+{"s": "Identitas efek impor tidak cocok."}
+{"s": "Nilai parameter tidak valid: "}
+{"s": "Keyframe parameter tidak valid."}
+{"s": "Batas/isi keyframe tidak valid."}
+{"s": "Expression parameter tidak valid."}
+{"s": "Pilih layer tujuan yang tidak terkunci."}
+{"s": "Efek tidak dapat dibuat."}
+{"s": " efek dan keyframe disalin"}
+{"s": "Clipboard efek"}
+{"s": "<div class=\"omsFxActionList239\"><button data-fx-copy-all>Salin semua efek + keyframe</button><button data-fx-paste-all "}
+{"s": "Paket efek ditempel"}
+{"s": "Tambahkan efek terlebih dahulu."}
+{"s": "Simpan preset efek"}
+{"s": "<label>Nama preset<input data-fx-preset-name maxlength=\"80\" value=\""}
+{"s": " · Efek"}
+{"s": "\"></label><p>Menyimpan urutan efek, nilai, keyframe/easing dan expression. Tidak menyimpan media, isi teks, atau referensi matte ke layer lain.</p><output role=\"status\"></output><footer><button class=\"primary\" data-fx-save>Simpan</button><button data-fx-download>Ekspor langsung</button></footer>"}
+{"s": "Preset efek"}
+{"s": "Penyimpanan preset tidak valid."}
+{"s": "<button data-fx-preset-mode=\"text\">Animasi teks</button>"}
+{"s": "<div data-spectrum-options hidden><label class=\"omsSpectrumReplace246\"><input type=\"checkbox\" data-spectrum-replace> Ganti keyframe/rumus tampilan yang ada</label><p>Sumber audio dan keyframe sumber selalu dipertahankan. Tanpa centang, keyframe/rumus tampilan lama juga tetap dipakai.</p></div>"}
+{"s": "<small data-fx-preset-count></small><div data-fx-presets class=\"omsFxPresetList239\"></div><button data-spectrum-more hidden>Tampilkan lebih banyak</button><p data-fx-preset-note></p><output role=\"status\" aria-live=\"polite\"></output>"}
+{"s": "<div data-spectrum-save-form hidden><label>Nama preset spectrum<input data-spectrum-name maxlength=\"60\" placeholder=\"Spectrum buatan saya\"></label><p>Nilai, keyframe dan easing; tanpa audio, media, atau rumus.</p><button data-spectrum-save-confirm class=\"primary\">Simpan kustom</button></div>"}
+{"s": "<footer><button data-spectrum-save hidden>Simpan tampilan ini</button><button data-fx-save-package hidden>Simpan paket efek</button><button data-fx-export>Ekspor kustom</button><button data-fx-import>Impor JSON</button><input data-fx-preset-file type=\"file\" accept=\".json,application/json\" hidden></footer>"}
+{"s": "<option value=\"\">Semua kategori</option>"}
+{"s": "Nilai dapat diedit dan diberi keyframe. Kategori Animasi berisi keyframe relatif durasi layer. Thumbnail hanya ilustrasi; spectrum asli mengikuti audio. Undo tersedia."}
+{"s": "Preset tetap menghasilkan keyframe yang bisa diedit. Efek lain dipertahankan; Undo tersedia."}
+{"s": "\" aria-label=\"Hapus "}
+{"s": " efek · keyframe + expression</small></button><button data-fx-preset-delete=\""}
+{"s": "\" aria-label=\"Hapus preset\">×</button></div>"}
+{"s": "Pilih animator teks yang dapat diedit."}
+{"s": " keyframe baru"}
+{"s": "Preset kustom dihapus dari browser ini."}
+{"s": "File preset terlalu besar."}
+{"s": "Tambahkan Audio Spectrum dahulu untuk mengimpor preset ini."}
+{"s": "Format preset tidak didukung."}
+{"s": "Preset impor"}
+{"s": "▣  Preset animasi teks · "}
+{"s": "<button type=\"button\" data-fx-back title=\"Kembali ke layer\" aria-label=\"Kembali\">←</button><button type=\"button\" data-fx-key title=\"Tambah / hapus keyframe parameter aktif\" aria-label=\"Keyframe\">◇</button>"}
+{"s": "<button id=\"effectEaseSide\" type=\"button\" title=\"Kurva / easing parameter aktif\" aria-label=\"Easing\"><span>╱</span><small id=\"effectEaseRailValue\">---</small><span id=\"effectEaseRailSub\" hidden></span></button>"}
+{"s": "<b>Efek</b><button type=\"button\" data-fx-presets>▣ <span>Preset</span></button><button type=\"button\" data-fx-save-preset>▤ <span>Simpan</span></button><button type=\"button\" id=\"addEffectBtn\" class=\"primary\">＋ <span>Tambah Efek</span></button><button type=\"button\" data-fx-close-drawer aria-label=\"Tutup panel\">×</button>"}
+{"s": "✎  Ganti nama"}
+{"s": "Nama efek"}
+{"s": "\" aria-label=\"Nama efek\"><footer><button data-fx-rename-apply class=\"primary\">Simpan</button></footer>"}
+{"s": "<button data-fx-library-mode=\"all\">Semua</button><button data-fx-library-mode=\"favorites\">☆ Favorit</button><button data-fx-library-mode=\"recent\">◷ Baru dipakai</button>"}
+{"s": "Framebuffer efek GPU tidak lengkap."}
+{"s": "Kepemilikan tekstur efek GPU tidak valid."}
+{"s": "Framebuffer Tiles tidak lengkap"}
+{"s": "Blur Posisi"}
+{"s": "Blur Skala"}
+{"s": "Blur Rotasi"}
+{"s": "Shader AM Link · Adaptif terhadap gerak posisi, skala, dan rotasi layer/parent. Layer diam tetap tajam. Tidak melacak gerak objek di dalam video."}
+{"s": "Sumber Suara"}
+{"s": "Layer Ini"}
+{"s": "Pertama dengan Audio"}
+{"s": "Jumlah Band"}
+{"s": "Titik Awal X"}
+{"s": "Titik Awal Y"}
+{"s": "Titik Akhir X"}
+{"s": "Titik Akhir Y"}
+{"s": "Tinggi Maksimal (px)"}
+{"s": "Tampilan"}
+{"s": "Warna Dalam"}
+{"s": "Warna Luar"}
+{"s": "Titik"}
+{"s": "Kedua Sisi"}
+{"s": "Gabung dengan Layer Asli"}

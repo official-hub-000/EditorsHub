@@ -2,12 +2,20 @@ package com.editorhub
 
 import android.util.Log
 
-/** Logging under one tag, so `adb logcat -s EditorsHub` shows the whole app. */
+/** Thin logging shim so JS console output shows up in `adb logcat`. */
 object NativeLog {
-    const val TAG = "EditorsHub"
+    private const val TAG = "EditorsHub"
 
-    fun d(message: String) = Log.d(TAG, message)
-    fun i(message: String) = Log.i(TAG, message)
-    fun w(message: String, error: Throwable? = null) = Log.w(TAG, message, error)
-    fun e(message: String, error: Throwable? = null) = Log.e(TAG, message, error)
+    fun log(level: String, message: String?, source: String?, line: Int) {
+        val text = buildString {
+            append(message ?: "")
+            if (!source.isNullOrBlank()) append("  (").append(source).append(':').append(line).append(')')
+        }
+        when (level.uppercase()) {
+            "ERROR", "SEVERE" -> Log.e(TAG, text)
+            "WARNING", "WARN" -> Log.w(TAG, text)
+            "DEBUG" -> Log.d(TAG, text)
+            else -> Log.i(TAG, text)
+        }
+    }
 }

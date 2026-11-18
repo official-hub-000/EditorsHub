@@ -1,0 +1,76 @@
+{"s": "Video HW tidak memperoleh shared frame: "}
+{"s": "GPU Fast tidak dapat membuat framebuffer "}
+{"s": "Container tidak mendukung codec "}
+{"s": " packet; output ditolak agar tidak corrupt"}
+{"s": "Video HW selesai • double-buffer + direct encoder • "}
+{"s": "Blob video tidak tersedia: "}
+{"s": "Codec video tidak dapat didecode WebCodecs: "}
+{"s": "Decoder shared tidak menghasilkan frame: "}
+{"s": "Eksperimental selesai • "}
+{"s": " frame; output ditolak agar tidak corrupt"}
+{"s": "Ekspor frame-by-frame selesai • "}
+{"s": "Kualitas preview editor saat ini "}
+{"s": "%. Ekspor tetap kualitas penuh. Scrub video memakai WebCodecs bila tersedia dan fallback otomatis jika tidak didukung."}
+{"s": "Pilih file "}
+{"s": " yang sesuai"}
+{"s": " media proyek belum tersedia. Pilih layer lalu gunakan “Tautkan ulang media”."}
+{"s": " media sudah diunduh tetapi belum dapat didekode. Periksa format file asli."}
+{"s": " layer media belum dapat dibuka. Layer, keyframe, efek dan potongan waktu tidak akan diganti."}
+{"s": "Peringatan: media pengganti hanya "}
+{"s": " detik, sedangkan layer membutuhkan sumber hingga "}
+{"s": " detik. "}
+{"s": " detik yang tidak tersedia akan diisi "}
+{"s": "Peringatan: rasio media pengganti "}
+{"s": " berbeda dari rasio layer asli "}
+{"s": ". Ukuran, trim, keyframe, transform, dan durasi layer lama tetap dipertahankan, sehingga media pengganti akan menyesuaikan ke bingkai layer yang sudah ada."}
+{"s": "File yang dipilih bukan "}
+{"s": " yang sesuai."}
+{"s": " s sejak tab dibuka. Log maksimal 1.800 event / 4 MiB estimasi payload; tren maksimal 180 sampel dan 60 batas playback. Perubahan belum membuktikan kebocoran."}
+{"s": " masih tertahan) · "}
+{"s": "Sinyal: tidak tersedia ("}
+{"s": " penanda · "}
+{"s": "<label class=\"omsExprName\">Nama referensi<input data-expression-name maxlength=\"80\" value=\""}
+{"s": "\" aria-label=\"Nama controller atau expression\"></label>"}
+{"s": "<label>Sudut "}
+{"s": "<button data-group-select-close aria-label=\"Selesai memilih layer\">×</button><b>Memilih "}
+{"s": "<button data-group-root title=\"Kembali ke timeline utama\">« "}
+{"s": "<div class=\"drawerBody omsGroupSettings249\"><label>Nama grup<input data-group-name value=\""}
+{"s": "Geser lebar canvas dan timeline"}
+{"s": "Geser untuk mengatur lebar canvas"}
+{"s": "oms-desktop-manual-ratio"}
+{"s": "Geser untuk mengatur lebar canvas dan timeline"}
+{"s": "Putar"}
+{"s": "Putar (Looping)"}
+{"s": "Mode Putar Berulang: Aktif"}
+{"s": "Mode Putar Sekali: Aktif"}
+{"s": "Aplikasi lebih cepat & layar penuh"}
+{"s": "Di Safari: Ketuk tombol Bagikan ⎋ lalu pilih \"Tambah ke Layar Utama\""}
+{"s": "Chrome memblokir PWA di HTTP IP lokal. Buka menu ⋮ Chrome → \"Tambahkan ke Layar Utama\", atau buka versi HTTPS di GitHub."}
+{"s": "Chrome blocks PWA install on HTTP LAN. Tap Chrome menu ⋮ → \"Add to Home Screen\", or open HTTPS on GitHub."}
+{"s": "Instal PWA hanya tersedia dari situs HTTPS. Buka Open Motion melalui GitHub Pages."}
+{"s": "Ketuk menu browser ⋮ lalu pilih \"Instal aplikasi\" / \"Tambahkan ke layar utama\"."}
+{"s": "Tap browser menu ⋮ then select \"Install app\"."}
+{"s": "[Open Motion PWA] install prompt gagal:"}
+{"s": "Prompt instal belum tersedia. Coba menu ⋮ browser."}
+{"s": "Install prompt unavailable. Try browser menu ⋮."}
+{"s": "Open Motion berhasil diinstal."}
+{"s": "[Open Motion PWA] service worker gagal:"}
+{"s": "proyek"}
+{"s": "<div class=\"mRecentEmptyHint\">Belum ada proyek yang dibuat. Tekan <b>＋</b> untuk membuat proyek pertama!</div>"}
+{"s": "Templat berhasil diterapkan"}
+{"s": "Proyek "}
+{"s": "1. Pilih layer di timeline untuk membuka panel Inspector.\\n2. Ketuk \"Transform\" lalu geser playhead ke detik awal.\\n3. Tekan tombol \"+\" Keyframe untuk menandai posisi pertama.\\n4. Geser playhead dan pindahkan objek.\\n5. Buka tombol \"Kurva Easing\" untuk mengatur kelembutan gerak!"}
+{"s": "Ruang Komposisi 3D & Kamera"}
+{"s": "1. Di timeline, pilih layer yang ingin dipindahkan ke ruang 3D.\\n2. Buka Inspector dan aktifkan opsi \"TRUE 3D\".\\n3. Gunakan sumbu Z untuk mengatur kedalaman layer.\\n4. Tekan tombol Kamera di preview tools untuk melihat dari sudut pandang kamera!"}
+{"s": "Katalog Efek & Spectrum Audio"}
+{"s": "1. Pilih layer lalu tekan tile \"Efek\" pada Inspector.\\n2. Jelajahi ratusan efek: Chroma Key, Glow, Wave Warp, Spectrum Preset.\\n3. Atur parameter efek secara langsung dengan preview real-time!"}
+{"s": "Ekspor Video Resolusi Penuh 60 FPS"}
+{"s": "1. Tekan tombol Ekspor di pojok kanan atas editor.\\n2. Pilih resolusi 720p, 1080p, atau 4K Ultra.\\n3. Pilih framerate 30 atau 60 FPS.\\n4. Gunakan WebCodecs GPU Fast untuk ekspor super cepat langsung di peramban."}
+{"s": "Ketuk untuk mengubah nama proyek"}
+{"s": "Ubah nama proyek"}
+{"s": "Tanpa judul"}
+{"s": "Nama proyek: "}
+{"s": "panel layer"}
+{"s": "<button type=\"button\" data-layer-bar-back aria-label=\"Keluar dari panel layer\" title=\"Keluar\">←</button>"}
+{"s": "<input type=\"text\" class=\"omsLayerBarName\" data-layer-bar-name maxlength=\"80\" spellcheck=\"false\" autocomplete=\"off\" aria-label=\"Nama layer\" title=\"Ketuk untuk mengganti nama layer\">"}
+{"s": "<button type=\"button\" class=\"omsLayerBarDelete\" data-layer-bar-delete aria-label=\"Hapus layer\" title=\"Hapus layer\">"}

@@ -2,14 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-      One editor, written in Kotlin. It decodes media, draws with the Android canvas and
-      encodes video with MediaCodec, all on device. No network permission is declared because
-      nothing in the app reaches the network, and no storage permission is declared because
-      every import and export goes through the Storage Access Framework: the user grants one
-      file at a time.
+      Open Motion renders, composites and encodes video entirely on device.
+      Internet is used only for the optional Google Fonts catalog and the optional
+      portrait-matting model, and never for the editor itself (bundled offline).
+      No storage permissions are required: every import/export goes through the
+      Storage Access Framework, so the user only ever grants per-file access.
     -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <uses-feature android:glEsVersion="0x00020000" android:required="false" />
+    <uses-feature android:glEsVersion="0x00030000" android:required="false" />
 
     <application
         android:name=".EditorsHubApplication"
@@ -25,28 +27,73 @@
         android:theme="@style/Theme.EditorsHub"
         android:usesCleartextTraffic="false">
 
+        <!--
+          The native Kotlin editor. This is what the launcher opens: its own document model,
+          keyframes, easing, renderer, timeline, inspector and MP4 export.
+        -->
+        <!--
+          Launcher. Plain views only, on purpose: it must be able to open, and to show a crash
+          report, even when the editor screens are broken.
+        -->
         <activity
-            android:name=".MainActivity"
+            android:name=".HomeActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
             android:exported="true"
             android:launchMode="singleTop"
-            android:resizeableActivity="true"
-            android:screenOrientation="fullSensor"
-            android:theme="@style/Theme.EditorsHub.Splash"
-            android:windowSoftInputMode="adjustResize">
+            android:theme="@style/Theme.EditorsHub">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
 
-            <!-- Receive media from another app: long-press a photo, share it here. -->
+        <!-- The native Kotlin editor. Opened from the launcher. -->
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:resizeableActivity="true"
+            android:screenOrientation="fullSensor"
+            android:theme="@style/Theme.EditorsHub"
+            android:windowSoftInputMode="adjustResize">
+        </activity>
+
+        <!--
+          The WebView editor, kept as the effects/legacy editor and as the media
+          import/share gateway. Still exported so "open with" and share intents land
+          somewhere that can read project bundles, XML and media.
+        -->
+        <activity
+            android:name=".EditorActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:resizeableActivity="true"
+            android:screenOrientation="fullSensor"
+            android:theme="@style/Theme.EditorsHub"
+            android:windowSoftInputMode="adjustResize">
+
+            <!-- Open project bundles / Alight Motion XML straight from a file manager. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:mimeType="application/json" />
+                <data android:mimeType="text/xml" />
+                <data android:mimeType="application/xml" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
+                <data android:mimeType="audio/*" />
             </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -55,7 +102,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Lets the app share a rendered frame or video without asking for a permission. -->
+        <!-- Lets the app appear in Android's share sheet with exported videos. -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -66,6 +113,7 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="true" />
         <meta-data android:name="android.max_aspect" android:value="2.4" />
     </application>
 
