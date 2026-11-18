@@ -54,17 +54,19 @@ def mark(size: int, color=INK) -> Image.Image:
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     s = size
-    # Stem and arms occupy the central 56% of the canvas, inside the 72dp safe circle.
-    left = 0.22 * s
-    right = 0.78 * s
-    stem_w = 0.115 * s
-    top = 0.235 * s
-    bottom = 0.765 * s
+    # The launcher crops a 108dp foreground down to at most 72dp, and masks it to a circle of
+    # about 66dp. A mark sized for the whole canvas therefore runs off the icon. The mark is
+    # sized for the CROP: 41% of 108dp leaves it at roughly 62% of the visible circle.
+    left = 0.295 * s
+    right = 0.705 * s
+    stem_w = 0.082 * s
+    top = 0.315 * s
+    bottom = 0.685 * s
     mid = (top + bottom) / 2
-    arm_h = 0.105 * s
+    arm_h = 0.075 * s
     top_arm_r = right
-    mid_arm_r = right - 0.10 * s
-    bot_arm_r = right - 0.03 * s
+    mid_arm_r = right - 0.072 * s
+    bot_arm_r = right - 0.022 * s
 
     # Stem.
     d.rectangle([left, top, left + stem_w, bottom], fill=(*color, 255))
@@ -72,7 +74,7 @@ def mark(size: int, color=INK) -> Image.Image:
     d.rectangle([left, top, top_arm_r, top + arm_h], fill=(*color, 255))
     # Middle arm: shorter, with the playhead notch cut from its leading edge.
     d.rectangle([left, mid - arm_h / 2, mid_arm_r, mid + arm_h / 2], fill=(*color, 255))
-    notch = 0.055 * s
+    notch = 0.040 * s
     d.polygon(
         [
             (mid_arm_r, mid - arm_h / 2),

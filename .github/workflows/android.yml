@@ -143,6 +143,19 @@ jobs:
                   problems.append(f"{density}: foreground is opaque at the corners")
               if fg.getpixel((w // 2, h // 2))[3] != 255:
                   problems.append(f"{density}: the mark is missing from the centre")
+              # The launcher crops the 108dp foreground to the middle 72dp and masks it to a
+              # circle of about 66dp. Anything opaque outside that circle is cut off, which is
+              # how a correctly-shaped mark still shipped looking cropped.
+              bbox = fg.getbbox()
+              if bbox:
+                  x0, y0, x1, y1 = bbox
+                  safe = int(w * (33.0 / 108.0) * 2)   # 66dp of a 108dp canvas
+                  off = (w - safe) // 2
+                  if x0 < off or y0 < off or x1 > off + safe or y1 > off + safe:
+                      problems.append(
+                          f"{density}: mark {bbox} escapes the 66dp safe circle "
+                          f"({off}..{off + safe})"
+                      )
               bg = Image.open(f"app/src/main/res/mipmap-{density}/ic_launcher_background.png").convert("RGBA")
               if bg.getpixel((0, 0))[3] != 255:
                   problems.append(f"{density}: background is not opaque")
