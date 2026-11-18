@@ -74,10 +74,8 @@ jobs:
           [ -f /tmp/build.log ] || exit 0
           # Kotlin reports "e: file:///...:line:col message". Those lines are always near the
           # top of a failure, so the tail-of-log steps never showed them.
-          grep -E '^e: ' /tmp/build.log | head -20 | while IFS= read -r line; do
-            file=$(sed -E 's#^e: file://[^/]*(/[^:]*):[0-9]+:[0-9]+.*#\1#' <<<"$line")
-            msg=$(sed -E 's#^e: file://[^ ]* ?##' <<<"$line")
-            echo "::error file=${file#/}::$msg"
+          grep -nE '\.kt:[0-9]+:[0-9]+' /tmp/build.log | head -24 | while IFS= read -r line; do
+            echo "::error::$line"
           done
 
       - name: Report build log 1/6
