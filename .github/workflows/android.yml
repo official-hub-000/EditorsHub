@@ -124,36 +124,55 @@ jobs:
 
       - name: Verify APK contents
         run: |
-          set -e
-          apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
+          # Every check records its own result and the step fails once at the end. With `set -e`
+          # the first failure aborted silently and the diagnostics step had nothing to report.
+          fail=0
+          say() { echo "APK-CHECK: $*"; echo "APK-CHECK: $*" >> /tmp/verify.log; }
+
+          apk=$(ls app/build/outputs/apk/debug/*.apk 2>/dev/null | head -1)
+          if [ -z "$apk" ]; then echo "APK-CHECK: no debug APK produced"; exit 1; fi
+          say "apk=$apk"
+          say "size=$(stat -c%s "$apk")"
           listing=$(unzip -l "$apk")
-          # A WebView bundle must not be in the APK: one editor only.
+          say "entries=$(grep -c . <<<"$listing")"
+
           if grep -q "assets/www/" <<<"$listing"; then
-            echo "::error::the APK contains a bundled web editor"
-            exit 1
+            say "FAIL: a bundled web editor is inside the APK"; fail=1
+          else
+            say "ok: no web bundle"
           fi
-          # A dex with the editor classes must be there, or the APK is empty.
+
           if ! grep -q "classes.dex" <<<"$listing"; then
-            echo "::error::no dex in the APK"
-            exit 1
+            say "FAIL: no dex in the APK"; fail=1
+          else
+            say "ok: dex present"
           fi
-          # The renderer must be compiled in: these are the classes that draw a frame.
-          unzip -p "$apk" classes.dex > /tmp/dex.bin || true
-          for symbol in "Compositor" "PreviewGLView" "EditorStore" "Exporter"; do
-            if ! grep -qa "$symbol" /tmp/dex.bin; then
-              echo "::error::$symbol missing from the dex: the GPU path did not compile in"
-              exit 1
+
+          unzip -p "$apk" classes.dex > /tmp/dex.bin 2>/dev/null
+          say "dex bytes=$(stat -c%s /tmp/dex.bin 2>/dev/null || echo 0)"
+          for symbol in Compositor PreviewGLView EditorStore Exporter Channel Keyframe; do
+            if grep -qa "$symbol" /tmp/dex.bin; then
+              say "ok: $symbol in dex"
+            else
+              say "FAIL: $symbol missing from dex"; fail=1
             fi
           done
-          # Shaders are string constants; if they did not reach the dex there is no canvas.
-          if ! grep -qa "gl_FragColor" /tmp/dex.bin; then
-            echo "::error::shader sources missing from the dex"
-            exit 1
+          if grep -qa "gl_FragColor" /tmp/dex.bin; then
+            say "ok: shaders in dex"
+          else
+            say "FAIL: shader sources missing from dex"; fail=1
           fi
+
           size=$(stat -c%s "$apk")
-          echo "APK size: $size bytes"
           if [ "$size" -gt 16000000 ]; then
-            echo "::error::APK grew past 16 MB; something was bundled that should not be"
+            say "FAIL: APK past 16 MB ($size bytes)"; fail=1
+          else
+            say "ok: size within budget"
+          fi
+
+          cat /tmp/verify.log >> /tmp/build.log 2>/dev/null || true
+          if [ "$fail" -ne 0 ]; then
+            echo "APK verification failed; see APK-CHECK lines above"
             exit 1
           fi
           echo "native app verified: no web bundle, editor classes and shaders present"
