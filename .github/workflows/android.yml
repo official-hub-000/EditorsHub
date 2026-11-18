@@ -98,6 +98,81 @@ jobs:
           fi
           tail -20 /tmp/build.log
 
+      # Compile errors are re-announced as check-run annotations, in slices of ten because
+      # GitHub caps annotations per step. Annotations are readable through the API, which the
+      # raw job log and log artifacts are not from outside the run.
+      - name: Report compile errors 1/6
+        if: failure()
+        run: |
+          set +e
+          [ -f /tmp/build.log ] || exit 0
+          grep -E '^e: ' /tmp/build.log | sed -n '1,10p' | while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
+            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
+            msg=$(echo "$line" | sed -E 's/^e: //')
+            echo "::error file=$file,line=$lnum::$msg"
+          done
+
+      - name: Report compile errors 2/6
+        if: failure()
+        run: |
+          set +e
+          [ -f /tmp/build.log ] || exit 0
+          grep -E '^e: ' /tmp/build.log | sed -n '11,20p' | while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
+            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
+            msg=$(echo "$line" | sed -E 's/^e: //')
+            echo "::error file=$file,line=$lnum::$msg"
+          done
+
+      - name: Report compile errors 3/6
+        if: failure()
+        run: |
+          set +e
+          [ -f /tmp/build.log ] || exit 0
+          grep -E '^e: ' /tmp/build.log | sed -n '21,30p' | while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
+            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
+            msg=$(echo "$line" | sed -E 's/^e: //')
+            echo "::error file=$file,line=$lnum::$msg"
+          done
+
+      - name: Report compile errors 4/6
+        if: failure()
+        run: |
+          set +e
+          [ -f /tmp/build.log ] || exit 0
+          grep -E '^e: ' /tmp/build.log | sed -n '31,40p' | while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
+            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
+            msg=$(echo "$line" | sed -E 's/^e: //')
+            echo "::error file=$file,line=$lnum::$msg"
+          done
+
+      - name: Report compile errors 5/6
+        if: failure()
+        run: |
+          set +e
+          [ -f /tmp/build.log ] || exit 0
+          grep -E '^e: ' /tmp/build.log | sed -n '41,50p' | while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
+            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
+            msg=$(echo "$line" | sed -E 's/^e: //')
+            echo "::error file=$file,line=$lnum::$msg"
+          done
+
+      - name: Report compile errors 6/6
+        if: failure()
+        run: |
+          set +e
+          [ -f /tmp/build.log ] || exit 0
+          grep -E '^e: ' /tmp/build.log | sed -n '51,60p' | while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
+            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
+            msg=$(echo "$line" | sed -E 's/^e: //')
+            echo "::error file=$file,line=$lnum::$msg"
+          done
+
       - name: Upload compile log on failure
         if: failure()
         uses: actions/upload-artifact@v4
