@@ -67,76 +67,118 @@ jobs:
       # Compile errors are re-announced as check-run annotations, in slices of ten because
       # GitHub caps annotations per step. Annotations are readable through the API, which the
       # raw job log and log artifacts are not from outside the run.
-      - name: Report compile errors 1/6
+      - name: Report build log 1/6
         if: failure()
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          grep -E '^e: |^ERROR:|^error: ' /tmp/build.log | sed -n '1,10p' | while IFS= read -r line; do
-            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
-            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
-            msg=$(echo "$line" | sed -E 's/^e: //')
-            echo "::error file=$file,line=$lnum::$msg"
+          # Lines 1-10 from the end of the log, reported as annotations. Annotations are the
+          # only channel readable from outside the run: the raw log and its artifacts are both
+          # blocked for this repository. Filtering on error prefixes was not enough -- a Gradle
+          # daemon failure and an AAPT failure look nothing like a Kotlin error -- so the tail
+          # of the log is reported verbatim.
+          total=$(wc -l < /tmp/build.log)
+          start=$(( total - 10 ))
+          [ $start -lt 1 ] && start=1
+          end=$(( total - 0 ))
+          [ $end -gt $total ] && end=$total
+          sed -n "${start},${end}p" /tmp/build.log | grep -v '^\s*$' | head -10 | while IFS= read -r line; do
+            echo "::error::$line"
           done
 
-      - name: Report compile errors 2/6
+      - name: Report build log 2/6
         if: failure()
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          grep -E '^e: |^ERROR:|^error: ' /tmp/build.log | sed -n '11,20p' | while IFS= read -r line; do
-            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
-            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
-            msg=$(echo "$line" | sed -E 's/^e: //')
-            echo "::error file=$file,line=$lnum::$msg"
+          # Lines 11-20 from the end of the log, reported as annotations. Annotations are the
+          # only channel readable from outside the run: the raw log and its artifacts are both
+          # blocked for this repository. Filtering on error prefixes was not enough -- a Gradle
+          # daemon failure and an AAPT failure look nothing like a Kotlin error -- so the tail
+          # of the log is reported verbatim.
+          total=$(wc -l < /tmp/build.log)
+          start=$(( total - 20 ))
+          [ $start -lt 1 ] && start=1
+          end=$(( total - 10 ))
+          [ $end -gt $total ] && end=$total
+          sed -n "${start},${end}p" /tmp/build.log | grep -v '^\s*$' | head -10 | while IFS= read -r line; do
+            echo "::error::$line"
           done
 
-      - name: Report compile errors 3/6
+      - name: Report build log 3/6
         if: failure()
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          grep -E '^e: |^ERROR:|^error: ' /tmp/build.log | sed -n '21,30p' | while IFS= read -r line; do
-            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
-            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
-            msg=$(echo "$line" | sed -E 's/^e: //')
-            echo "::error file=$file,line=$lnum::$msg"
+          # Lines 21-30 from the end of the log, reported as annotations. Annotations are the
+          # only channel readable from outside the run: the raw log and its artifacts are both
+          # blocked for this repository. Filtering on error prefixes was not enough -- a Gradle
+          # daemon failure and an AAPT failure look nothing like a Kotlin error -- so the tail
+          # of the log is reported verbatim.
+          total=$(wc -l < /tmp/build.log)
+          start=$(( total - 30 ))
+          [ $start -lt 1 ] && start=1
+          end=$(( total - 20 ))
+          [ $end -gt $total ] && end=$total
+          sed -n "${start},${end}p" /tmp/build.log | grep -v '^\s*$' | head -10 | while IFS= read -r line; do
+            echo "::error::$line"
           done
 
-      - name: Report compile errors 4/6
+      - name: Report build log 4/6
         if: failure()
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          grep -E '^e: |^ERROR:|^error: ' /tmp/build.log | sed -n '31,40p' | while IFS= read -r line; do
-            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
-            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
-            msg=$(echo "$line" | sed -E 's/^e: //')
-            echo "::error file=$file,line=$lnum::$msg"
+          # Lines 31-40 from the end of the log, reported as annotations. Annotations are the
+          # only channel readable from outside the run: the raw log and its artifacts are both
+          # blocked for this repository. Filtering on error prefixes was not enough -- a Gradle
+          # daemon failure and an AAPT failure look nothing like a Kotlin error -- so the tail
+          # of the log is reported verbatim.
+          total=$(wc -l < /tmp/build.log)
+          start=$(( total - 40 ))
+          [ $start -lt 1 ] && start=1
+          end=$(( total - 30 ))
+          [ $end -gt $total ] && end=$total
+          sed -n "${start},${end}p" /tmp/build.log | grep -v '^\s*$' | head -10 | while IFS= read -r line; do
+            echo "::error::$line"
           done
 
-      - name: Report compile errors 5/6
+      - name: Report build log 5/6
         if: failure()
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          grep -E '^e: |^ERROR:|^error: ' /tmp/build.log | sed -n '41,50p' | while IFS= read -r line; do
-            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
-            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
-            msg=$(echo "$line" | sed -E 's/^e: //')
-            echo "::error file=$file,line=$lnum::$msg"
+          # Lines 41-50 from the end of the log, reported as annotations. Annotations are the
+          # only channel readable from outside the run: the raw log and its artifacts are both
+          # blocked for this repository. Filtering on error prefixes was not enough -- a Gradle
+          # daemon failure and an AAPT failure look nothing like a Kotlin error -- so the tail
+          # of the log is reported verbatim.
+          total=$(wc -l < /tmp/build.log)
+          start=$(( total - 50 ))
+          [ $start -lt 1 ] && start=1
+          end=$(( total - 40 ))
+          [ $end -gt $total ] && end=$total
+          sed -n "${start},${end}p" /tmp/build.log | grep -v '^\s*$' | head -10 | while IFS= read -r line; do
+            echo "::error::$line"
           done
 
-      - name: Report compile errors 6/6
+      - name: Report build log 6/6
         if: failure()
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          grep -E '^e: |^ERROR:|^error: ' /tmp/build.log | sed -n '51,60p' | while IFS= read -r line; do
-            file=$(echo "$line" | sed -E 's/^e: file:\/\/[^/]*\/([^:]*):([0-9]+):([0-9]+).*/\1/')
-            lnum=$(echo "$line" | sed -E 's/^e: file:\/\/[^:]*:([0-9]+):.*/\1/')
-            msg=$(echo "$line" | sed -E 's/^e: //')
-            echo "::error file=$file,line=$lnum::$msg"
+          # Lines 51-60 from the end of the log, reported as annotations. Annotations are the
+          # only channel readable from outside the run: the raw log and its artifacts are both
+          # blocked for this repository. Filtering on error prefixes was not enough -- a Gradle
+          # daemon failure and an AAPT failure look nothing like a Kotlin error -- so the tail
+          # of the log is reported verbatim.
+          total=$(wc -l < /tmp/build.log)
+          start=$(( total - 60 ))
+          [ $start -lt 1 ] && start=1
+          end=$(( total - 50 ))
+          [ $end -gt $total ] && end=$total
+          sed -n "${start},${end}p" /tmp/build.log | grep -v '^\s*$' | head -10 | while IFS= read -r line; do
+            echo "::error::$line"
           done
 
       - name: Upload compile log on failure
