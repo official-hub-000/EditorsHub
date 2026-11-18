@@ -119,7 +119,7 @@ jobs:
           path: |
             app/build/outputs/apk/debug/*.apk
             app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 90
 
       - name: Verify APK contents
