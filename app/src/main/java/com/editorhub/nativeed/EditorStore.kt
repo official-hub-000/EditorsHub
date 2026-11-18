@@ -124,21 +124,24 @@ class EditorStore(private val context: Context) {
      * editor teaches nothing; this shows what the app does in one press of Play.
      */
     private fun seedStarterProject() {
-        val width = project.width
-        val height = project.height
+        // Named canvasW/canvasH rather than width/height: inside the `apply` blocks below a
+        // local called `width` would shadow the Layer's own `width` property, and the compiler
+        // would then be trying to assign a Float to an Int.
+        val canvasW = project.width
+        val canvasH = project.height
         project.duration = 6.0
         addShape(ShapeKind.RECT).apply {
             name = "Background"
-            width = width.toFloat()
-            height = height.toFloat()
-            x = Track(width / 2f)
-            y = Track(height / 2f)
+            width = canvasW.toFloat()
+            height = canvasH.toFloat()
+            x = Track(canvasW / 2f)
+            y = Track(canvasH / 2f)
             color = 0xFF12171D.toInt()
             cornerRadius = 0f
             duration = 6.0
         }
         addText("EditorsHub").apply {
-            textSize = height * .09f
+            textSize = canvasH * .09f
             textBold = true
             duration = 6.0
             // A real animation: scale up and fade in, so the first Play does something.
