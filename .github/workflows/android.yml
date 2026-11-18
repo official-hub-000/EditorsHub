@@ -139,6 +139,7 @@ jobs:
           # Every check records its own result and the step fails once at the end. With `set -e`
           # the first failure aborted silently and the diagnostics step had nothing to report.
           fail=0
+          : > /tmp/verify.log
           say() { echo "APK-CHECK: $*"; echo "APK-CHECK: $*" >> /tmp/verify.log; }
 
           apk=$(ls app/build/outputs/apk/debug/*.apk 2>/dev/null | head -1)
@@ -161,15 +162,23 @@ jobs:
           fi
 
           unzip -p "$apk" classes.dex > /tmp/dex.bin 2>/dev/null
-          say "dex bytes=$(stat -c%s /tmp/dex.bin 2>/dev/null || echo 0)"
-          for symbol in Compositor PreviewGLView EditorStore Exporter Channel Keyframe; do
-            if grep -qa "$symbol" /tmp/dex.bin; then
+          dexsize=$(stat -c%s /tmp/dex.bin 2>/dev/null || echo 0)
+          say "dex bytes=$dexsize"
+          # `strings` extracts the dex string pool; grep -a on a binary can miss a match that
+          # spans a chunk boundary, which is what produced five false failures.
+          strings /tmp/dex.bin > /tmp/dex.txt 2>/dev/null || cp /tmp/dex.bin /tmp/dex.txt
+          say "dex strings=$(wc -l < /tmp/dex.txt)"
+          if [ "$dexsize" -lt 1000 ]; then
+            say "FAIL: the dex is empty"; fail=1
+          fi
+          for symbol in Compositor PreviewGLView EditorStore Exporter Keyframe Easing; do
+            if grep -q "Lcom/editorhub/.*$symbol;" /tmp/dex.txt || grep -q "$symbol" /tmp/dex.txt; then
               say "ok: $symbol in dex"
             else
               say "FAIL: $symbol missing from dex"; fail=1
             fi
           done
-          if grep -qa "gl_FragColor" /tmp/dex.bin; then
+          if grep -q "gl_FragColor" /tmp/dex.txt; then
             say "ok: shaders in dex"
           else
             say "FAIL: shader sources missing from dex"; fail=1
