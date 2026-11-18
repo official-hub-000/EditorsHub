@@ -252,6 +252,31 @@ class Layer(
         return l
     }
 
+    /**
+     * A copy that is a *new* layer.
+     *
+     * [copyOf] deliberately keeps the id so undo snapshots line up with the live document. A
+     * duplicate or a paste is the opposite case: it must get a fresh id, or two layers share
+     * a cache key and a list key and the app throws.
+     */
+    fun duplicateAsLayer(): Layer = copyOfNewId()
+
+    private fun copyOfNewId(): Layer {
+        val copy = Layer(name = name, kind = kind, start = start, duration = duration)
+        copy.visible = visible; copy.locked = locked
+        copy.x = x.copyOf(); copy.y = y.copyOf()
+        copy.scaleX = scaleX.copyOf(); copy.scaleY = scaleY.copyOf()
+        copy.rotation = rotation.copyOf(); copy.opacity = opacity.copyOf()
+        copy.width = width; copy.height = height; copy.shape = shape; copy.color = color
+        copy.cornerRadius = cornerRadius; copy.text = text; copy.textSize = textSize
+        copy.textBold = textBold; copy.sourceUri = sourceUri
+        copy.volume = volume; copy.speed = speed
+        copy.brightness = brightness; copy.contrast = contrast; copy.saturation = saturation
+        copy.vibrance = vibrance; copy.tint = tint; copy.tintAmount = tintAmount
+        copy.blur = blur; copy.blendMode = blendMode
+        return copy
+    }
+
     /** Every track by name, for the graph editor and for serialisation. */
     fun tracks(): Map<String, Track> = linkedMapOf(
         "x" to x, "y" to y, "scaleX" to scaleX, "scaleY" to scaleY,

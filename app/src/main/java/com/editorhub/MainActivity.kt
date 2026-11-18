@@ -89,9 +89,32 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, true)
-        // Keep whatever the user had. A missing or unreadable file starts a new project.
-        if (!store.loaded) store.bootstrap()
-        cache = MediaCache(this)
+
+        // A build that crashes on this device is worse than an older build that runs. After
+        // two consecutive crashes the app opens the WebView editor instead of the native one,
+        // so the user still has an editor and can still send the trace.
+        if (CrashLog.shouldFallBack(this)) {
+            openWebEditor()
+            finish()
+            return
+        }
+
+        try {
+            // Keep whatever the user had. A missing or unreadable file starts a new project.
+            if (!store.loaded) store.bootstrap()
+            cache = MediaCache(this)
+        } catch (t: Throwable) {
+            // Document loading is the one startup step that touches foreign data (a project
+            // file, a photo the user picked). If it throws, keep a copy and start clean rather
+            // than refusing to open the app at all.
+            runCatching {
+                File(filesDir, "native-project.json").copyTo(
+                    File(filesDir, "native-project.recovered.json"), overwrite = true
+                )
+            }
+            store.emergencyReset()
+            cache = MediaCache(this)
+        }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -110,7 +133,9 @@ class MainActivity : ComponentActivity() {
                         onExport = { showExportSheet = true },
                         onOpenSettings = { openWebEditor() },
                         onSaveProject = { saveProjectFile() },
-                        onOpenProject = { openProjectFile() }
+                        onOpenProject = { openProjectFile() },
+                        hasCrashReport = CrashLog.pending(this@MainActivity) != null,
+                        onShareCrashReport = { shareCrashReport() }
                     )
                     when (val state = exportState) {
                         is ExportState.Running -> ExportOverlay(state.fraction, onCancel = { exportState = ExportState.Idle })
@@ -206,7 +231,37 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
-        store.save()
+        runCatching { store.save() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Reaching onResume means the screen was built and shown once. Clearing the streak
+        // here rather than in onCreate matters: a crash inside the first composition would
+        // never get this far, which is exactly the case the fallback is for.
+        if (startedAt == 0L) {
+            startedAt = System.currentTimeMillis()
+        } else if (System.currentTimeMillis() - startedAt > 1500) {
+            CrashLog.clear(this)
+        }
+    }
+
+    private var startedAt = 0L
+
+    /**
+     * Sends the last crash trace wherever the user wants.
+     *
+     * The point of the crash log is that the user can get it here without a cable, so this
+     * hands the whole text to the share sheet rather than showing a path they cannot reach.
+     */
+    private fun shareCrashReport() {
+        val text = CrashLog.shareText(this)
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, "EditorsHub crash report")
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        runCatching { startActivity(Intent.createChooser(intent, "Send crash report")) }
     }
 
     private fun openWebEditor() {

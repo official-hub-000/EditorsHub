@@ -117,6 +117,23 @@ class EditorStore(private val context: Context) {
     }
 
     /**
+     * Starts an empty project after the saved one could not be used.
+     *
+     * Deliberately does not try to repair the old document: whatever is in it made something
+     * throw, and re-parsing it to find out is how the app ends up failing twice. The caller
+     * has already kept a copy of the file.
+     */
+    fun emergencyReset() {
+        runCatching {
+            undoStack.clear(); redoStack.clear()
+            project = Project()
+            selectedLayerId = null
+            time = 0.0
+            loaded = true
+        }
+    }
+
+    /**
      * A first-run composition.
      *
      * A title card and a background, already keyframed, so the timeline is not empty, the
@@ -249,7 +266,10 @@ class EditorStore(private val context: Context) {
     fun duplicateLayer(id: String?) {
         val layer = project.layer(id) ?: return
         checkpoint()
-        val copy = layer.copyOf().also { it.name = layer.name + " copy" }
+        // `copyOf()` keeps the id, which is what undo needs but is fatal for a second live
+        // layer: every bitmap cache and every list key is keyed by id, and a duplicate key in
+        // the timeline's LazyColumn throws. A duplicate has to be a new layer.
+        val copy = layer.duplicateAsLayer().also { it.name = layer.name + " copy" }
         val index = project.layers.indexOf(layer)
         project.layers.add(index + 1, copy)
         selectedLayerId = copy.id
@@ -338,30 +358,11 @@ class EditorStore(private val context: Context) {
 
     val canPaste: Boolean get() = clipboard != null
 
-    /** Pastes the copied layer on top, nudged so it is visibly a second copy. */
+    /** Pastes the copied layer on top, as a new layer with a fresh id. */
     fun paste(): Layer? {
         val source = clipboard ?: return null
         checkpoint()
-        val copy = source.copyOf()
-        // A fresh id, or the two layers would collide in every map keyed by id.
-        val pasted = Layer(name = copy.name + " copy", kind = copy.kind).also { fresh ->
-            fresh.start = copy.start
-            fresh.duration = copy.duration
-            fresh.visible = copy.visible
-            fresh.x = copy.x.copyOf(); fresh.y = copy.y.copyOf()
-            fresh.scaleX = copy.scaleX.copyOf(); fresh.scaleY = copy.scaleY.copyOf()
-            fresh.rotation = copy.rotation.copyOf(); fresh.opacity = copy.opacity.copyOf()
-            fresh.width = copy.width; fresh.height = copy.height
-            fresh.shape = copy.shape; fresh.color = copy.color; fresh.cornerRadius = copy.cornerRadius
-            fresh.text = copy.text; fresh.textSize = copy.textSize; fresh.textBold = copy.textBold
-            fresh.sourceUri = copy.sourceUri
-            fresh.volume = copy.volume; fresh.speed = copy.speed
-            fresh.brightness = copy.brightness; fresh.contrast = copy.contrast
-            fresh.saturation = copy.saturation; fresh.vibrance = copy.vibrance
-            fresh.tint = copy.tint; fresh.tintAmount = copy.tintAmount
-            fresh.blur = copy.blur; fresh.blendMode = copy.blendMode
-            fresh.x.setKey(time, fresh.x.valueAt(time))
-        }
+        val pasted = source.duplicateAsLayer().also { it.name = source.name + " copy" }
         project.layers.add(pasted)
         selectedLayerId = pasted.id
         touchDuration()
@@ -398,7 +399,7 @@ class EditorStore(private val context: Context) {
 
     fun load(): Boolean = runCatching {
         if (!file.exists()) return false
-        project = deserialise(JSONObject(file.readText()))
+        project = deserialise(JSONObject(file.readText())).sanitised()
         selectedLayerId = null
         time = 0.0
         changed()
@@ -426,13 +427,64 @@ class EditorStore(private val context: Context) {
         val parsed = deserialise(JSONObject(text))
         if (parsed.layers.isEmpty() && parsed.width <= 0) return false
         checkpoint()
-        project = parsed
+        project = parsed.sanitised()
         selectedLayerId = null
         time = 0.0
         save()
         changed()
         true
     }.getOrDefault(false)
+
+    // ------------------------------------------------------------- integrity
+
+    /**
+     * Repairs a document that could not have come from this build.
+     *
+     * Project files are shared, copied between devices and survive app upgrades, so a file can
+     * legitimately contain a zero-sized composition, a layer that ends before it starts, or a
+     * duplicate id. Every one of those turns into a divide-by-zero, a negative size or a
+     * duplicated list key somewhere downstream, and all of them are trivial to correct here
+     * instead of guarding in a dozen places.
+     */
+    private fun Project.sanitised(): Project {
+        if (width < 16) width = 1080
+        if (height < 16) height = 1920
+        if (fps !in 1..240) fps = 30
+        if (duration <= 0.0 || !duration.isFinite()) duration = 10.0
+        layers.removeAll { !it.start.isFinite() || !it.duration.isFinite() }
+        layers.forEach { layer ->
+            if (layer.duration <= 0.0) layer.duration = .1
+            if (layer.start < 0.0) layer.start = 0.0
+            if (!layer.width.isFinite() || layer.width < 0f) layer.width = 1f
+            if (!layer.height.isFinite() || layer.height < 0f) layer.height = 1f
+        }
+        // Ids must be unique, or removing one layer removes both and the timeline's list keys
+        // collide. Renaming the later duplicates is enough and keeps every other reference.
+        val seen = HashSet<String>()
+        layers.replaceAll { layer ->
+            if (seen.add(layer.id)) layer
+            else Layer(name = layer.name, kind = layer.kind, start = layer.start, duration = layer.duration)
+                .also { fresh ->
+                    fresh.visible = layer.visible; fresh.locked = layer.locked
+                    fresh.x = layer.x.copyOf(); fresh.y = layer.y.copyOf()
+                    fresh.scaleX = layer.scaleX.copyOf(); fresh.scaleY = layer.scaleY.copyOf()
+                    fresh.rotation = layer.rotation.copyOf(); fresh.opacity = layer.opacity.copyOf()
+                    fresh.width = layer.width; fresh.height = layer.height
+                    fresh.shape = layer.shape; fresh.color = layer.color
+                    fresh.cornerRadius = layer.cornerRadius
+                    fresh.text = layer.text; fresh.textSize = layer.textSize
+                    fresh.textBold = layer.textBold; fresh.sourceUri = layer.sourceUri
+                    fresh.volume = layer.volume; fresh.speed = layer.speed
+                    fresh.brightness = layer.brightness; fresh.contrast = layer.contrast
+                    fresh.saturation = layer.saturation; fresh.vibrance = layer.vibrance
+                    fresh.tint = layer.tint; fresh.tintAmount = layer.tintAmount
+                    fresh.blur = layer.blur; fresh.blendMode = layer.blendMode
+                    seen.add(fresh.id)
+                    fresh
+                }
+        }
+        return this
+    }
 
     // ------------------------------------------------------------- JSON form
 

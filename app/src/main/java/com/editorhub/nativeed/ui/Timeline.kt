@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,8 +62,14 @@ fun TimelinePanel(
     modifier: Modifier = Modifier,
     /** Bumped by the store on every edit; forces the rows to rebuild. */
     version: Int = 0,
-    /** The live playhead. Read inside draw lambdas so playback repaints, not recomposes. */
-    playhead: MutableDoubleState = remember { mutableDoubleStateOf(0.0) },
+    /**
+     * The live playhead. Read inside draw lambdas so playback repaints, not recomposes.
+     *
+     * Required rather than defaulted on purpose: a default would evaluate `mutableDoubleStateOf`
+     * at the call site, which is a snapshot write outside a composition scope and throws. The
+     * caller owns the state and passes it down.
+     */
+    playhead: MutableDoubleState,
     onSeek: (Double) -> Unit,
     onSeekEnd: () -> Unit = {},
     onGestureStart: () -> Unit = {}
@@ -99,7 +106,11 @@ fun TimelinePanel(
         Row(Modifier.fillMaxWidth().weight(1f)) {
             // Layer heads.
             LazyColumn(Modifier.width(gutterWidth).fillMaxSize()) {
-                items(project.layers.reversed(), key = { it.id }) { layer ->
+                // Keyed by position as well as id: a LazyColumn throws on a duplicate key,
+                // and a crash from the timeline is the worst possible place to find out that
+                // two layers share an id. The document is repaired on load as well; this is
+                // the belt to that pair of braces.
+                itemsIndexed(project.layers.reversed()) { index, layer ->
                     LayerHead(
                         layer = layer,
                         selected = layer.id == store.selectedLayerId,

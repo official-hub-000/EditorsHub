@@ -76,14 +76,19 @@ fun EditorScreen(
     onExport: () -> Unit,
     onOpenSettings: () -> Unit = {},
     onSaveProject: () -> Unit = {},
-    onOpenProject: () -> Unit = {}
+    onOpenProject: () -> Unit = {},
+    /** True when the previous run crashed; a small button appears so it can be sent. */
+    hasCrashReport: Boolean = false,
+    onShareCrashReport: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var rev by remember { mutableStateOf(0) }
     var playing by remember { mutableStateOf(false) }
     var bitmaps by remember { mutableStateOf<Map<String, Bitmap>>(emptyMap()) }
     var sheet by remember { mutableStateOf(0) }  // 0 none, 1 add, 2 project
-    var previewView by remember { mutableStateOf<CompositionView?>(null) }
+    // A plain holder rather than Compose state: the preview view must not be remembered across
+    // a configuration change (the old surface is gone), and storing it in `mutableStateOf`
+    // would make every read of it a snapshot read inside callbacks that run off the compositions.
     val previewRef = remember { java.util.concurrent.atomic.AtomicReference<CompositionView?>(null) }
     // Set while a slider or a canvas drag is reporting continuously. Continuous callbacks only
     // redraw the preview; panels refresh once, on gesture end. Otherwise a drag would rebuild
@@ -104,7 +109,14 @@ fun EditorScreen(
     DisposableEffect(store) {
         store.onChange = { if (!gestureActive) rev++; renderRequest() }
         store.onTimeChange = { time -> playhead.doubleValue = time; renderRequest() }
-        onDispose { store.onChange = null; store.onTimeChange = null }
+        onDispose {
+            store.onChange = null
+            store.onTimeChange = null
+            // Dropping the reference is not cosmetic: the callbacks above outlive the
+            // composition if the store outlives the activity, and a stale SurfaceView would
+            // then be asked to draw onto a surface that no longer exists.
+            previewRef.set(null)
+        }
     }
 
     // Decode whatever media the current project references, once per change of that set.
@@ -195,6 +207,10 @@ fun EditorScreen(
                 modifier = Modifier.clickable { sheet = 2 }
             )
             Spacer(Modifier.weight(1f))
+            if (hasCrashReport) {
+                // Small and out of the way, but present until a run completes cleanly.
+                GlyphButton("\u26A0", tint = Ink.key) { onShareCrashReport() }
+            }
             GlyphButton("\u21AA") { shareStill(context, store, bitmaps) }
             GlyphButton("\u2B07") { onExport() }
         }
@@ -207,7 +223,7 @@ fun EditorScreen(
                 bitmaps = bitmaps,
                 videoFrames = videoFrames,
                 modifier = Modifier.fillMaxSize(),
-                onReady = { view -> previewRef.set(view); previewView = view }
+                onReady = { view -> previewRef.set(view) }
             )
             // Floating add button, bottom-start of the canvas.
             Box(Modifier.align(Alignment.BottomStart).padding(Gap.md)) {

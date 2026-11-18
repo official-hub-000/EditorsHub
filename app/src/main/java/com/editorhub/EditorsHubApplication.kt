@@ -18,6 +18,9 @@ class EditorsHubApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        // Installed before anything else can fail: a crash during startup is the one case
+        // where the report matters most and where nothing else would have been able to help.
+        CrashLog.install(this)
         configureWebView()
     }
 
