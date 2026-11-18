@@ -168,11 +168,17 @@ fun Timeline(store: EditorStore, modifier: Modifier = Modifier) {
                             .fillMaxWidth()
                             .fillMaxHeight()
                             .pointerInput(layer.id, pixelsPerSecond) {
-                                detectTapGestures { store.selectedLayerId = layer.id }
+                                detectTapGestures { offset ->
+                                    store.selectedLayerId = layer.id
+                                    // A tap in the track area also scrubs: that is the gesture
+                                    // people expect from every timeline they have used.
+                                    store.playhead = (offset.x / pixelsPerSecond)
+                                        .coerceIn(0f, comp.duration)
+                                }
                             },
                     ) {
                         Canvas(Modifier.fillMaxWidth().fillMaxHeight()) {
-                            val x = 0f + layer.start * pixelsPerSecond
+                            val x = layer.start * pixelsPerSecond
                             val w = (layer.duration * pixelsPerSecond).coerceAtLeast(6f)
                             val barTop = size.height * .22f
                             val barHeight = size.height * .56f
@@ -190,14 +196,34 @@ fun Timeline(store: EditorStore, modifier: Modifier = Modifier) {
                                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(4f, 4f),
                                     style = Stroke(width = 1.5f),
                                 )
+                                // Trim handles: the two affordances that make a clip a clip.
+                                drawRoundRect(
+                                    color = Ink.text,
+                                    topLeft = Offset(x - 3f, barTop),
+                                    size = Size(6f, barHeight),
+                                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(2f, 2f),
+                                )
+                                drawRoundRect(
+                                    color = Ink.text,
+                                    topLeft = Offset(x + w - 3f, barTop),
+                                    size = Size(6f, barHeight),
+                                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(2f, 2f),
+                                )
                             }
+                            // One continuous playhead through every row.
+                            drawLine(
+                                color = Ink.accent,
+                                start = Offset(comp.playhead * pixelsPerSecond, 0f),
+                                end = Offset(comp.playhead * pixelsPerSecond, size.height),
+                                strokeWidth = 1.5f,
+                            )
                         }
                     }
                 }
             }
         }
 
-        // Playhead line over everything.
-        Box(Modifier.fillMaxWidth().height(2.dp).background(Ink.accent.copy(alpha = .0f))) {}
+        // The timeline needs a bottom edge, or it merges into the gesture bar.
+        Box(Modifier.fillMaxWidth().height(10.dp)) {}
     }
 }

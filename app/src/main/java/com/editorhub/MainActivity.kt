@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import com.editorhub.engine.EditorStore
 import com.editorhub.engine.Layer
 import com.editorhub.engine.LayerKind
@@ -45,6 +46,27 @@ class MainActivity : ComponentActivity() {
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { addMedia(it) }
+    }
+
+    /** Held so the SAF callback can find the render it belongs to. */
+    private var pendingExport: File? = null
+
+    /** Export progress as Compose state, so the overlay recomposes as frames are encoded. */
+    private var exportPercent by androidx.compose.runtime.mutableStateOf<Float?>(null)
+
+    private val saveExport = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("video/mp4"),
+    ) { uri ->
+        val rendered = pendingExport
+        if (uri != null && rendered != null) {
+            runCatching {
+                contentResolver.openOutputStream(uri)?.use { out ->
+                    rendered.inputStream().use { it.copyTo(out) }
+                }
+            }
+        }
+        pendingExport = null
+        exportPercent = null
     }
 
     private val saveProject = registerForActivityResult(
@@ -84,6 +106,34 @@ class MainActivity : ComponentActivity() {
                     onOpen = { openProject.launch(arrayOf("application/json")) },
                     bitmapFor = { layer -> bitmaps[layer.id] },
                 )
+            }
+        }
+    }
+
+    /**
+     * Renders the composition and offers it to the Storage Access Framework.
+     *
+     * The render happens on the exporter's own dispatcher; the UI only sees progress and then a
+     * file picker, which is what makes a long export feel like an operation rather than a freeze.
+     */
+    private fun startExport() {
+        if (exportPercent != null) return
+        exportPercent = 0f
+        val output = File(cacheDir, "export.mp4")
+        lifecycleScope.launch {
+            runCatching {
+                NativeExport(this@MainActivity).exportMp4(
+                    composition = store.composition,
+                    output = output,
+                    bitmapFor = { layer -> synchronized(bitmaps) { bitmaps[layer.id] } },
+                    onProgress = { p -> exportPercent = p },
+                )
+            }.onSuccess {
+                exportPercent = null
+                pendingExport = output
+                saveExport.launch("EditorsHub ${System.currentTimeMillis()}.mp4")
+            }.onFailure {
+                exportPercent = null
             }
         }
     }
@@ -145,8 +195,9 @@ private fun App(
             EditorScreen(
                 store = store,
                 onBack = { screen = 0 },
-                onExport = { /* wired to Exporter in the export sheet */ },
+                onExport = { startExport() },
                 onShare = onSave,
+                exportProgress = exportPercent,
                 bitmapFor = bitmapFor,
             )
         }

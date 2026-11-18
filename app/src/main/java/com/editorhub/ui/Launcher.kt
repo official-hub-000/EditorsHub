@@ -38,14 +38,32 @@ fun LauncherScreen(
     Column(Modifier.fillMaxSize().background(Ink.bg).padding(20.dp)) {
         Spacer(Modifier.height(24.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .size(38.dp)
-                    .clip(RoundedCornerShape(11.dp))
-                    .background(Brush.linearGradient(listOf(Ink.accent, Ink.accentDeep))),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("E", color = Ink.bg, fontSize = 19.sp, fontWeight = FontWeight.Black)
+            // The mark is drawn, not typed: a glyph's metrics differ per device, and the brand
+            // badge has to look identical to the launcher icon.
+            androidx.compose.foundation.Canvas(Modifier.size(38.dp)) {
+                val s = size.minDimension
+                drawRoundRect(
+                    brush = Brush.linearGradient(
+                        listOf(Ink.accent, Ink.accentDeep),
+                        start = androidx.compose.ui.geometry.Offset.Zero,
+                        end = androidx.compose.ui.geometry.Offset(s, s),
+                    ),
+                    size = androidx.compose.ui.geometry.Size(s, s),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * .28f, s * .28f),
+                )
+                val left = s * .26f
+                val right = s * .74f
+                val top = s * .28f
+                val bottom = s * .72f
+                val stem = s * .10f
+                val arm = s * .085f
+                val mid = (top + bottom) / 2f
+                val p = androidx.compose.ui.graphics.Path()
+                p.addRect(androidx.compose.ui.geometry.Rect(left, top, left + stem, bottom))
+                p.addRect(androidx.compose.ui.geometry.Rect(left, top, right, top + arm))
+                p.addRect(androidx.compose.ui.geometry.Rect(left, mid - arm / 2, right - s * .10f, mid + arm / 2))
+                p.addRect(androidx.compose.ui.geometry.Rect(left, bottom - arm, right - s * .04f, bottom))
+                drawPath(p, Ink.bg)
             }
             Spacer(Modifier.width(12.dp))
             Column {

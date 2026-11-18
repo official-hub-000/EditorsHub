@@ -25,6 +25,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install image tooling for the icon check
+        run: python3 -m pip install --quiet --break-system-packages pillow
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -123,6 +126,31 @@ jobs:
 
       - name: Build release APK (unsigned)
         run: ./gradlew --no-daemon :app:assembleRelease | tail -40
+
+      - name: Verify the launcher icon is not blank
+        run: |
+          python3 - <<'EOF'
+          # An opaque adaptive-icon foreground renders as a blank tile on every launcher, which
+          # is exactly the bug that shipped. Assert the assets rather than trusting them.
+          import sys
+          from PIL import Image
+          problems = []
+          for density in ("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"):
+              fg = Image.open(f"app/src/main/res/mipmap-{density}/ic_launcher_foreground.png").convert("RGBA")
+              w, h = fg.size
+              corners = [fg.getpixel(p)[3] for p in ((1, 1), (w - 2, 1), (1, h - 2), (w - 2, h - 2))]
+              if any(a != 0 for a in corners):
+                  problems.append(f"{density}: foreground is opaque at the corners")
+              if fg.getpixel((w // 2, h // 2))[3] != 255:
+                  problems.append(f"{density}: the mark is missing from the centre")
+              bg = Image.open(f"app/src/main/res/mipmap-{density}/ic_launcher_background.png").convert("RGBA")
+              if bg.getpixel((0, 0))[3] != 255:
+                  problems.append(f"{density}: background is not opaque")
+          for p in problems:
+              print(f"::error::ICON {p}")
+          sys.exit(1 if problems else 0)
+          EOF
+          echo "launcher icon verified: transparent foreground, opaque gradient background"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4

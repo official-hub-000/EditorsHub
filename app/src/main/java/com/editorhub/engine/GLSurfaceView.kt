@@ -56,6 +56,9 @@ class PreviewGLView @JvmOverloads constructor(
         override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
             GLES20.glViewport(0, 0, width, height)
             compositor.ensure(width, height)
+            // RENDERMODE_WHEN_DIRTY: without this the first frame is never requested and the
+            // canvas stays empty until something else triggers a redraw.
+            requestRender()
         }
 
         override fun onDrawFrame(gl: GL10?) {

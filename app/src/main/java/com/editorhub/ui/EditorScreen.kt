@@ -49,6 +49,7 @@ fun EditorScreen(
     onExport: () -> Unit,
     onShare: () -> Unit,
     bitmapFor: (Layer) -> android.graphics.Bitmap?,
+    exportProgress: Float? = null,
 ) {
     var preview by remember { mutableStateOf<PreviewGLView?>(null) }
     var fps by remember { mutableStateOf(0) }
@@ -67,8 +68,14 @@ fun EditorScreen(
                 store.playing = false
                 0f
             } else next
-            preview?.invalidatePreview()
+            preview?.requestRender()
         }
+    }
+
+    // Any change to the playhead or the document must produce a frame. Without this the canvas
+    // only updated during playback, which made scrubbing look broken.
+    LaunchedEffect(store.playhead, store.composition) {
+        preview?.requestRender()
     }
 
     DisposableEffect(Unit) {
@@ -101,8 +108,41 @@ fun EditorScreen(
                         preview = this
                     }
                 },
-                update = { it.invalidatePreview() },
+                update = { it.requestRender() },
             )
+            if (exportProgress != null) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(Corners.card))
+                        .background(Ink.bg.copy(alpha = .78f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "Exporting ${(exportProgress!! * 100).toInt()}%",
+                            color = Ink.accent,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Box(
+                            Modifier
+                                .width(160.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(Ink.line),
+                        ) {
+                            Box(
+                                Modifier
+                                    .width(160.dp * exportProgress!!.coerceIn(0f, 1f))
+                                    .height(4.dp)
+                                    .background(Ink.accent),
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         // Transport.
@@ -161,7 +201,7 @@ private fun BrandBar(title: String, onBack: () -> Unit, onShare: () -> Unit, onE
             Text(title.uppercase(), color = Ink.dim, fontSize = 8.5.sp, letterSpacing = 1.sp)
         }
         Spacer(Modifier.weight(1f))
-        TextButtonSmall("Share") { onShare() }
+        TextButtonSmall("Save") { onShare() }
         Spacer(Modifier.width(6.dp))
         TextButtonSmall("Export", accent = true) { onExport() }
     }
