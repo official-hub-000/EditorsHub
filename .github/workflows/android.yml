@@ -67,16 +67,27 @@ jobs:
       # Compile errors are re-announced as check-run annotations, in slices of ten because
       # GitHub caps annotations per step. Annotations are readable through the API, which the
       # raw job log and log artifacts are not from outside the run.
-      - name: Report compile errors
+      - name: Publish build diagnostics
         if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e
           [ -f /tmp/build.log ] || exit 0
-          # Kotlin reports "e: file:///...:line:col message". Those lines are always near the
-          # top of a failure, so the tail-of-log steps never showed them.
-          grep -nE '\.kt:[0-9]+:[0-9]+' /tmp/build.log | head -24 | while IFS= read -r line; do
-            echo "::error::$line"
-          done
+          # The job log and its artifacts are not reachable from outside the run in this
+          # repository, which makes an ordinary compile error impossible to act on. Issue 1 is
+          # the diagnostics thread: the failure is posted there, where it can be read.
+          {
+            echo "### Build failed for \`${{ github.sha }}\`"
+            echo ''
+            echo '```'
+            grep -E '\.kt:[0-9]+:[0-9]+|^e: |ERROR:|error: |FAILURE:|What went wrong' /tmp/build.log | head -60
+            echo ''
+            echo '--- last 40 lines ---'
+            tail -40 /tmp/build.log
+            echo '```'
+          } > /tmp/diag.md
+          gh issue comment 1 --repo "${{ github.repository }}" --body-file /tmp/diag.md
 
       - name: Report build log 1/6
         if: failure()
