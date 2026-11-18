@@ -27,8 +27,12 @@
         android:theme="@style/Theme.EditorsHub"
         android:usesCleartextTraffic="false">
 
+        <!--
+          The native Kotlin editor. This is what the launcher opens: its own document model,
+          keyframes, easing, renderer, timeline, inspector and MP4 export.
+        -->
         <activity
-            android:name=".EditorActivity"
+            android:name=".MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
             android:exported="true"
             android:launchMode="singleTop"
@@ -41,6 +45,22 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <!--
+          The WebView editor, kept as the effects/legacy editor and as the media
+          import/share gateway. Still exported so "open with" and share intents land
+          somewhere that can read project bundles, XML and media.
+        -->
+        <activity
+            android:name=".EditorActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|navigation|touchscreen|layoutDirection|locale"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:resizeableActivity="true"
+            android:screenOrientation="fullSensor"
+            android:theme="@style/Theme.EditorsHub"
+            android:windowSoftInputMode="adjustResize">
 
             <!-- Open project bundles / Alight Motion XML straight from a file manager. -->
             <intent-filter>

@@ -1,7 +1,9 @@
 package com.editorhub
 
 import android.app.Application
+import android.content.Context
 import android.webkit.WebView
+import com.editorhub.nativeed.EditorStore
 
 /**
  * EditorsHub is the native Android home of the Open Motion editor engine.
@@ -28,6 +30,20 @@ class EditorsHubApplication : Application() {
     companion object {
         lateinit var instance: EditorsHubApplication
             private set
+
+        /**
+         * The one document store for the whole app.
+         *
+         * Held here rather than in an Activity so a rotation, a theme change or the WebView
+         * editor being opened on top cannot destroy it. That means the undo history and the
+         * decoded bitmaps survive, and the project file is never re-read underneath a gesture.
+         */
+        @Volatile private var storeRef: EditorStore? = null
+
+        fun store(context: Context): EditorStore =
+            storeRef ?: synchronized(this) {
+                storeRef ?: EditorStore(context.applicationContext).also { storeRef = it }
+            }
 
         /**
          * Virtual https origin used to serve the bundled editor out of the APK.
