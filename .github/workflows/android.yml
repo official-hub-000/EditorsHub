@@ -170,6 +170,11 @@ jobs:
             say "ok: size within budget"
           fi
 
+          { echo "### APK verification for \`${{ github.sha }}\`"; echo '```';
+            cat /tmp/verify.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          grep "FAIL" /tmp/verify.log | while IFS= read -r line; do
+            echo "::error::$line"
+          done
           if [ "$fail" -ne 0 ]; then
             { echo "### APK verification failed for \`${{ github.sha }}\`"; echo '```';
               cat /tmp/verify.log; echo '```'; } > /tmp/verify-diag.md
