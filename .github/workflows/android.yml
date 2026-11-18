@@ -66,9 +66,11 @@ jobs:
           restore-keys: gradle-${{ runner.os }}-
 
       - name: Build debug APK
-        # The log is teed to a file as well as the console: the diagnostics step reads the file,
-        # and the console copy is what a human sees on the run page.
-        run: ./gradlew --no-daemon --stacktrace :app:assembleDebug 2>&1 | tee /tmp/build.log
+        # pipefail is essential: `gradlew | tee` reports tee's exit status, so a failed compile
+        # looked like a successful build and the next step then found no APK.
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon --stacktrace :app:assembleDebug 2>&1 | tee /tmp/build.log
 
       - name: Build log on failure
         if: failure()
