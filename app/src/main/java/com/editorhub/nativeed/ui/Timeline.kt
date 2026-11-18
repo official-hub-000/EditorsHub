@@ -150,6 +150,15 @@ fun TimelinePanel(
 private val TICK_STEPS = listOf(.1, .25, .5, 1.0, 2.0, 5.0, 10.0, 15.0, 30.0, 60.0, 120.0)
 
 /**
+ * Width reserved for a ruler label.
+ *
+ * Labels are only drawn when this much room remains to the right of the tick. A generous
+ * reserve is cheaper than measuring every label on every frame, and the worst case is simply
+ * that the last label near the edge is dropped -- which is what a ruler looks like anyway.
+ */
+private const val LABEL_WIDTH = 44f
+
+/**
  * Ruler + playhead + pinch zoom.
  *
  * Separate from the panel so its canvas has its own draw scope: a layer rename does not
@@ -184,21 +193,33 @@ private fun RulerCanvas(
                 )
             }
     ) {
-        // Pick a tick interval that keeps labels at least 56 dp apart at this zoom.
-        val pixelsPerSecond = (size.width / duration.toFloat()) * scale
+        // Pick a tick interval that keeps labels at least 56 dp apart at this zoom. A zero or
+        // non-finite duration would make every tick coordinate infinite, and an infinite
+        // coordinate reaches the text layout as an integer overflow.
+        val safeDuration = duration.takeIf { it.isFinite() && it > 0.0 } ?: return@Canvas
+        val pixelsPerSecond = (size.width / safeDuration.toFloat()) * scale
         val candidates = TICK_STEPS
         val step = candidates.firstOrNull { (it * pixelsPerSecond) >= 56.dp.toPx() } ?: 120.0
+        val labelStyle = androidx.compose.ui.text.TextStyle(color = Ink.dim, fontSize = 9.sp)
         var t = 0.0
-        while (t <= duration + 1e-6) {
+        while (t <= safeDuration + 1e-6) {
             val x = (t * pixelsPerSecond).toFloat() - offsetX
+            // The line is drawn whenever the tick is anywhere near the viewport, but the LABEL
+            // only when there is room for it. `drawText` in a DrawScope lays the text out
+            // against the space left from `topLeft` to the right edge, and that space goes
+            // negative for a tick past the right edge -- which throws
+            // "maxWidth(-4) must be >= than minWidth(0)". A tick 60 px off screen is exactly
+            // that case, and it is reached by any zoom level where a tick lands just outside.
             if (x >= -60f && x <= size.width + 60f) {
                 drawLine(Ink.line, Offset(x, size.height * .55f), Offset(x, size.height), strokeWidth = 1f)
+            }
+            if (x + 4f < size.width - LABEL_WIDTH) {
                 val label = if (step < 1.0) "%.2fs".format(t) else "${t.roundToInt()}s"
                 drawText(
                     textMeasurer = measurer,
                     text = label,
                     topLeft = Offset(x + 4f, 2f),
-                    style = androidx.compose.ui.text.TextStyle(color = Ink.dim, fontSize = 9.sp)
+                    style = labelStyle
                 )
             }
             t += step
@@ -264,6 +285,8 @@ private fun TrackArea(
 ) {
     val project = store.project
     val rowHeight = 38.dp
+    // Every coordinate here is a division by the duration; a zero one makes them infinite.
+    val duration = project.duration.takeIf { it.isFinite() && it > 0.0 } ?: 1.0
 
     // Drawn front-to-back-in-the-timeline (top row is the frontmost layer). Memoised on the
     // version counter so the draw lambda does not reverse a list and walk every keyframe of
@@ -286,24 +309,24 @@ private fun TrackArea(
     Canvas(
         Modifier
             .fillMaxSize()
-            .pointerInput(project.duration, scale, offsetX) {
+            .pointerInput(duration, scale, offsetX) {
                 detectTapGestures { offset ->
-                    val pixelsPerSecond = (size.width / project.duration.toFloat()) * scale
+                    val pixelsPerSecond = (size.width / duration.toFloat()) * scale
                     val seconds = ((offset.x + offsetX) / pixelsPerSecond).toDouble()
                     val row = (offset.y / rowHeight.toPx()).toInt()
                     val layer = project.layers.reversed().getOrNull(row)
                     if (layer != null) store.select(layer.id)
-                    onSeek(seconds.coerceIn(0.0, project.duration))
+                    onSeek(seconds.coerceIn(0.0, duration))
                     onSeekEnd()
                 }
             }
-            .pointerInput(project.duration, scale, offsetX) {
+            .pointerInput(duration, scale, offsetX) {
                 detectHorizontalDragGestures(
                     onDragStart = { offset ->
                         val row = (offset.y / rowHeight.toPx()).toInt()
                         // Grabbing the playhead itself scrubs; grabbing anywhere else drags
                         // that layer's bar in time. This is the muscle memory of every NLE.
-                        val pixelsPerSecond = (size.width / project.duration.toFloat()) * scale
+                        val pixelsPerSecond = (size.width / duration.toFloat()) * scale
                         val playheadX = (playhead.doubleValue.toFloat() * pixelsPerSecond) - offsetX
                         scrubMode = kotlin.math.abs(offset.x - playheadX) < 24.dp.toPx() || row < 0
                         if (!scrubMode) {
@@ -316,14 +339,14 @@ private fun TrackArea(
                     onDragCancel = { onSeekEnd() }
                 ) { change, drag ->
                     change.consume()
-                    val pixelsPerSecond = (size.width / project.duration.toFloat()) * scale
+                    val pixelsPerSecond = (size.width / duration.toFloat()) * scale
                     if (scrubMode) {
                         val seconds = ((change.position.x + offsetX) / pixelsPerSecond).toDouble()
-                        onSeek(seconds.coerceIn(0.0, project.duration))
+                        onSeek(seconds.coerceIn(0.0, duration))
                     } else {
                         val layer = store.selected ?: return@detectHorizontalDragGestures
                         val deltaSeconds = (drag / pixelsPerSecond).toDouble()
-                        layer.start = (layer.start + deltaSeconds).coerceIn(0.0, project.duration)
+                        layer.start = (layer.start + deltaSeconds).coerceIn(0.0, duration)
                         store.onChange?.invoke()
                     }
                 }
@@ -332,7 +355,7 @@ private fun TrackArea(
                 detectTransformGesturesCompat(onZoom = onScale, onPan = onOffset)
             }
     ) {
-        val pixelsPerSecond = (size.width / project.duration.toFloat()) * scale
+        val pixelsPerSecond = (size.width / duration.toFloat()) * scale
         rows.forEachIndexed { index, row ->
             val top = index * rowHeight.toPx()
             if (index % 2 == 0) {
@@ -340,7 +363,7 @@ private fun TrackArea(
             }
             // Half-frame markers every half second, so bars read as time.
             var t = 0.0
-            while (t <= project.duration) {
+            while (t <= duration) {
                 val x = (t * pixelsPerSecond).toFloat() - offsetX
                 drawLine(Ink.line.copy(alpha = .4f), Offset(x, top), Offset(x, top + rowHeight.toPx()), strokeWidth = 1f)
                 t += 1.0
@@ -348,6 +371,10 @@ private fun TrackArea(
             val layer = row.layer
             val startX = (layer.start * pixelsPerSecond).toFloat() - offsetX
             val endX = ((layer.start + layer.duration) * pixelsPerSecond).toFloat() - offsetX
+            // A bar narrower than the minimum, or one whose width came out negative, must not
+            // reach drawRoundRect: it throws on a negative size and looks wrong at zero.
+            val barWidth = (endX - startX).let { if (it.isFinite()) it else 4f }.coerceAtLeast(4f)
+            val barHeight = (rowHeight.toPx() - inset * 2).coerceAtLeast(1f)
             val barColor = when (layer.kind) {
                 LayerKind.IMAGE -> Color(0xFF3A7BD5)
                 LayerKind.VIDEO -> Color(0xFF9B5DE5)
@@ -361,14 +388,14 @@ private fun TrackArea(
             drawRoundRect(
                 color = if (selected) barColor else barColor.copy(alpha = .55f),
                 topLeft = Offset(startX, top + inset),
-                size = Size((endX - startX).coerceAtLeast(4f), rowHeight.toPx() - inset * 2),
+                size = Size(barWidth, barHeight),
                 cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f)
             )
             if (selected) {
                 drawRoundRect(
                     color = Ink.accent,
                     topLeft = Offset(startX, top + inset),
-                    size = Size((endX - startX).coerceAtLeast(4f), rowHeight.toPx() - inset * 2),
+                    size = Size(barWidth, barHeight),
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f),
                     style = androidx.compose.ui.graphics.drawscope.Stroke(1.5f)
                 )

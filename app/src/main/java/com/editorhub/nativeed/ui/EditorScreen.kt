@@ -107,7 +107,10 @@ fun EditorScreen(
     // Reading `rev` is what subscribes this composable to store changes: every mutation bumps
     // it, so the panels rebuild once per edit while the preview is only asked for a frame.
     DisposableEffect(store) {
-        store.onChange = { if (!gestureActive) rev++; renderRequest() }
+        store.onChange = {
+            if (!gestureActive) rev++
+            renderRequest()
+        }
         store.onTimeChange = { time -> playhead.doubleValue = time; renderRequest() }
         onDispose {
             store.onChange = null
@@ -141,6 +144,13 @@ fun EditorScreen(
     DisposableEffect(videoFrames) {
         onDispose { videoFrames.releaseAll() }
     }
+
+    // A visible frame meter, off until asked for. "It feels laggy" is a real report and a
+    // number makes it actionable: this is what turns it into "34 fps, dropped 12 frames on
+    // that scrub" and decides whether the fault is drawing, decoding or the clock.
+    var showFps by remember { mutableStateOf(false) }
+    var fpsValue by remember { mutableIntStateOf(0) }
+    var droppedValue by remember { mutableIntStateOf(0) }
 
     val playback = remember(store) {
         Playback(
@@ -225,11 +235,33 @@ fun EditorScreen(
                 bitmaps = bitmaps,
                 videoFrames = videoFrames,
                 modifier = Modifier.fillMaxSize(),
-                onReady = { view -> previewRef.set(view) }
+                onReady = { view ->
+                    previewRef.set(view)
+                    view.onFrames = { frames, dropped ->
+                        if (showFps) { fpsValue = frames; droppedValue = dropped }
+                    }
+                }
             )
             // Floating add button, bottom-start of the canvas.
             Box(Modifier.align(Alignment.BottomStart).padding(Gap.md)) {
                 Pill("+ Add", active = true) { sheet = 1 }
+            }
+            // Frame meter, top-start of the canvas so it never sits under a finger.
+            if (showFps) {
+                Box(Modifier.align(Alignment.TopStart).padding(Gap.md)) {
+                    Box(
+                        Modifier
+                            .clip(Corners.chip)
+                            .background(Color(0xB3000000))
+                            .padding(horizontal = Gap.sm, vertical = Gap.xs)
+                    ) {
+                        Text(
+                            "$fpsValue fps \u00B7 $droppedValue dropped",
+                            color = if (fpsValue >= 50) Ink.accent else Ink.key,
+                            fontSize = 10.sp
+                        )
+                    }
+                }
             }
             Box(Modifier.align(Alignment.BottomEnd).padding(Gap.md)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(Gap.sm)) {
@@ -245,6 +277,9 @@ fun EditorScreen(
                         store.nextKeyframe()?.let { playback.seek(it) }; rev++
                     }
                     GlyphButton("\u21BA") { playback.seek(0.0); rev++ }
+                    // Small, and only useful when someone is chasing jank: tap to show the
+                    // measured frame rate and the number of frames the display skipped.
+                    GlyphButton("fps", tint = if (showFps) Ink.accent else Ink.dim) { showFps = !showFps }
                 }
             }
         }

@@ -69,8 +69,20 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
     private var offsetX = 0f
     private var offsetY = 0f
 
-    /** Frames drawn since the last [consumeFrameCount], used by the on-screen meter. */
+    /** Frames drawn since the last report, and how many display frames were missed. */
     private var frames = 0
+    private var dropped = 0
+    private var windowStart = 0L
+
+    /**
+     * Called once a second with the measured frame rate and the number of skipped frames.
+     *
+     * Measured against the display's own vsync timestamps rather than wall-clock time, because
+     * that is the only number that matches what the eye sees. A frame that took two vsync
+     * intervals shows up as one dropped frame, which is exactly the stutter being reported.
+     */
+    var onFrames: ((Int, Int) -> Unit)? = null
+    private var lastVsync = 0L
 
     @Volatile private var drawingEnabled = true
 
@@ -126,7 +138,24 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
     /** View y -> composition y. */
     fun toCompositionY(viewY: Float): Float = if (scale > 0f) (viewY - offsetY) / scale else 0f
 
-    fun consumeFrameCount(): Int { val f = frames; frames = 0; return f }
+    private fun accountFrame(frameTimeNanos: Long) {
+        val callback = onFrames ?: return
+        if (windowStart == 0L) { windowStart = frameTimeNanos; lastVsync = frameTimeNanos; return }
+        // Assume a 60 Hz display; anything slower than 1.5 intervals is a dropped frame.
+        val interval = 1_000_000_000L / 60
+        val gap = frameTimeNanos - lastVsync
+        if (gap > interval * 3 / 2) dropped += ((gap / interval) - 1).toInt().coerceAtLeast(1)
+        lastVsync = frameTimeNanos
+        frames++
+        val elapsed = frameTimeNanos - windowStart
+        if (elapsed >= 1_000_000_000L) {
+            val fps = (frames * 1_000_000_000L / elapsed).toInt()
+            callback(fps, dropped)
+            frames = 0
+            dropped = 0
+            windowStart = frameTimeNanos
+        }
+    }
 
     // ----------------------------------------------------------------- drawing
 
@@ -211,10 +240,11 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         }
         // Bounds of the layer in composition space, used as the saved layer's extent. Using
         // the whole composition would allocate a full-canvas buffer for a 40 px dot.
-        val halfW = kotlin.math.max(layer.width, layer.textSize * layer.text.length * .6f) / 2f + layer.blur
-        val halfH = kotlin.math.max(layer.height, layer.textSize * 1.4f) / 2f + layer.blur
-        val cx = layer.x.valueAt(time)
-        val cy = layer.y.valueAt(time)
+        val blur = safe(layer.blur).coerceIn(0f, MAX_DIMENSION)
+        val halfW = safe(kotlin.math.max(layer.width, layer.textSize * layer.text.length * .6f)) / 2f + blur
+        val halfH = safe(kotlin.math.max(layer.height, layer.textSize * 1.4f)) / 2f + blur
+        val cx = safe(layer.x.valueAt(time))
+        val cy = safe(layer.y.valueAt(time))
         rect.set(cx - halfW, cy - halfH, cx + halfW, cy + halfH)
         val saved = canvas.saveLayer(rect, paint)
         drawLayerContent(canvas, layer, time)
@@ -278,12 +308,28 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
             }
     }
 
+    /**
+     * Keeps a value inside the range the platform can actually draw.
+     *
+     * A hand-edited or shared project file is allowed to contain anything. `Float` can be
+     * infinite, and `toInt()` on an infinite value saturates to `Int.MAX_VALUE`, which then
+     * reaches `drawRoundRect` as a radius and throws. Everything that crosses into a Canvas
+     * call goes through here first.
+     */
+    private fun safe(value: Float, fallback: Float = 0f): Float =
+        if (!value.isFinite()) fallback else value.coerceIn(-MAX_DIMENSION, MAX_DIMENSION)
+
+    private companion object {
+        /** Far beyond any composition; keeps integers and radii inside sane bounds. */
+        const val MAX_DIMENSION = 100_000f
+    }
+
     private fun applyTransform(canvas: Canvas, layer: Layer, time: Double) {
-        canvas.translate(layer.x.valueAt(time), layer.y.valueAt(time))
-        canvas.rotate(layer.rotation.valueAt(time))
+        canvas.translate(safe(layer.x.valueAt(time)), safe(layer.y.valueAt(time)))
+        canvas.rotate(safe(layer.rotation.valueAt(time)))
         canvas.scale(
-            layer.scaleX.valueAt(time).takeIf { it != 0f } ?: .0001f,
-            layer.scaleY.valueAt(time).takeIf { it != 0f } ?: .0001f
+            safe(layer.scaleX.valueAt(time), 1f).takeIf { it != 0f } ?: .0001f,
+            safe(layer.scaleY.valueAt(time), 1f).takeIf { it != 0f } ?: .0001f
         )
     }
 
@@ -292,14 +338,18 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         paint.isAntiAlias = true
         paint.color = layer.color
         paint.alpha = (layer.opacity.valueAt(time).coerceIn(0f, 1f) * 255).toInt()
-        val w = layer.width
-        val h = layer.height
-        if (layer.blur > 0f) paint.maskFilter = android.graphics.BlurMaskFilter(layer.blur, android.graphics.BlurMaskFilter.Blur.NORMAL)
+        val w = safe(layer.width).coerceAtLeast(0f)
+        val h = safe(layer.height).coerceAtLeast(0f)
+        // A negative radius throws, and a radius larger than half the shape is just a
+        // rectangle with rounded corners, which is what the caller meant anyway.
+        val radius = safe(layer.cornerRadius).coerceIn(0f, kotlin.math.min(w, h) / 2f)
+        val blur = safe(layer.blur).coerceIn(0f, MAX_DIMENSION)
+        if (blur > 0f) paint.maskFilter = android.graphics.BlurMaskFilter(blur, android.graphics.BlurMaskFilter.Blur.NORMAL)
         canvas.save()
         applyTransform(canvas, layer, time)
         rect.set(-w / 2f, -h / 2f, w / 2f, h / 2f)
         when (layer.shape) {
-            ShapeKind.RECT -> canvas.drawRoundRect(rect, layer.cornerRadius, layer.cornerRadius, paint)
+            ShapeKind.RECT -> canvas.drawRoundRect(rect, radius, radius, paint)
             ShapeKind.ELLIPSE -> canvas.drawOval(rect, paint)
             ShapeKind.TRIANGLE -> {
                 path.reset()
@@ -318,7 +368,8 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         textPaint.isAntiAlias = true
         textPaint.color = Color.WHITE
         textPaint.alpha = (layer.opacity.valueAt(time).coerceIn(0f, 1f) * 255).toInt()
-        textPaint.textSize = layer.textSize
+        // Text size is used by the platform layout for the string; zero or negative throws.
+        textPaint.textSize = safe(layer.textSize, 96f).coerceIn(1f, MAX_DIMENSION)
         textPaint.textAlign = Paint.Align.CENTER
         textPaint.typeface = if (layer.textBold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
         canvas.save()
@@ -333,6 +384,9 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
     }
 
     private fun drawMedia(canvas: Canvas, layer: Layer, time: Double) {
+        // Guard before the bitmap lookup: a zero-size destination makes drawBitmap a no-op on
+        // some devices and an exception on others.
+        if (safe(layer.width) <= 0f || safe(layer.height) <= 0f) return
         val bitmap = when (layer.kind) {
             LayerKind.VIDEO -> videoFrame?.invoke(layer, time) ?: bitmaps[layer.id]
             else -> bitmaps[layer.id]
@@ -343,7 +397,9 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         paint.alpha = (layer.opacity.valueAt(time).coerceIn(0f, 1f) * 255).toInt()
         canvas.save()
         applyTransform(canvas, layer, time)
-        rect.set(-layer.width / 2f, -layer.height / 2f, layer.width / 2f, layer.height / 2f)
+        val w = safe(layer.width)
+        val h = safe(layer.height)
+        rect.set(-w / 2f, -h / 2f, w / 2f, h / 2f)
         canvas.drawBitmap(bitmap, null, rect, paint)
         canvas.restore()
     }
@@ -413,6 +469,7 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         override fun doFrame(frameTimeNanos: Long) {
             frameScheduled = false
             drawNow()
+            accountFrame(frameTimeNanos)
         }
     }
 }
