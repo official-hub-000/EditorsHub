@@ -66,7 +66,9 @@ jobs:
           restore-keys: gradle-${{ runner.os }}-
 
       - name: Build debug APK
-        run: ./gradlew --no-daemon --stacktrace :app:assembleDebug
+        # The log is teed to a file as well as the console: the diagnostics step reads the file,
+        # and the console copy is what a human sees on the run page.
+        run: ./gradlew --no-daemon --stacktrace :app:assembleDebug 2>&1 | tee /tmp/build.log
 
       - name: Build log on failure
         if: failure()
