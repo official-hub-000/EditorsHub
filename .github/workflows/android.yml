@@ -108,9 +108,9 @@ jobs:
           grep -n "What went wrong" -A 12 /tmp/build.log | head -16 | while IFS= read -r line; do
             echo "::error::WHY $line"
           done
-          grep -n "e: file" /tmp/build.log | head -12 | sed -E 's#.*/com/editorhub/#FILE #' | while IFS= read -r line; do
-            echo "::error::KOTLIN $line"
-          done
+          grep -n "e: file\|error:\|warning: " /tmp/build.log | grep -v "node_modules" | head -15 \
+            | sed -E 's#file:///[^ ]*/com/editorhub/#/#' \
+            | while IFS= read -r line; do echo "::error::KOTLIN $line"; done
           gh issue comment 1 --repo "${{ github.repository }}" --body-file /tmp/diag.md
 
       - name: Upload compile log on failure
