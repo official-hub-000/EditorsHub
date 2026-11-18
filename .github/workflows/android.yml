@@ -234,8 +234,27 @@ jobs:
           # There must be a launcher entry. An APK with no MAIN/LAUNCHER activity installs
           # happily and then cannot be opened, which is exactly what shipped once: the manifest
           # lost its only <activity> when a range edit removed the WebView activity.
-          aapt2=$(find "$ANDROID_HOME"/build-tools -name aapt2 | sort | tail -1)
-          "$aapt2" dump badging "$apk" > /tmp/badging.txt 2>/dev/null || true
+          aapt2=$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}"/build-tools -name aapt2 2>/dev/null | sort | tail -1)
+          say "aapt2=$aapt2"
+          # Try aapt2, then aapt, then the SDK's build-tools directory listing, so a missing
+          # binary reports itself instead of silently skipping the checks.
+          if [ -n "$aapt2" ] && "$aapt2" dump badging "$apk" > /tmp/badging.txt 2>/tmp/aapt.err; then
+            say "badging via aapt2"
+          else
+            aapt=$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}"/build-tools -name aapt 2>/dev/null | sort | tail -1)
+            if [ -n "$aapt" ] && "$aapt" dump badging "$apk" > /tmp/badging.txt 2>/dev/null; then
+              say "badging via aapt"
+            else
+              say "WARN: could not dump badging ($(head -1 /tmp/aapt.err 2>/dev/null))"
+              # The manifest is authoritative and is in the workspace; check it directly.
+              if grep -qE 'android\.intent\.action\.MAIN' app/src/main/AndroidManifest.xml \
+                 && grep -qE 'android\.intent\.category\.LAUNCHER' app/src/main/AndroidManifest.xml; then
+                say "ok: manifest declares MAIN/LAUNCHER (badging unavailable)"
+              else
+                say "FAIL: manifest has no MAIN/LAUNCHER activity"; fail=1
+              fi
+            fi
+          fi
           if grep -q "launchable-activity" /tmp/badging.txt; then
             say "ok: $(grep 'launchable-activity' /tmp/badging.txt | head -1)"
           else
