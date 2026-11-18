@@ -105,8 +105,11 @@ jobs:
           grep -E '^\.kt|[0-9]+:[0-9]+|^e: ' /tmp/build.log | head -8 | while IFS= read -r line; do
             echo "::error::KOMPILE $line"
           done
-          tail -60 /tmp/build.log | grep -v '^$' | head -25 | while IFS= read -r line; do
-            echo "::error::LOGTAIL $line"
+          grep -n "What went wrong" -A 12 /tmp/build.log | head -16 | while IFS= read -r line; do
+            echo "::error::WHY $line"
+          done
+          grep -n "e: file" /tmp/build.log | head -12 | sed -E 's#.*/com/editorhub/#FILE #' | while IFS= read -r line; do
+            echo "::error::KOTLIN $line"
           done
           gh issue comment 1 --repo "${{ github.repository }}" --body-file /tmp/diag.md
 
