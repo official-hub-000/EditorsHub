@@ -79,6 +79,13 @@ jobs:
           test -f app/src/main/assets/www/codec-probe.js
           grep -q 'oms-codec-probe' app/src/main/assets/www/index.html
           node --check app/src/main/assets/www/codec-probe.js
+          # Touch reachability fixes (device tap report): freehand label patch must be applied,
+          # the sheet must not swallow clicks, and the ruler must not cover the tracks.
+          test -f app/src/main/assets/www/touch-fixes.js
+          grep -q 'oms-touch-fixes' app/src/main/assets/www/index.html
+          node --check app/src/main/assets/www/touch-fixes.js
+          ! grep -q 'Tebal goresan' app/src/main/assets/www/index.html
+          grep -q 'Stroke thickness' app/src/main/assets/www/index.html
 
       - name: Check the bundle can boot
         run: |

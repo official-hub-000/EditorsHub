@@ -114,6 +114,56 @@ function patchEditorScope(html) {
   return html;
 }
 
+/**
+ * Repairs defects that a device tap report proved, keyed to the exact source text.
+ *
+ * Each entry is a fault with evidence: the tap report recorded the exception, the element that
+ * received the touch, or the handler that never ran. They are applied to the copied document, so
+ * `web/` stays a byte-exact vendored copy and every repair is visible here rather than in an
+ * edited upstream file.
+ */
+const DEFECT_PATCHES = [
+  {
+    id: 'freehand-thickness-label',
+    why:
+      'The brush HUD builds <input aria-label="Stroke thickness"> but startFreehand looked the ' +
+      'slider up as [aria-label="Tebal goresan"], so width was null and the first ' +
+      '`width.value = ...` threw. The freehand tool could not open at all. Recorded twice in the ' +
+      'device tap report as "Cannot set properties of null (setting \'value\')".',
+    from: "hud.querySelector('[aria-label=\"Tebal goresan\"]')",
+    to: "hud.querySelector('[aria-label=\"Stroke thickness\"]')",
+  },
+  {
+    id: 'freehand-null-guard',
+    why:
+      'Even with the label fixed, any future rename would throw the same way. The HUD is built ' +
+      'from a template string, so a missing control is a data error, not a crash: guard it once ' +
+      'and let the tool open with its defaults.',
+    from:
+      'color.value=settings.color;width.value=settings.width;smoothing.value=settings.smoothing;pressure.checked=settings.pressure;',
+    to:
+      'if(color)color.value=settings.color;if(width)width.value=settings.width;' +
+      'if(smoothing)smoothing.value=settings.smoothing;if(pressure)pressure.checked=settings.pressure;',
+  },
+];
+
+function patchDefects(html) {
+  for (const patch of DEFECT_PATCHES) {
+    const hits = html.split(patch.from).length - 1;
+    if (hits === 0) {
+      // Not fatal: upstream may have fixed it. Say so loudly so the patch list does not rot.
+      console.warn(`! defect ${patch.id}: pattern not found (already fixed upstream?)`);
+      continue;
+    }
+    if (hits > 1) {
+      console.warn(`! defect ${patch.id}: matched ${hits} times, patching all`);
+    }
+    html = html.split(patch.from).join(patch.to);
+    console.log(`  defect      ${patch.id} patched (${hits}x)`);
+  }
+  return html;
+}
+
 function injectShell(html) {
   if (html.includes('native-shell.js')) return html;
   const tag =
@@ -128,6 +178,7 @@ function injectShell(html) {
     '<script src="./report.js" defer id="oms-report"></script>\n' +
     '<script src="./perf-hud.js" defer id="oms-perf-hud"></script>\n' +
     '<script src="./codec-probe.js" defer id="oms-codec-probe"></script>\n' +
+    '<script src="./touch-fixes.js" defer id="oms-touch-fixes"></script>\n' +
     '<script src="./native-shell.js" defer id="oms-native-shell"></script>\n';
   // The upstream document keeps a large trailing <style> block after </body>, so the
   // tag is anchored on the closing </html> instead: defer still guarantees the adapter
@@ -242,6 +293,7 @@ async function main() {
   let html = hoistCharset(applyTranslations(raw));
   html = localiseVendorImports(html, { vendoredMediabunny });
   html = patchEditorScope(html);
+  html = patchDefects(html);
   html = injectShell(html);
 
   await rm(outDir, { recursive: true, force: true });
@@ -293,6 +345,8 @@ async function main() {
   await cp(path.join(shellDir, 'perf-hud.js'), path.join(outDir, 'perf-hud.js'));
   // Encoder capability probe: answers "is the export on hardware?" with the platform's own list.
   await cp(path.join(shellDir, 'codec-probe.js'), path.join(outDir, 'codec-probe.js'));
+  // Touch reachability: hit-testing and lost-click recovery, from the device tap report.
+  await cp(path.join(shellDir, 'touch-fixes.js'), path.join(outDir, 'touch-fixes.js'));
   // Names matter: `omsDiagnostics` belongs to the editor's own hub, so these ship as
   // report.js / check.js and expose window.omsReport / window.omsSelfTest.
   await cp(path.join(shellDir, 'report.js'), path.join(outDir, 'report.js'));
