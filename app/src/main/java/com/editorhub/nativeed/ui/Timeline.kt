@@ -166,7 +166,7 @@ private fun RulerCanvas(
     ) {
         // Pick a tick interval that keeps labels at least 56 dp apart at this zoom.
         val pixelsPerSecond = (size.width / duration.toFloat()) * scale
-        val candidates = listOf(.1, .25, .5, 1.0, 2.0, 5.0, 10.0, 15.0, 30.0, 60.0, 120.0)
+        val candidates = TICK_STEPS
         val step = candidates.firstOrNull { (it * pixelsPerSecond) >= 56.dp.toPx() } ?: 120.0
         var t = 0.0
         while (t <= duration + 1e-6) {
@@ -245,6 +245,19 @@ private fun TrackArea(
     val project = store.project
     val rowHeight = 38.dp
 
+    // Drawn front-to-back-in-the-timeline (top row is the frontmost layer). Memoised on the
+    // version counter so the draw lambda does not reverse a list and walk every keyframe of
+    // every track sixty times a second. That walk used to be per layer per frame and it is
+    // the kind of work that makes a timeline feel heavy on a mid-range phone.
+    val rows = remember(version, project.layers.size) {
+        project.layers.reversed().map { layer ->
+            RowData(
+                layer = layer,
+                keyTimes = layer.tracks().values.flatMap { track -> track.keys.map { it.t } }.distinct().sorted()
+            )
+        }
+    }
+
     @Suppress("UNUSED_EXPRESSION")
     version
     // Dragging the playhead area scrubs; dragging a bar's body moves the layer in time.
@@ -300,7 +313,7 @@ private fun TrackArea(
             }
     ) {
         val pixelsPerSecond = (size.width / project.duration.toFloat()) * scale
-        project.layers.reversed().forEachIndexed { index, layer ->
+        rows.forEachIndexed { index, row ->
             val top = index * rowHeight.toPx()
             if (index % 2 == 0) {
                 drawRect(Ink.panel.copy(alpha = .35f), Offset(0f, top), Size(size.width, rowHeight.toPx()))
@@ -312,6 +325,7 @@ private fun TrackArea(
                 drawLine(Ink.line.copy(alpha = .4f), Offset(x, top), Offset(x, top + rowHeight.toPx()), strokeWidth = 1f)
                 t += 1.0
             }
+            val layer = row.layer
             val startX = (layer.start * pixelsPerSecond).toFloat() - offsetX
             val endX = ((layer.start + layer.duration) * pixelsPerSecond).toFloat() - offsetX
             val barColor = when (layer.kind) {
@@ -339,9 +353,8 @@ private fun TrackArea(
                     style = androidx.compose.ui.graphics.drawscope.Stroke(1.5f)
                 )
             }
-            // Keyframe diamonds on the row, for every animated track.
-            val keyTimes = layer.tracks().values.flatMap { it.keys }.map { it.t }.distinct()
-            keyTimes.forEach { kt ->
+            // Keyframe diamonds on the row.
+            row.keyTimes.forEach { kt ->
                 val x = (kt * pixelsPerSecond).toFloat() - offsetX
                 if (x > -8f && x < size.width + 8f) {
                     val cy = top + rowHeight.toPx() / 2f
@@ -361,6 +374,9 @@ private fun TrackArea(
         drawCircle(Ink.accent, radius = 5.dp.toPx(), center = Offset(px, 0f))
     }
 }
+
+/** One timeline row: the layer, plus the keyframe times it should draw. */
+private data class RowData(val layer: Layer, val keyTimes: List<Double>)
 
 /** The glyph shown on a layer head. Text, not an icon font: no dependency, no size. */
 fun kindGlyph(kind: LayerKind): String = when (kind) {

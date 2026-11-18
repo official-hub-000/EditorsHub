@@ -38,6 +38,7 @@ class PreviewTouchHandler(
     private var downX = 0f
     private var downY = 0f
     private var moved = false
+    private var checkpointed = false
     private val slop = 12f
 
     fun onTouch(event: MotionEvent): Boolean {
@@ -46,12 +47,16 @@ class PreviewTouchHandler(
                 downX = event.x; downY = event.y
                 lastX = event.x; lastY = event.y
                 moved = false
+                checkpointed = false
                 mode = 1
-                store.checkpoint()
                 return true
             }
             MotionEvent.ACTION_POINTER_DOWN -> {
                 if (event.pointerCount >= 2) {
+                    // Take the undo checkpoint when a transform actually starts, not on every
+                    // finger that touches the canvas: a tap to select must not fill the undo
+                    // history with snapshots that change nothing.
+                    if (!checkpointed) { store.checkpoint(); checkpointed = true }
                     mode = 2
                     startDistance = distance(event)
                     startAngle = angle(event)
@@ -77,6 +82,7 @@ class PreviewTouchHandler(
                     val dy = event.y - lastY
                     if (!moved && (Math.abs(event.x - downX) > slop || Math.abs(event.y - downY) > slop)) moved = true
                     if (moved) {
+                        if (!checkpointed) { store.checkpoint(); checkpointed = true }
                         store.setValue(layer, "x", layer.x.valueAt(store.time) + dx / viewScale())
                         store.setValue(layer, "y", layer.y.valueAt(store.time) + dy / viewScale())
                         lastX = event.x; lastY = event.y
@@ -104,10 +110,7 @@ class PreviewTouchHandler(
         return false
     }
 
-    private fun viewScale(): Float {
-        val project = store.project
-        return view.width.toFloat() / project.width
-    }
+    private fun viewScale(): Float = view.compositionScale.takeIf { it > 0f } ?: 1f
 
     private fun distance(event: MotionEvent): Float {
         val dx = event.getX(0) - event.getX(1)

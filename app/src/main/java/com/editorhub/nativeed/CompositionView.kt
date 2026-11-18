@@ -110,6 +110,16 @@ class CompositionView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         contentMatrix.postTranslate(offsetX, offsetY)
     }
 
+    /**
+     * Composition pixels per view pixel.
+     *
+     * Exposed because gestures must convert a finger's movement into composition units using
+     * the same letterbox fit this class draws with. Dividing by the view's width alone is
+     * wrong whenever the composition is letterboxed vertically, and that error shows up as a
+     * layer that crawls slower than the finger.
+     */
+    val compositionScale: Float get() = scale
+
     /** View x -> composition x. */
     fun toCompositionX(viewX: Float): Float = (viewX - offsetX) / scale
 
