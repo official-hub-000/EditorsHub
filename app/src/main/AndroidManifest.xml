@@ -32,7 +32,7 @@
             android:launchMode="singleTop"
             android:resizeableActivity="true"
             android:screenOrientation="fullSensor"
-            android:theme="@style/Theme.EditorsHub"
+            android:theme="@style/Theme.EditorsHub.Splash"
             android:windowSoftInputMode="adjustResize">
 
             <intent-filter>

@@ -77,6 +77,7 @@ fun EditorScreen(
     onOpenSettings: () -> Unit = {},
     onSaveProject: () -> Unit = {},
     onOpenProject: () -> Unit = {},
+    onBackToHome: () -> Unit = {},
     /** True when the previous run crashed; a small button appears so it can be sent. */
     hasCrashReport: Boolean = false,
     onShareCrashReport: () -> Unit = {}
@@ -221,23 +222,31 @@ fun EditorScreen(
 
     Column(Modifier.fillMaxSize().background(Ink.bg)) {
 
-        // ------------------------------------------------------------- transport
+        // ------------------------------------------------------------- brand bar
+        // The identity lives here rather than in a splash: a small studio header that says what
+        // this app is, with the project name as the thing you can tap. It is the difference
+        // between "a video editor" and "EditorsHub".
         Row(
-            Modifier.fillMaxWidth().height(52.dp).padding(horizontal = Gap.sm),
+            Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .background(Ink.panel)
+                .padding(horizontal = Gap.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            GlyphButton("\u21B6", enabled = store.canUndo) { store.undo(); rev++ }
-            GlyphButton("\u21B7", enabled = store.canRedo) { store.redo(); rev++ }
-            GlyphButton("\u2398", enabled = store.selectedLayerId != null) { store.copySelected() }
-            GlyphButton("\u2398\u002B", enabled = store.canPaste) { store.paste(); rev++ }
-            Spacer(Modifier.weight(1f))
-            Text(
-                store.project.name,
-                color = Ink.text,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.clickable { sheet = 2 }
-            )
+            Box(Modifier.clickable { onBackToHome() }) { BrandBadge(size = 26) }
+            Spacer(Modifier.width(Gap.sm))
+            Column {
+                Wordmark(fontSize = 15)
+                Text(
+                    store.project.name.uppercase(),
+                    color = Ink.dim,
+                    fontSize = 8.sp,
+                    letterSpacing = 1.2.sp,
+                    maxLines = 1,
+                    modifier = Modifier.clickable { sheet = 2 }
+                )
+            }
             Spacer(Modifier.weight(1f))
             if (hasCrashReport) {
                 // Small and out of the way, but present until a run finishes normally. Tapping
@@ -246,7 +255,26 @@ fun EditorScreen(
                 GlyphButton("\u26A0", tint = Ink.key) { onShareCrashReport() }
             }
             GlyphButton("\u21AA") { shareStill(context, store, bitmaps) }
-            GlyphButton("\u2B07") { onExport() }
+            GlyphButton("\u2B07", tint = Ink.accent) { onExport() }
+        }
+
+        // ------------------------------------------------------------- transport
+        Row(
+            Modifier.fillMaxWidth().height(46.dp).background(Ink.panel).padding(horizontal = Gap.sm),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            GlyphButton("\u21B6", enabled = store.canUndo) { store.undo(); rev++ }
+            GlyphButton("\u21B7", enabled = store.canRedo) { store.redo(); rev++ }
+            Box(Modifier.width(1.dp).height(20.dp).background(Ink.line))
+            GlyphButton("\u2398", enabled = store.selectedLayerId != null) { store.copySelected() }
+            GlyphButton("\u2398\u002B", enabled = store.canPaste) { store.paste(); rev++ }
+            Spacer(Modifier.weight(1f))
+            Text(
+                String.format("%.2f", playhead.doubleValue) + "s",
+                color = Ink.text,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold
+            )
         }
         Hairline(Modifier.fillMaxWidth().height(1.dp))
 

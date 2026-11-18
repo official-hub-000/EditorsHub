@@ -118,7 +118,9 @@ class MainActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 store.save()
-                finish()
+                // Back from the editor returns to the project screen, which is where someone
+                // who is finished expects to land; a second Back then leaves the app.
+                if (screen == 1) screen = 0 else finish()
             }
         })
 
@@ -126,6 +128,18 @@ class MainActivity : ComponentActivity() {
         setContent {
             EditorTheme {
                 Box(Modifier.fillMaxSize().background(Ink.bg)) {
+                    if (screen == 0) {
+                        // Reading the layer count here is what makes the launcher refresh after
+                        // an import or a new project; it is cheap and it is the only state the
+                        // screen shows.
+                        com.editorhub.nativeed.ui.LauncherScreen(
+                            projectName = store.project.name,
+                            layerCount = store.project.layers.size,
+                            onContinue = { screen = 1 },
+                            onNewProject = { store.newProject(1080, 1920, 30, 10.0); screen = 1 },
+                            onOpenProject = { openProjectFile() }
+                        )
+                    } else {
                     EditorScreen(
                         store = store,
                         cache = cache,
@@ -133,9 +147,11 @@ class MainActivity : ComponentActivity() {
                         onExport = { showExportSheet = true },
                         onSaveProject = { saveProjectFile() },
                         onOpenProject = { openProjectFile() },
+                        onBackToHome = { screen = 0 },
                         hasCrashReport = CrashLog.pending(this@MainActivity) != null,
                         onShareCrashReport = { shareCrashReport() }
                     )
+                    }
                     when (val state = exportState) {
                         is ExportState.Running -> ExportOverlay(state.fraction, onCancel = { exportState = ExportState.Idle })
                         is ExportState.Done -> ExportDoneOverlay(
@@ -227,6 +243,7 @@ class MainActivity : ComponentActivity() {
                     if (ok) "Project opened" else "That file is not an EditorsHub project",
                     Toast.LENGTH_SHORT
                 ).show()
+                if (ok) screen = 1
             }.onFailure {
                 Toast.makeText(this, "Could not read that file", Toast.LENGTH_SHORT).show()
             }
