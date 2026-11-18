@@ -30,44 +30,30 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
           packages: 'platforms;android-35 build-tools;35.0.0 platform-tools'
 
-      - name: Prepare editor bundle
-        run: node tools/build-web-assets.mjs
-
-      - name: Verify bundled editor assets
+      - name: Check the Kotlin sources are the only editor
         run: |
           set -e
-          test -f app/src/main/assets/www/index.html
-          test -f app/src/main/assets/www/native-shell.js
-          test -f app/src/main/assets/www/vendor/mediabunny/mediabunny.mjs
-          bytes=$(stat -c%s app/src/main/assets/www/index.html)
-          echo "Bundled index.html: $bytes bytes"
-          if [ "$bytes" -lt 1000000 ]; then
-            echo "::error::Bundled Open Motion editor looks truncated"
+          # The app must be Kotlin and Compose only. A WebView, a bundled bundle, or a second
+          # editor activity means the shell came back, so the build fails loudly rather than
+          # shipping two apps in one APK again.
+          if grep -rq "android.webkit.WebView" app/src/main/java --include=*.kt; then
+            echo "::error::a WebView is back in the app sources"
             exit 1
           fi
-          if grep -q 'cdn.jsdelivr.net/npm/mediabunny' app/src/main/assets/www/index.html; then
-            echo "::error::CDN mediabunny import survived the offline rewrite"
+          if grep -rq "webkit" app/build.gradle.kts; then
+            echo "::error::the webkit dependency is back"
             exit 1
           fi
-
-      - name: Check the bundle can boot
-        run: |
-          set -e
-          # A missing element that startup code binds with $('#id').onclick throws an
-          # uncaught TypeError and leaves the app on its splash screen. The page still
-          # parses, so this has to be a separate check.
-          python3 tools/check-bundle.py
-          node --check app/src/main/assets/www/native-shell.js
+          if [ -d app/src/main/assets/www ]; then
+            echo "::error::a bundled web editor is present in assets"
+            exit 1
+          fi
+          test -f app/src/main/java/com/editorhub/engine/gl/Compositor.kt
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -95,69 +81,40 @@ jobs:
           retention-days: 90
 
       - name: Verify APK contents
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
-          echo "APK: $apk ($(stat -c%s "$apk") bytes)"
           listing=$(unzip -l "$apk")
-          # The diagnostics and self-test scripts are the only way a fault on a user's own
-          # device can be reported back. An APK that ships without them still installs and
-          # still runs, so a missing file is invisible until someone tries to use it.
-          for entry in assets/www/index.html assets/www/native-shell.js \
-                       assets/www/report.js assets/www/check.js assets/www/probe.js assets/www/elements.js assets/www/elements-ui.js assets/www/nodevideo.js assets/www/nodevideo-ui.js assets/www/nodevideo-pro.js assets/www/smooth-motion.js \
-                       assets/www/vendor/mediabunny/mediabunny.mjs; do
-            if ! grep -q "$entry" <<<"$listing"; then
-              echo "::error::missing $entry in APK"
+          # A WebView bundle must not be in the APK: one editor only.
+          if grep -q "assets/www/" <<<"$listing"; then
+            echo "::error::the APK contains a bundled web editor"
+            exit 1
+          fi
+          # A dex with the editor classes must be there, or the APK is empty.
+          if ! grep -q "classes.dex" <<<"$listing"; then
+            echo "::error::no dex in the APK"
+            exit 1
+          fi
+          # The renderer must be compiled in: these are the classes that draw a frame.
+          unzip -p "$apk" classes.dex > /tmp/dex.bin || true
+          for symbol in "Compositor" "PreviewGLView" "EditorStore" "Exporter"; do
+            if ! grep -qa "$symbol" /tmp/dex.bin; then
+              echo "::error::$symbol missing from the dex: the GPU path did not compile in"
               exit 1
             fi
           done
-          # The bundled document must carry the native adapter and no CDN module.
-          unzip -p "$apk" assets/www/index.html > /tmp/apk-index.html
-          grep -q 'oms-native-shell' /tmp/apk-index.html
-          grep -q 'oms-report' /tmp/apk-index.html
-          grep -q 'oms-check' /tmp/apk-index.html
-          grep -q 'oms-probe' /tmp/apk-index.html
-          grep -q 'oms-elements' /tmp/apk-index.html
-          # The Node Video entry point must survive into the packaged document, and the
-          # speed ceiling must actually have been widened, or slow motion is unreachable.
-          grep -q 'oms-nodevideo-entry' /tmp/apk-index.html
-          grep -q 'data-oms-nv' /tmp/apk-index.html
-          grep -q 'min="0.1" max="4"' /tmp/apk-index.html
-          grep -q 'oms-nodevideo-pro' /tmp/apk-index.html
-          # The preview must be drawn at a fraction of the project size, with the pointer
-          # maths and the projection moved to composition units to match. If any of these
-          # are missing the editor is either slow again or the hit boxes are wrong.
-          # -F: these are literal strings, not patterns -- `)*(` in a basic regex silently
-          # matched nothing and failed the build for the wrong reason.
-          grep -qF 'function omsPreviewCanvasSize()' /tmp/apk-index.html
-          # The projection must normalise against the COMPOSITION size. Normalising against
-          # the canvas size is what drew every 3D layer at half position and put the
-          # selection box in the corner, so this asserts the corrected form.
-          grep -qF 'return{x:(nx*.5+.5)*omsCompositionWidth(),y:(1-(ny*.5+.5))*omsCompositionHeight(),z:nz,w:p.w}' /tmp/apk-index.html
-          grep -qF 'function omsCompositionWidth()' /tmp/apk-index.html
-          # The GPU context must not pay for a frame copy or multisampling nobody reads.
-          grep -qF "antialias:false,preserveDrawingBuffer:false,premultipliedAlpha:false,powerPreference:'high-performance'" /tmp/apk-index.html
-          # A resize mid-playback must be deferred, not presented as a blank buffer.
-          grep -qF '_omsPendingResize' /tmp/apk-index.html
-          # Easing and the curve graph must be one tap from the inspector root.
-          grep -qF 'omsEaseRow' /tmp/apk-index.html
-          grep -qF 'x:(clientX-rect.left)*(W/Math.max(1,rect.width))' /tmp/apk-index.html
-          grep -qF 'window.omsSetPreviewQuality=omsSetPreviewQuality' /tmp/apk-index.html
-          # One sheet listing every tool, and the reachable preview-quality control.
-          grep -qF 'omsMoreToolsBtn' /tmp/apk-index.html
-          grep -qF 'omsPreviewQualitySheet' /tmp/apk-index.html
-          # Row taps: a switchRow whose label is tapped must toggle, on devices that send
-          # only pointer events and on devices that send both.
-          grep -qF '__omsSwitchRows' /tmp/apk-index.html
-          # The zip reader must be able to inflate without DecompressionStream, because the
-          # WebView on the reporting device does not have it.
-          unzip -p "$apk" assets/www/nodevideo.js > /tmp/apk-nodevideo.js
-          grep -qF 'function inflateRaw(' /tmp/apk-nodevideo.js
-          grep -qF 'inflateRaw(raw, entry.size)' /tmp/apk-nodevideo.js
-          ! grep -qF 'cdn.jsdelivr.net/npm/mediabunny' /tmp/apk-index.html
-          echo "editor bundle verified inside APK"
+          # Shaders are string constants; if they did not reach the dex there is no canvas.
+          if ! grep -qa "gl_FragColor" /tmp/dex.bin; then
+            echo "::error::shader sources missing from the dex"
+            exit 1
+          fi
+          size=$(stat -c%s "$apk")
+          echo "APK size: $size bytes"
+          if [ "$size" -gt 16000000 ]; then
+            echo "::error::APK grew past 16 MB; something was bundled that should not be"
+            exit 1
+          fi
+          echo "native app verified: no web bundle, editor classes and shaders present"
 
       - name: Report APK identity
         run: |
