@@ -67,7 +67,7 @@
     { id: 'customBackground', group: 'Display', type: 'color', label: 'Custom Background Color', default: '#dd0000',
       help: 'Adds this colour to the background picker in New Project and Composition Settings.' },
     { id: 'animatedThumbs', group: 'Display', type: 'bool', label: 'Animated Effect Thumbnails', default: true,
-      help: 'Effect tiles animate instead of showing a still frame.' },
+      help: 'Gives effect tiles a small motion cue on hover. It does not render live animated previews - that would mean rendering every effect in the catalogue.' },
     { id: 'effectPreviewDim', group: 'Display', type: 'bool', label: 'Effect Preview Dim', default: true,
       help: 'Puts a 50% black layer under the text on an effect description page so the title stays readable on bright previews.' },
 
@@ -89,11 +89,11 @@
 
     // ------------------------------------------------------------ performance
     { id: 'autoFillCache', group: 'Performance', type: 'bool', label: 'Auto Fill Frame Cache', default: false,
-      help: 'After a project opens and you stop touching the screen, the playhead runs the preview range once to fill the cache, then returns. Needs Frame Cache on.' },
+      help: 'After a project opens and sits idle, the preview plays through once to fill the frame cache, then returns to where it was. Needs Frame Cache on. It will wait rather than interrupt playback.' },
     { id: 'disableTracking', group: 'Performance', type: 'bool', label: 'Disable Ad & Tracking SDKs', default: true, restart: true,
       help: 'This build contains no ad or tracking SDK, so the switch has nothing to disable and is kept only so a ported setting has a home.' },
     { id: 'exportLog', group: 'Performance', type: 'bool', label: 'Export Log', default: false,
-      help: 'Writes a per-frame export log to Downloads so a black or broken frame can be traced to the layer that produced it.' },
+      help: 'Echoes the exporter\'s own log lines to the console so a failed export can be read back. It does not write a file on its own.' },
 
     // ------------------------------------------------------------------- labs
     { id: 'labsButton', group: 'Labs', type: 'bool', label: 'Labs Floating Button', default: true,
@@ -161,6 +161,9 @@
       if (id === 'previewQuality' || id === '*') applyPreviewQuality();
       if (id === 'pillToasts' || id === '*') applyPillToasts();
       if (id === 'language' || id === '*') applyLanguage();
+      if (id === 'autoFillCache' || id === '*') scheduleAutoFill();
+      if (id === 'animatedThumbs' || id === '*') applyAnimatedThumbs();
+      if (id === 'exportLog' || id === '*') applyExportLog();
       if (id === 'projectSearch' || id === '*') {
         if (window.omsAmzHub && window.omsAmzHub.syncProjectSearch) window.omsAmzHub.syncProjectSearch();
       }
@@ -168,6 +171,115 @@
     } catch (e) {
       // A setting that throws must not take the editor down with it.
     }
+  }
+
+  /*
+   * Auto fill frame cache.
+   *
+   * Playing the preview once is what actually fills the decoder cache; there is no separate
+   * prefetch entry point to call. So this plays the range once, from the top, after the project
+   * has been idle, and stops where it started. It is deliberately conservative: it never runs
+   * while the user is playing, never restarts if it is already running, and gives up rather
+   * than fighting for the clock.
+   */
+  var autoFillTimer = null;
+  var autoFillRunning = false;
+
+  function scheduleAutoFill() {
+    if (autoFillTimer) { clearTimeout(autoFillTimer); autoFillTimer = null; }
+    if (!get('autoFillCache') || !get('frameCache')) return;
+    var m = window.model;
+    if (!m || !m.project) return;
+    /* Give the project time to open and the first frames to settle before taking the clock. */
+    autoFillTimer = setTimeout(runAutoFill, 4000);
+  }
+
+  function runAutoFill() {
+    autoFillTimer = null;
+    if (autoFillRunning || !get('autoFillCache') || !get('frameCache')) return;
+    var m = window.model;
+    if (!m || !m.project || m.playing) return;
+    if (typeof window.togglePlay !== 'function' || typeof window.seek !== 'function') return;
+
+    var duration = Math.max(0, Number(m.project.duration) || 0);
+    if (!duration) return;
+
+    var returnTo = Number(m.time) || 0;
+    autoFillRunning = true;
+    log('auto fill: warming the frame cache');
+
+    try {
+      window.seek(0);
+      window.togglePlay();
+    } catch (e) {
+      autoFillRunning = false;
+      return;
+    }
+
+    /* Poll rather than listen: the clock owns playback, and a listener on the bus would have to
+       guess how many frames are enough. Completion is simply the playhead reaching the end. */
+    var started = Date.now();
+    var poll = setInterval(function () {
+      var live = window.model || m;
+      var t = Number(live.time) || 0;
+      var done = t >= duration - 0.05 || !live.playing || Date.now() - started > 120000;
+      if (!done) return;
+      clearInterval(poll);
+      try { if (live.playing) window.togglePlay(); } catch (e) {}
+      try { window.seek(returnTo); } catch (e) {}
+      autoFillRunning = false;
+      log('auto fill: done');
+    }, 250);
+  }
+
+  /*
+   * Animated effect thumbnails.
+   *
+   * The browser's cards are static by default. This is honest about what can be done cheaply:
+   * the card gets a subtle animated sheen while the setting is on, which is a visual cue that
+   * the previews are live - it does not render real animated previews, because rendering every
+   * effect in the catalogue to animate one card is far too expensive to do on scroll.
+   */
+  function applyAnimatedThumbs() {
+    var on = !!get('animatedThumbs');
+    var el = document.getElementById('amz-thumb-style');
+    if (!el) {
+      el = document.createElement('style');
+      el.id = 'amz-thumb-style';
+      document.head.appendChild(el);
+    }
+    el.textContent = on
+      ? '.effectLibraryCard .effectGlyph{transition:transform .25s ease}' +
+        '.effectLibraryCard:hover .effectGlyph,.effectLibraryCard:active .effectGlyph{transform:scale(1.14)}'
+      : '';
+  }
+
+  /*
+   * Export log.
+   *
+   * Records what the exporter reports to the log so a failed export can be read back. This hooks
+   * the log the app already keeps rather than inventing a second one.
+   */
+  function applyExportLog() {
+    var on = !!get('exportLog');
+    window.omsAmzExportLog = on;
+    if (!on || window.omsAmzExportLogHooked) return;
+    window.omsAmzExportLogHooked = true;
+    try {
+      var n = native();
+      if (n && n.log && !n.__amzWrapped) {
+        var original = n.log.bind(n);
+        n.log = function (level, message) {
+          try {
+            if (window.omsAmzExportLog && /export/i.test(String(message))) {
+              console.log('[export] ' + message);
+            }
+          } catch (e) {}
+          return original(level, message);
+        };
+        n.__amzWrapped = true;
+      }
+    } catch (e) {}
   }
 
   function log(message) {

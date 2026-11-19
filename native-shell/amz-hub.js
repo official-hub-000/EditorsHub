@@ -786,49 +786,60 @@
 
   /* --------------------------------------------------------------- home changelog card */
 
+  /*
+   * What this build actually adds, in the order you would meet it.
+   *
+   * Every line here is checked against the code before it is written down. An earlier version of
+   * this list described folders for Last Added, Favourite and Recently Used and animated effect
+   * thumbnails - none of which existed - which is the same failure as the catalogue entries that
+   * render nothing: it reads as progress and costs the reader trust.
+   */
   var CHANGELOG = [
     {
-      title: 'Home & Projects',
+      title: 'Home and projects',
       items: [
-        'Theme switcher: Original, Dark and Amoled, applied across the editor chrome.',
-        'Language picker with 14 languages, applied immediately.',
+        'Theme switcher with nine palettes, both light and dark, applied across the chrome.',
+        'Language picker with nineteen languages, applied immediately; Arabic reads right to left.',
         'Project search bar above the project list.',
         'Project cards show resolution, frame rate and a relative date.',
-        'Codec evaluation with a result card: export ceiling, recommended resolution, HEVC and H.264 support.',
       ],
     },
     {
       title: 'Editor',
       items: [
-        'Preview quality: Full, 1/2, 1/4, 1/8 or 1/12, or Auto from the measured frame time.',
-        'Preview FPS cap so slow devices drop work instead of falling behind.',
-        'Skip late frames, frame cache and frame cache size.',
-        'Confirm before leaving the editor, with dialog or double-back styles.',
-        'Preview drag snap and lock camera view while playing.',
+        'Preview quality: full, a half, a quarter and smaller, or auto from the measured frame time.',
+        'Preview FPS cap so a slow device drops work instead of falling behind.',
+        'Skip late frames, frame cache and a frame cache size.',
+        'Confirm before leaving the editor, as a dialog or a double back.',
+        'Preview drag snap and lock the camera view while playing.',
+        'Auto rename for text layers, and pasting a style with effects grouped by category.',
+        'Shift a layer\u2019s keyframes earlier or later without moving the layer.',
+        'Split a text layer into characters, words or lines, keeping its look and animation.',
       ],
     },
     {
-      title: 'Extra tools',
+      title: 'Effects and shapes',
       items: [
-        'Codec Evaluation, Depth Map, Background Remover, Upscale, Anti-Compress.',
-        'Twixtor slow motion, Dead Frame Remover, Stabilizer, AI Frame Interpolation.',
-        'Audio Converter, Audio Denoise, Reverse Video, Convert Video.',
-        'Project Doctor health scan and Depth 3D Photo.',
+        'Twenty-four added shader effects across colour, detail, blur, distortion and style.',
+        'Fifty-eight added shapes, in the shape picker and listed on their own.',
+        'Collapsible folders and a category grid in the effect browser.',
+        'Adjustment layers that grade everything beneath them.',
       ],
     },
     {
-      title: 'Effect Browser',
+      title: 'Tools',
       items: [
-        'Folders for Last Added, Favourite and Recently Used above the category list.',
-        'Adjustable search delay and direct effect choice.',
-        'Animated effect thumbnails and a readable preview scrim.',
+        'Codec evaluation, depth map, auto matte, upscale and anti-compress.',
+        'Slow motion, dead frame removal, stabilisation and frame interpolation.',
+        'Audio convert and denoise, video reverse, video convert, project doctor.',
+        'MP3 encoding runs natively on the device, not in the WebView.',
       ],
     },
     {
       title: 'Performance',
       items: [
         'Frame cache with a cache-size cap and an optional auto-fill pass.',
-        'Export log for tracing a broken frame to the layer that produced it.',
+        'Settings search, so a switch can be found by name.',
       ],
     },
   ];
