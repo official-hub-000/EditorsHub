@@ -291,8 +291,33 @@
     } catch (e) {}
   }
 
+  /**
+   * Adds settings from another module after boot.
+   *
+   * Extension toggles are contributed rather than written into SPECS above, so a module can
+   * own its switch and its behaviour together instead of half a feature living here.
+   * Existing values are kept and the sheet is rebuilt.
+   */
+  function register(specs) {
+    if (!Array.isArray(specs)) return 0;
+    var added = 0;
+    specs.forEach(function (spec) {
+      if (!spec || !spec.id) return;
+      if (SPECS.some(function (s) { return s.id === spec.id; })) return;
+      SPECS.push(spec);
+      state[spec.id] = Object.prototype.hasOwnProperty.call(state, spec.id) ? state[spec.id] : spec.default;
+      added++;
+    });
+    if (added) {
+      save();
+      SPECS.forEach(function (s) { apply(s.id); });
+    }
+    return added;
+  }
+
   var api = {
     SPECS: SPECS,
+    register: register,
     THEMES: THEMES,
     get: get,
     set: set,

@@ -116,6 +116,9 @@
     '.amzShapeChips{display:flex;flex-wrap:wrap;gap:7px;margin:0 2px 10px}',
     '.amzShapeChip{height:36px;padding:0 13px;border-radius:999px;border:1px solid var(--amz-line);background:var(--amz-surface-2);color:var(--amz-text);font-size:12.5px;cursor:pointer}',
     '.amzShapeChip:active{background:var(--amz-accent);color:var(--amz-accent-ink)}',
+    '.amzSearch{width:100%;height:42px;margin:0 0 12px;padding:0 14px;border-radius:12px;border:1px solid var(--amz-line);background:var(--amz-surface-2);color:var(--amz-text);font-size:14px;box-sizing:border-box}',
+    '.amzSearch::-webkit-search-cancel-button{filter:grayscale(1);opacity:.6}',
+    '.amzEmpty{margin:14px 4px;color:var(--amz-muted);font-size:13px;text-align:center}',
     '.amzRow2,.amz-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}',
     '.amz-row.amz-actions .amz-btn,.amzActions .amz-btn,.amz-row.amz-actions .amzBtn{flex:1;min-width:130px;height:46px;border-radius:14px;border:0;font-size:14px;font-weight:700;background:rgba(255,255,255,.08);color:var(--amz-text);cursor:pointer}',
     '.amz-row.amz-actions .amz-btn.amz-primary{background:var(--amz-accent);color:var(--amz-accent-ink)}',
@@ -314,6 +317,13 @@
         body.appendChild(settingsRow);
         body.appendChild(menuRow('effects'));
         body.appendChild(menuRow('shapes'));
+        body.appendChild(el('div', 'amzGroup', 'Layers'));
+        body.appendChild(menuRow('selectAll'));
+        body.appendChild(menuRow('hideAll'));
+        body.appendChild(menuRow('linkCamera'));
+        body.appendChild(menuRow('linkNull'));
+        body.appendChild(el('div', 'amzGroup', 'Storage'));
+        body.appendChild(menuRow('clearCache'));
       },
       footer: [{ label: 'Close' }],
     });
@@ -334,15 +344,58 @@
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 3 9 6.5-3.4 10.5H6.4L3 9.5 12 3Z"/></svg>',
       open: function () { openExtraShapes(); },
     },
+    selectAll: {
+      title: 'Select all layers',
+      desc: 'Selects every layer in the project.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+      open: function () { patch().selectAllLayers(); },
+    },
+    hideAll: {
+      title: 'Show or hide all layers',
+      desc: 'Flips every layer at once.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.6"/></svg>',
+      open: function () { patch().toggleAllLayers(); },
+    },
+    linkCamera: {
+      title: 'Link to camera',
+      desc: 'Makes the selected layer follow the camera layer.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h11a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2Z"/><path d="m17 11 4-2v6l-4-2"/></svg>',
+      open: function () { patch().linkSelectedTo('camera'); },
+    },
+    linkNull: {
+      title: 'Link to null',
+      desc: 'Makes the selected layer follow a null layer.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 2v20M2 12h20"/></svg>',
+      open: function () { patch().linkSelectedTo('null'); },
+    },
+    clearCache: {
+      title: 'Clear export cache',
+      desc: 'Frees stored export data.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+      open: function () { patch().clearExportCache(); },
+    },
   };
+
+  /** The patch module, if it loaded. Returns a no-op stand-in so a missing module cannot throw. */
+  function patch() {
+    if (window.omsAmzPatch) return window.omsAmzPatch;
+    return {
+      selectAllLayers: function () {}, toggleAllLayers: function () {},
+      linkSelectedTo: function () {}, clearExportCache: function () {},
+    };
+  }
 
   function menuRow(key) {
     var m = MENU[key];
+    var counted = key === 'effects' || key === 'shapes';
     var count = key === 'effects' ? extraEffectCount() : extraShapeCount();
+    var subtitle = counted
+      ? count + ' available \u00b7 ' + esc(m.desc)
+      : esc(m.desc);
     var row = el('div', 'amzTool');
     row.innerHTML =
       '<div class="amzToolIcon">' + m.icon + '</div>' +
-      '<div class="amzToolText"><b>' + esc(m.title) + '</b><p>' + count + ' available \u00b7 ' + esc(m.desc) + '</p></div>' +
+      '<div class="amzToolText"><b>' + esc(m.title) + '</b><p>' + subtitle + '</p></div>' +
       '<div class="chev">&#8250;</div>';
     row.onclick = function () { try { m.open(); } catch (e) { notify('Could not open that: ' + e.message); } };
     return row;
@@ -489,9 +542,25 @@
       title: 'Settings',
       subtitle: 'Every switch takes effect immediately unless it says otherwise',
       build: function (body) {
+        /* Search across every group rather than filtering the collapsed list, because a
+           setting you cannot find is the same as one that does not exist. */
+        var search = el('input', 'amzSearch');
+        search.id = 'amzSettingsSearch';
+        search.type = 'search';
+        search.placeholder = 'Search settings';
+        search.setAttribute('autocomplete', 'off');
+        body.appendChild(search);
+
+        var empty = el('p', 'amzEmpty', 'No setting matches that.');
+        empty.style.display = 'none';
+
+        var rows = [];
+        var headers = [];
         var groups = settings().byGroup();
         groups.forEach(function (g) {
-          body.appendChild(el('div', 'amzGroup', esc(g.name)));
+          var header = el('div', 'amzGroup', esc(g.name));
+          body.appendChild(header);
+          headers.push({ node: header, name: g.name.toLowerCase(), shown: 0 });
           g.items.forEach(function (spec) {
             var row = el('div', 'amzRow');
             var text = el('div', 'amzText');
@@ -500,7 +569,30 @@
             var ctl = controlFor(spec, row);
             if (ctl) row.appendChild(ctl);
             body.appendChild(row);
+            rows.push({
+              node: row,
+              haystack: (spec.label + ' ' + spec.help + ' ' + g.name + ' ' + spec.id).toLowerCase(),
+              group: header,
+            });
           });
+        });
+        body.appendChild(empty);
+
+        search.addEventListener('input', function () {
+          var q = search.value.trim().toLowerCase();
+          var visible = 0;
+          rows.forEach(function (r) {
+            var hit = !q || r.haystack.indexOf(q) >= 0;
+            r.node.style.display = hit ? '' : 'none';
+            if (hit) visible++;
+          });
+          /* A header stays only if at least one of its rows survived, so the list never
+             shows a heading with nothing under it. */
+          headers.forEach(function (h) {
+            var any = rows.some(function (r) { return r.group === h.node && r.node.style.display !== 'none'; });
+            h.node.style.display = any ? '' : 'none';
+          });
+          empty.style.display = visible ? 'none' : '';
         });
       },
       footer: [
