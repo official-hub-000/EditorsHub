@@ -21,7 +21,10 @@ The screenshots are not Alight Motion stock — they are the **After Motion Z** 
 large amount of what is on these screens is *added by the mod*, not by Alight Motion:
 
 - the whole **Patcher Menu** (28 toggles seen across 9 screenshots)
-- **AmzLabs** — 13 separate media tools
+- **AmzLabs** — 19 rows, all implemented (15 media/analysis tools plus the four added since:
+  Beat Maker, Audio Keys, Vectorscope, Image Sequence). Earlier notes in this document said
+  "13 separate media tools" and implied the rest were empty panels; that was wrong. Every row
+  opens a panel that does work on a real file.
 - **AmzTools** — 13 layer/keyframe utilities
 - **150 new effects** and **96 new shapes**
 - iOS Styles, theme switcher, custom background colour, hex colour code, export log, etc.
@@ -188,8 +191,16 @@ layer per hit), **Audio Keys** (same analysis, key value scaled by each hit's lo
 printing numbers to retype), **Shift KF**, **Split Text** (character/word/line), **Adj. Layer**
 and its effect picker, and **Duplicate** in the extras menu.
 
-Still missing: the **NEW** badges, the two-page pager, and the Icon+label tool row above the
-grid. "Amz" is the mod and has no counterpart (EditorsHub has no such tool tray).
+Built since: the **two-page pager** (dots plus horizontal swipe, page 1 untouched), the
+**Icon+label tool row** above the grid (align centre, fit to frame, reset transform, motion
+path), and **NEW badges** on all eight page-2 tools. The original design badged only two of
+them; checked against `openInspectorRoot`'s own `ins(...)` list, none of the eight existed
+before, so all eight carry the badge rather than understating the work.
+
+The page lives in `native-shell/amz-inspector.js`. It wraps the stock `.inspectorGrid` instead
+of rebuilding it, so every original tile survives and a failure here leaves the stock
+inspector as it was. "Amz" is the mod and has no counterpart (EditorsHub has no such tool
+tray).
 
 ### 1.6 Effect Browser
 

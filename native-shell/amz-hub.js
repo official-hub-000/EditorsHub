@@ -845,6 +845,9 @@
         'Vectorscope and a luma waveform, measured from the current preview frame.',
         'Image Sequence: a folder of frames sorted by number, played as one ordinary image layer.',
         'Stabiliser now writes its correction onto the selected layer as position keyframes.',
+        'The layer inspector is now two pages with dots and a swipe; page 1 keeps every original button.',
+        'A tool row above the inspector grid: align centre, fit to frame, reset transform, motion path.',
+        'Eight new inspector tools, each marked NEW: Beat Maker, Audio Keys, Stabiliser, Shift KF, Duplicate, Adjustment layer, Vectorscope and Split Text.',
       ],
     },
     {

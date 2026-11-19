@@ -140,6 +140,7 @@ function injectShell(html) {
     '<script src="./amz-analysis.js" defer id="oms-amz-analysis"></script>\n' +
     '<script src="./amz-scopes.js" defer id="oms-amz-scopes"></script>\n' +
     '<script src="./amz-sequence.js" defer id="oms-amz-sequence"></script>\n' +
+    '<script src="./amz-inspector.js" defer id="oms-amz-inspector"></script>\n' +
     '<script src="./amz-languages.js" defer id="oms-amz-languages"></script>\n' +
     '<script src="./amz-tools.js" defer id="oms-amz-tools"></script>\n' +
     '<script src="./native-shell.js" defer id="oms-native-shell"></script>\n';
@@ -314,7 +315,7 @@ async function main() {
   await cp(path.join(shellDir, 'nodevideo-ui.js'), path.join(outDir, 'nodevideo-ui.js'));
   await cp(path.join(shellDir, 'nodevideo-pro.js'), path.join(outDir, 'nodevideo-pro.js'));
   await cp(path.join(shellDir, 'smooth-motion.js'), path.join(outDir, 'smooth-motion.js'));
-  for (const extra of ['amz-media.js', 'amz-settings.js', 'amz-hub.js', 'amz-layers.js', 'amz-shapes.js', 'amz-effects.js', 'amz-languages.js', 'amz-patch.js', 'amz-folders.js', 'amz-select.js', 'amz-adjust.js', 'amz-bridge.js', 'amz-analysis.js', 'amz-scopes.js', 'amz-sequence.js', 'amz-tools.js']) {
+  for (const extra of ['amz-media.js', 'amz-settings.js', 'amz-hub.js', 'amz-layers.js', 'amz-shapes.js', 'amz-effects.js', 'amz-languages.js', 'amz-patch.js', 'amz-folders.js', 'amz-select.js', 'amz-adjust.js', 'amz-bridge.js', 'amz-analysis.js', 'amz-scopes.js', 'amz-sequence.js', 'amz-inspector.js', 'amz-tools.js']) {
     await cp(path.join(shellDir, extra), path.join(outDir, extra));
   }
 
