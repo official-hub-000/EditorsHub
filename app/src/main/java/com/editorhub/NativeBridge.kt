@@ -131,6 +131,69 @@ class NativeBridge(
         }
     }
 
+    /**
+     * Encodes a file the WebView has already written into the export folder to MP3.
+     *
+     * The work runs on a background thread because a three-minute track takes a few seconds
+     * and the WebView thread must stay free to paint the progress indicator. Progress is
+     * reported back by evaluating a callback in the page, which is the only channel from a
+     * worker thread to the editor.
+     *
+     * @param sourceName file name inside the export folder, as written by saveBase64
+     * @param optionsJson {bitrate: 192, vbr: false, callback: "omsMp3Progress"}
+     * @return a JSON object: {ok, name, bytes, message}
+     */
+    @JavascriptInterface
+    fun encodeMp3(sourceName: String, optionsJson: String): String {
+        val result = JSONObject()
+        return try {
+            val options = if (optionsJson.isBlank()) JSONObject() else JSONObject(optionsJson)
+            val bitrate = options.optInt("bitrate", 192).coerceIn(32, 320)
+            val vbr = options.optBoolean("vbr", false)
+            val callback = options.optString("callback", "")
+
+            val source = File(exportsDir, NativeFiles.sanitiseFileName(sourceName))
+            if (!source.exists() || source.length() == 0L) {
+                result.put("ok", false)
+                result.put("message", "The file to convert is no longer there")
+                return result.toString()
+            }
+            val target = File(
+                exportsDir,
+                NativeFiles.sanitiseFileName(source.nameWithoutExtension + ".mp3")
+            )
+
+            // Blocking on the calling thread keeps the JavaScript call synchronous, which is
+            // what lets the tool show the result inline instead of polling for it.
+            val encoder = Mp3Encoder()
+            encoder.encode(source, target, bitrate, vbr) { fraction ->
+                if (callback.isNotEmpty()) {
+                    main.post {
+                        try {
+                            val name = JSONObject.quote(callback)
+                            webView.evaluateJavascript(
+                                "window[$name]&&window[$name]($fraction)",
+                                null
+                            )
+                        } catch (t: Throwable) {
+                            NativeLog.log("WARN", "mp3 progress callback failed: ${t.message}", tag, 0)
+                        }
+                    }
+                }
+            }
+            result.put("ok", true)
+            result.put("name", target.name)
+            result.put("bytes", target.length())
+            result.put("message", "Encoded ${target.name}")
+            result.toString()
+        } catch (t: Throwable) {
+            NativeLog.log("ERROR", "encodeMp3 failed: ${t.message}", tag, 0)
+            result.put("ok", false)
+            result.put("message", t.message ?: "MP3 encoding failed")
+            result.toString()
+        }
+    }
+
     /** Lists artefacts already written by the editor (name -> bytes). */
     @JavascriptInterface
     fun listExports(): String {

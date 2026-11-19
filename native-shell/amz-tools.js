@@ -1155,7 +1155,25 @@
               blob = M.encodeWav(ch, media.audio.sampleRate);
               name = baseName(src.name) + '.wav';
             } else if (to === 'mp3') {
-              throw new Error('Writing MP3 needs an encoder this build does not carry. Convert to WAV instead — it is lossless and the editor accepts it.');
+              /* Encoding happens in the app, not in the page: the LAME core is compiled into
+                 the APK, so this is a real MP3 rather than a renamed WAV. */
+              rep.at(0.15, 'Staging the audio…');
+              var made = await M.encodeMp3(src, {
+                bitrate: 192,
+                onProgress: function (f) { rep.at(0.15 + f * 0.8, 'Encoding MP3… ' + Math.round(f * 100) + '%'); },
+              });
+              rep.done('Encoded');
+              var mp3Box = resultBlock(panel);
+              mp3Box.heading('MP3 file');
+              mp3Box.line('Name', made.name);
+              mp3Box.line('Size', (made.bytes / 1048576).toFixed(2) + ' MB');
+              mp3Box.line('Bitrate', '192 kbps');
+              mp3Box.actions([{
+                label: 'Done', primary: true,
+                onClick: function () { notify('Saved to the export folder as ' + made.name); },
+              }]);
+              mp3Box.note('Encoded on the device by the LAME encoder built into the app. The file is in the export folder and appears in the gallery.');
+              return;
             } else {
               if (media.kind !== 'video' || !media.frames.length) throw new Error('That file has no video in it');
               var made = await framesToVideo(media.frames, media.audio, 1, src.name, rep);

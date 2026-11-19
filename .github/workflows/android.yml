@@ -183,6 +183,17 @@ jobs:
             exit 1
           fi
           echo "launchable-activity: com.editorhub.EditorActivity (asserted)"
+          # The MP3 encoder is Java compiled into the app, so it ships as classes.dex
+          # entries rather than as a .so. Verify the LAME core and the entry point are
+          # really in there; a build that silently drops them still installs and then
+          # reports "MP3 encoding is unavailable" only when someone tries it.
+          for cls in com/editorhub/Mp3Encoder ru/wowa/jump3r/mp3/Lame ru/wowa/jump3r/mp3/Encoder; do
+            if ! unzip -p "$apk" classes.dex classes2.dex classes3.dex 2>/dev/null | grep -qa "$cls"; then
+              echo "::error::missing $cls in the APK dex"
+              exit 1
+            fi
+          done
+          echo "MP3 encoder present: Mp3Encoder + LAME core (asserted)"
 
       - name: Publish debug APK as a release asset
         if: github.ref_name == 'main' || github.ref_name == 'arena/2e98b960-editorshub'

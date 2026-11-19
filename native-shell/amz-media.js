@@ -431,6 +431,52 @@
     return sum / Math.max(1, count);
   }
 
+  /* ------------------------------------------------------------------- mp3 encoding */
+
+  /**
+   * Encodes a file to MP3 with the encoder compiled into the app.
+   *
+   * The native side can only read from the export folder, so the source is written there
+   * first, the encoder is called, and the MP3 is handed back by name. When running outside
+   * the Android shell there is no encoder to call, and that is reported rather than faked.
+   */
+  async function encodeMp3(src, opts) {
+    opts = opts || {};
+    var n = native();
+    if (!n || !n.encodeMp3) {
+      throw new Error('MP3 encoding runs in the app itself — open this build on the phone to convert.');
+    }
+    var n2 = native();
+    var buf = await src.file.arrayBuffer();
+    var bytes = new Uint8Array(buf);
+    var b64 = '';
+    for (var i = 0; i < bytes.length; i += 8192) {
+      b64 += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+    }
+    var stagedPath = n2.saveBase64 ? n2.saveBase64(btoa(b64), src.name) : '';
+    if (!stagedPath) throw new Error('Could not stage the file for encoding');
+
+    /* Report progress into the job bar while the encoder works, then stop. */
+    if (opts.onProgress) {
+      window.__omsMp3Fraction = 0;
+      window.omsMp3Progress = function (f) {
+        window.__omsMp3Fraction = f;
+        opts.onProgress(f);
+      };
+    }
+    var payload = JSON.stringify({
+      bitrate: opts.bitrate || 192,
+      vbr: !!opts.vbr,
+      callback: opts.onProgress ? 'omsMp3Progress' : '',
+    });
+    var raw = n.encodeMp3(src.name, payload);
+    var result;
+    try { result = JSON.parse(raw); } catch (e) { throw new Error('The encoder returned nothing usable'); }
+    if (!result.ok) throw new Error(result.message || 'MP3 encoding failed');
+
+    return { name: result.name, bytes: result.bytes, path: result.path || '', message: result.message };
+  }
+
   /* --------------------------------------------------------------------- save to disk */
 
   /**
@@ -492,6 +538,7 @@
     estimateShift: estimateShift,
     meanAbsDiff: meanAbsDiff,
     save: save,
+    encodeMp3: encodeMp3,
     notify: notify,
     log: log,
     isVideoName: isVideoName,

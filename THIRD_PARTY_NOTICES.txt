@@ -1008,3 +1008,19 @@ Status lisensi sumber belum diverifikasi · not labeled open-source
 Referensi analisis untuk kompatibilitas proyek dan efek. Definisi/aset kompatibilitas ini tidak diberi label MIT, Apache atau MPL hanya karena dipakai Open Motion. Kredit bukan bukti izin atau sertifikasi lisensi.
 https://alightcreative.com/
 No verified open-source license is assigned to this reference.
+
+LAME (as jump3r, a Java port)
+MPEG Audio Layer III encoder. Copyright (c) 1999-2010 The L.A.M.E. project.
+LGPL-2.1-or-later. Portions by Mark Taylor, Takehiro Tominaga, Robert Hegemann,
+Gabriel Bouvigne, John Dahlstrom, David Robinson, Glen Sawyer, Ron Mayer,
+Albert L Faber, Don Melton, Alexander Leidinger, Naoki Shibata, Jonathan Dee,
+Ken Handel and others.
+https://lame.sourceforge.io/
+https://github.com/tsichevski/jump3r
+
+The encoder is compiled into the application from the sources held in this
+repository under app/src/main/java/ru/wowa/jump3r/, so the complete corresponding
+source is available here. The only changes made are the removal of annotations
+from a library that does not exist on Android, and making one method public so the
+encoder entry point can be reached. It is used to write MP3 files when the user
+asks for one; no other part of the app depends on it.
