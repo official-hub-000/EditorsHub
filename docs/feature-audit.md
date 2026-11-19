@@ -392,7 +392,7 @@ This is worth confirming on device before trusting any project to survive an upd
 | Layer selected | 2-page pager, 8 panels/page | inspector + drawers | **Partial**, 5 of 16 panels |
 | Effect browser | 19 folders + 12 category tiles | 93 effects, 8 categories, search | **Partial**, no folders/tiles |
 | AmzLabs | 13 media tools | 1.5 of 13 | **Mostly missing** |
-| Patcher Menu | 28 toggles | nothing | **Missing** |
+| Patcher Menu | 28 toggles | **31 settings** + search (18 of the 28 have equivalents) | **Done**, exceeds |
 | Feedback | modal | nothing | **Missing** |
 | Theme picker | 3 themes | **9 themes** (5 dark, 2 light, original) | **Done**, exceeds |
 | Settings | — | none | **Missing** |
@@ -406,7 +406,7 @@ This is worth confirming on device before trusting any project to survive an upd
 | Shapes | 66 + 96 new = 162 | 66 base + **58 new** |
 | Layer types | 8 | 4 (camera, null, group, element) |
 | Selection panels | 16 (2 pages) | ~6 |
-| Patch toggles | 28 | 0 |
+| Patch toggles | 28 | **31** (18 mapped, rest not applicable) |
 | Media tools | 13 | **15** (incl. native MP3) |
 | UI languages | 19 | **19** |
 | Themes | 3 | **9** |
