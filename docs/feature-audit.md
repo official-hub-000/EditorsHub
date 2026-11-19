@@ -394,22 +394,22 @@ This is worth confirming on device before trusting any project to survive an upd
 | AmzLabs | 13 media tools | 1.5 of 13 | **Mostly missing** |
 | Patcher Menu | 28 toggles | nothing | **Missing** |
 | Feedback | modal | nothing | **Missing** |
-| Theme picker | 3 themes | 1 theme | **Missing** |
+| Theme picker | 3 themes | **9 themes** (5 dark, 2 light, original) | **Done**, exceeds |
 | Settings | — | none | **Missing** |
 
 ### 5.2 Counts
 
 | Thing | AMZ | EditorsHub |
 |---|---|---|
-| Effects | 243 (93 base + 150) | 93 |
+| Effects | 243 (93 base + 150) | 93 base + **24 rendering** |
 | Effect categories | 36 (12 browse + 24 groups) | 8 |
-| Shapes | 66 + 96 new = 162 | 66 |
+| Shapes | 66 + 96 new = 162 | 66 base + **58 new** |
 | Layer types | 8 | 4 (camera, null, group, element) |
 | Selection panels | 16 (2 pages) | ~6 |
 | Patch toggles | 28 | 0 |
-| Media tools | 13 | 1.5 |
-| UI languages | 19 | **14** |
-| Themes | 3 | 1 |
+| Media tools | 13 | **15** (incl. native MP3) |
+| UI languages | 19 | **19** |
+| Themes | 3 | **9** |
 | Export formats | MP4/H.265, PNG, GIF, image sequence, XML | MP4/WebM, PNG, GIF, JSON, **XML**, AM link |
 
 EditorsHub is ahead on one thing nobody asked about and worth knowing: it has an **Alight Motion
