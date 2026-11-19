@@ -383,6 +383,18 @@
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16M4 12h9M4 18h13"/></svg>',
       open: function () { select().openSplitText(); },
     },
+    adjustment: {
+      title: 'Adjustment layer',
+      desc: 'Grades everything beneath it without touching each clip.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M12 12h8"/></svg>',
+      open: function () {
+        var a = window.omsAmzAdjust;
+        if (!a) return notify('Adjustment layers are still loading');
+        var made = a.addAdjustmentLayer();
+        if (!made) return notify('Could not add an adjustment layer');
+        notify('Adjustment layer added \u2014 give it effects to grade the scene');
+      },
+    },
     clearCache: {
       title: 'Clear export cache',
       desc: 'Frees stored export data.',
