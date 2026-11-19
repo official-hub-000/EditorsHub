@@ -562,9 +562,16 @@
             var b = el('button', 'amzShapeChip', esc(shapes.LABELS[id] || id));
             b.onclick = function () {
               try {
-                if (window.history && window.history.push) window.history.push();
-                window.model.addLayer('shape', { shape: id, name: shapes.LABELS[id] || id });
-                if (window.ui && window.ui.rebuildAll) window.ui.rebuildAll();
+                if (window.omsAmzBridge) window.omsAmzBridge.checkpoint();
+                var layer = window.model && window.model.addLayer
+                  ? window.model.addLayer('shape', { shape: id, name: shapes.LABELS[id] || id })
+                  : null;
+                if (!layer) return notify('Open a project first');
+                /* Without this the layer has a shape name the renderer cannot draw. */
+                if (!shapes.applyVectorPath || !shapes.applyVectorPath(layer, id)) {
+                  return notify('Could not build that shape');
+                }
+                if (window.omsAmzBridge) window.omsAmzBridge.refresh();
                 notify(shapes.LABELS[id] || id);
               } catch (e) { notify('Could not add that shape'); }
             };
