@@ -390,7 +390,7 @@ This is worth confirming on device before trusting any project to survive an upd
 | Projects list | search, 3 tabs, XML upload, 4-field meta | list + sort + selection | **Close**, missing search/upload/tabs |
 | Editor empty | 7-icon transport, 2-tier rail | equivalent rail, 5 tabs | **Close**, different layout |
 | Layer selected | 2-page pager, 8 panels/page | inspector + drawers | **Partial**, 5 of 16 panels |
-| Effect browser | 19 folders + 12 category tiles | 93 effects, 8 categories, search | **Partial**, no folders/tiles |
+| Effect browser | 19 folders + 12 category tiles | 93 effects, **8 collapsible folders**, categories, search | **Partial**, no category tiles |
 | AmzLabs | 13 media tools | 1.5 of 13 | **Mostly missing** |
 | Patcher Menu | 28 toggles | **31 settings** + search (18 of the 28 have equivalents) | **Done**, exceeds |
 | Feedback | modal | nothing | **Missing** |
