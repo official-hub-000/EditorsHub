@@ -74,10 +74,6 @@
     // ------------------------------------------------------------- projects
     { id: 'projectSearch', group: 'Home & Projects', type: 'bool', label: 'Project Search Bar', default: true,
       help: 'Shows a search field above the project list.' },
-    { id: 'language', group: 'Home & Projects', type: 'choice', label: 'Language',
-      options: [['id', 'Bahasa Indonesia'], ['en', 'English'], ['zh', '简体中文'], ['ja', '日本語'], ['ms', 'Bahasa Melayu'], ['th', 'ภาษาไทย'], ['vi', 'Tiếng Việt'], ['fil', 'Filipino'], ['my', 'မြန်မာ'], ['km', 'ខ្មែរ'], ['lo', 'ລາວ'], ['tet', 'Tetun'], ['pt', 'Português'], ['ta', 'தமிழ்'], ['ko', '한국어'], ['tr', 'Türkçe'], ['ru', 'Русский'], ['hi', 'हिन्दी'], ['ar', 'العربية']],
-      default: 'en', restart: false,
-      help: 'Interface language. Applies immediately.' },
     { id: 'thumbnailFrameOnExport', group: 'Home & Projects', type: 'bool', label: 'Thumbnail Frame on Export', default: false,
       help: 'Cannot be wired from an extension: the exporter is core code and would need a real change there, not a wrapper. Left visible for parity; it changes nothing.' },
 
@@ -160,7 +156,6 @@
       }
       if (id === 'previewQuality' || id === '*') applyPreviewQuality();
       if (id === 'pillToasts' || id === '*') applyPillToasts();
-      if (id === 'language' || id === '*') applyLanguage();
       if (id === 'autoFillCache' || id === '*') scheduleAutoFill();
       if (id === 'animatedThumbs' || id === '*') applyAnimatedThumbs();
       if (id === 'exportLog' || id === '*') applyExportLog();
@@ -390,18 +385,6 @@
       : '';
   }
 
-  function applyLanguage() {
-    var lang = get('language') || 'en';
-    try {
-      if (window.omsAmzI18n && window.omsAmzI18n.set) window.omsAmzI18n.set(lang);
-      var sel = document.getElementById('langSelect');
-      if (sel && sel.value !== lang) sel.value = lang;
-      /* Arabic is the one language here that reads right to left. */
-      if (window.omsAmzLanguages && window.omsAmzLanguages.applyDirection) {
-        window.omsAmzLanguages.applyDirection(lang);
-      }
-    } catch (e) {}
-  }
 
   /**
    * Adds settings from another module after boot.

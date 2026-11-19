@@ -115,14 +115,14 @@ export function singleCredit(html) {
   }
   if (depth !== 0) throw new Error('credits: unbalanced credits payload');
   const payload = {
-    groups: [{ id: 'credit', idLabel: 'Kredit', en: 'Credit' }],
+    groups: [{ id: 'credit', idLabel: 'Credit', en: 'Credit' }],
     items: [
       {
         id: 'officialhub',
         group: 'credit',
         name: APP_CREDIT,
         license: 'All rights reserved',
-        scope: `Seluruh kredit aplikasi ${APP_NAME} dipersembahkan untuk ${APP_CREDIT}.`,
+        scope: `All credit for the ${APP_NAME} app is dedicated to ${APP_CREDIT}.`,
         en: `All credit for ${APP_NAME} belongs to ${APP_CREDIT}.`,
         links: [],
       },
@@ -228,6 +228,9 @@ export function finishEnglish(html) {
     // Effect categories: keys stay, labels are shown.
     ["Semua:'All',Populer:'Populer',Simulasi:'Simulasi',Distorsi:'Distortion',Warna:'Color',Gerak:'Motion',Stilisasi:'Stilisasi',Blur:'Blur',Generator:'Generator'",
      "Semua:'All',Populer:'Popular',Simulasi:'Simulation',Distorsi:'Distortion',Warna:'Color',Gerak:'Motion',Stilisasi:'Stylise',Blur:'Blur',Generator:'Generator'"],
+    // Camera-orbit distance label; sits inside a template `${...}` hole, which the
+    // translation pipeline never scans, so it is rewritten here instead.
+    ["'Z / Panjang Tali'", "'Z / Rope Length'"],
   ];
   for (const [from, to] of pairs) {
     if (!out.includes(from)) {

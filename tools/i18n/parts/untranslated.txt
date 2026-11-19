@@ -1655,6 +1655,7 @@ script-template	Benchmark gagal: ${err?.message||err}
 script-template	Media tidak dapat didekode: ${l.name}
 script-template	Blob video tidak tersedia: ${l.name}
 script-template	Pilih file ${layer.type} yang sesuai
+html-attr:value	' + esc(layer.name + ' · Efek') + '
 script-template	Memuat ${family} dari Google Fonts…
 script-template	Memuat ${family} dari Local Fonts…
 script-template	Pilih file ${expected} yang sesuai
@@ -1667,3 +1668,4 @@ script	[data-template-menu]
 script-template	${original} Salinan
 script	[data-effect-menu]
 script-template	${n} aktif
+script	proyek

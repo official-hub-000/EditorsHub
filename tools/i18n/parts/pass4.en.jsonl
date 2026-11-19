@@ -587,3 +587,82 @@
 {"k": "script", "s": "foto", "en": "photo"}
 {"k": "script", "s": "halo", "en": "halo"}
 {"k": "script", "s": "pada", "en": "at"}
+{"k": "script", "s": "Segitiga", "en": "Triangle"}
+{"k": "script", "s": "Poligon", "en": "Polygon"}
+{"k": "script", "s": "Panah Ganda", "en": "Double Arrow"}
+{"k": "script", "s": "Panah", "en": "Arrow"}
+{"k": "script", "s": "Belah Ketupat", "en": "Diamond"}
+{"k": "script", "s": "Hati", "en": "Heart"}
+{"k": "script", "s": "Segi Lima", "en": "Pentagon"}
+{"k": "script", "s": "Tetesan Air", "en": "Water Drop"}
+{"k": "script", "s": "Kapsul", "en": "Capsule"}
+{"k": "script", "s": "Bintang 4", "en": "4-Point Star"}
+{"k": "script", "s": "Bintang 5", "en": "5-Point Star"}
+{"k": "script", "s": "Bintang 6", "en": "6-Point Star"}
+{"k": "script", "s": "Bintang 8", "en": "8-Point Star"}
+{"k": "script", "s": "Busur", "en": "Arc"}
+{"k": "script", "s": "Segi Enam", "en": "Hexagon"}
+{"k": "script", "s": "Trapesium", "en": "Trapezoid"}
+{"k": "script", "s": "Lencana", "en": "Badge"}
+{"k": "script", "s": "Perisai", "en": "Shield"}
+{"k": "script", "s": "Awan", "en": "Cloud"}
+{"k": "script", "s": "Matahari", "en": "Sun"}
+{"k": "script", "s": "Petir", "en": "Lightning"}
+{"k": "script", "s": "Api", "en": "Flame"}
+{"k": "script", "s": "Keping Salju", "en": "Snowflake"}
+{"k": "script", "s": "Bunga", "en": "Flower"}
+{"k": "script", "s": "Daun", "en": "Leaf"}
+{"k": "script", "s": "Silang", "en": "X Mark"}
+{"k": "script", "s": "Gembok", "en": "Padlock"}
+{"k": "script", "s": "Mahkota", "en": "Crown"}
+{"k": "script", "s": "Lonceng", "en": "Bell"}
+{"k": "script", "s": "Not Musik", "en": "Music Note"}
+{"k": "script", "s": "Kaca Pembesar", "en": "Magnifier"}
+{"k": "script", "s": "Jempol", "en": "Thumbs Up"}
+{"k": "script", "s": "Pesawat Kertas", "en": "Paper Plane"}
+{"k": "script", "s": "Roket", "en": "Rocket"}
+{"k": "script", "s": "Pesawat", "en": "Airplane"}
+{"k": "script", "s": "Amplop", "en": "Envelope"}
+{"k": "script", "s": "Logo AM", "en": "AM Logo"}
+{"k": "script", "s": "Awal X (%)", "en": "Start X (%)"}
+{"k": "script", "s": "Awal Y (%)", "en": "Start Y (%)"}
+{"k": "script", "s": "Akhir X (%)", "en": "End X (%)"}
+{"k": "script", "s": "Akhir Y (%)", "en": "End Y (%)"}
+{"k": "script", "s": "Kontrol 1 X (%)", "en": "Control 1 X (%)"}
+{"k": "script", "s": "Kontrol 1 Y (%)", "en": "Control 1 Y (%)"}
+{"k": "script", "s": "Kontrol 2 X (%)", "en": "Control 2 X (%)"}
+{"k": "script", "s": "Kontrol 2 Y (%)", "en": "Control 2 Y (%)"}
+{"k": "script", "s": "Lebar awal (px)", "en": "Start width (px)"}
+{"k": "script", "s": "Lebar akhir (px)", "en": "End width (px)"}
+{"k": "script", "s": "Dunia", "en": "World"}
+{"k": "script", "s": "Grid Dunia 3D", "en": "3D World Grid"}
+{"k": "script", "s": "Ruang transform layer: ", "en": "Layer transform space: "}
+{"k": "script", "s": "Z / Panjang Tali", "en": "Z / Rope Length"}
+{"k": "script", "s": "Editor Camera • orbit/pan bebas", "en": "Editor Camera • free orbit/pan"}
+{"k": "script", "s": "1 JARI ORBIT • 2 JARI PAN/ZOOM", "en": "1 FINGER ORBIT • 2 FINGERS PAN/ZOOM"}
+{"k": "script", "s": "Komposisi · tahap akhir", "en": "Composition · final stage"}
+{"k": "script", "s": "128 jari-jari tipis.", "en": "128 thin radii."}
+{"k": "script", "s": "Kontur amplitudo melingkar.", "en": "Circular amplitude contour."}
+{"k": "script", "s": "Preset kustom", "en": "Custom presets"}
+{"k": "script", "s": " · paket ", "en": " · package "}
+{"k": "script", "s": " preset kustom.", "en": " custom presets."}
+{"k": "script", "s": " preset kustom diimpor.", "en": " custom presets imported."}
+{"k": "script", "s": "Hentakan lembut berurutan per target.", "en": "A soft sequential bounce per target."}
+{"k": "script", "s": "Resolver paket", "en": "Package resolver"}
+{"k": "script", "s": "Hanya Zoom digital yang dapat berubah dan ber-keyframe; crop diterapkan ke seluruh canvas setelah proyeksi kamera.", "en": "Only digital zoom can change and take keyframes; the crop is applied to the whole canvas after camera projection."}
+{"k": "html-attr:aria-label", "s": "Cari", "en": "Search"}
+{"k": "html-attr:aria-label", "s": "Cari preset", "en": "Search presets"}
+{"k": "html-attr:placeholder", "s": "Cari preset…", "en": "Search presets…"}
+{"k": "html-attr:aria-label", "s": "Kategori preset", "en": "Preset category"}
+{"k": "html-attr:aria-label", "s": "Mode penerapan paket", "en": "Package apply mode"}
+{"k": "script", "s": "Ekspresi teks per target", "en": "Text expression per target"}
+{"k": "html-attr:aria-label", "s": "Susun Layer", "en": "Arrange Layers"}
+{"k": "html-attr:aria-label", "s": "Sejajarkan awal layer", "en": "Align layer start"}
+{"k": "html-attr:title", "s": "Sejajarkan Awal", "en": "Align Start"}
+{"k": "html-attr:aria-label", "s": "Sejajarkan akhir layer", "en": "Align layer end"}
+{"k": "html-attr:title", "s": "Sejajarkan Akhir", "en": "Align End"}
+{"k": "html-attr:title", "s": "Susun Berurutan", "en": "Stack in Order"}
+{"k": "html-attr:aria-label", "s": "Kurangi", "en": "Decrease"}
+{"k": "html-attr:aria-label", "s": "Tambah", "en": "Increase"}
+{"k": "script", "s": "Z Position • Panjang Tali", "en": "Z Position • Rope Length"}
+{"k": "script", "s": "Dependensi expression parameter melingkar.", "en": "Circular expression parameter dependency."}

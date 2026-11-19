@@ -178,7 +178,6 @@
     media: 'omsAmzMedia',
     layers: 'omsAmzLayers',
     effects: 'omsAmzEffects',
-    languages: 'omsAmzLanguages',
     shapes: 'omsAmzShapes',
     folders: 'omsAmzFolders',
     patch: 'omsAmzPatch',
