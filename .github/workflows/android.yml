@@ -107,6 +107,7 @@ jobs:
           # still runs, so a missing file is invisible until someone tries to use it.
           for entry in assets/www/index.html assets/www/native-shell.js \
                        assets/www/report.js assets/www/check.js assets/www/probe.js assets/www/elements.js assets/www/elements-ui.js assets/www/nodevideo.js assets/www/nodevideo-ui.js assets/www/nodevideo-pro.js assets/www/smooth-motion.js \
+                       assets/www/amz-media.js assets/www/amz-settings.js assets/www/amz-hub.js assets/www/amz-tools.js \
                        assets/www/vendor/mediabunny/mediabunny.mjs; do
             if ! grep -q "$entry" <<<"$listing"; then
               echo "::error::missing $entry in APK"
@@ -126,6 +127,14 @@ jobs:
           grep -q 'data-oms-nv' /tmp/apk-index.html
           grep -q 'min="0.1" max="4"' /tmp/apk-index.html
           grep -q 'oms-nodevideo-pro' /tmp/apk-index.html
+          # The extra tools are separate files; if the tags are missing the tools button
+          # still appears but every entry behind it silently does nothing.
+          for tag in oms-amz-media oms-amz-settings oms-amz-hub oms-amz-tools; do
+            if ! grep -q "$tag" /tmp/apk-index.html; then
+              echo "::error::missing $tag script tag in the packaged document"
+              exit 1
+            fi
+          done
           # The preview must be drawn at a fraction of the project size, with the pointer
           # maths and the projection moved to composition units to match. If any of these
           # are missing the editor is either slow again or the hit boxes are wrong.
@@ -167,6 +176,13 @@ jobs:
           echo "aapt2: $aapt2"
           "$aapt2" dump badging "$apk" | grep -E "^(package|application-label|sdkVersion|targetSdkVersion|uses-permission|launchable-activity|native-code)" || true
           echo "APK size: $(du -h "$apk" | cut -f1)"
+          # An APK with no launcher activity installs and then cannot be opened. Assert it
+          # rather than trusting the line above to have printed something.
+          if ! "$aapt2" dump badging "$apk" | grep -q "launchable-activity: name='com.editorhub.EditorActivity'"; then
+            echo "::error::APK has no launchable EditorActivity"
+            exit 1
+          fi
+          echo "launchable-activity: com.editorhub.EditorActivity (asserted)"
 
       - name: Publish debug APK as a release asset
         if: github.ref_name == 'main' || github.ref_name == 'arena/2e98b960-editorshub'
