@@ -207,8 +207,16 @@ jobs:
           # entries rather than as a .so. Verify the LAME core and the entry point are
           # really in there; a build that silently drops them still installs and then
           # reports "MP3 encoding is unavailable" only when someone tries it.
+          # Extract the dex files first: `unzip -p` on several names aborts as soon as one of
+          # them is absent, and a single-dex build legitimately has no classes2.dex.
+          rm -rf /tmp/dexcheck && mkdir -p /tmp/dexcheck
+          unzip -o -q "$apk" 'classes*.dex' -d /tmp/dexcheck || true
+          if ! ls /tmp/dexcheck/classes*.dex >/dev/null 2>&1; then
+            echo "::error::the APK carries no dex at all"
+            exit 1
+          fi
           for cls in com/editorhub/Mp3Encoder ru/wowa/jump3r/mp3/Lame ru/wowa/jump3r/mp3/Encoder; do
-            if ! unzip -p "$apk" classes.dex classes2.dex classes3.dex 2>/dev/null | grep -qa "$cls"; then
+            if ! grep -qa "$cls" /tmp/dexcheck/classes*.dex; then
               echo "::error::missing $cls in the APK dex"
               exit 1
             fi
