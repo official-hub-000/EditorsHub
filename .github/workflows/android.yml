@@ -127,7 +127,7 @@ jobs:
           # still runs, so a missing file is invisible until someone tries to use it.
           for entry in assets/www/index.html assets/www/native-shell.js \
                        assets/www/report.js assets/www/check.js assets/www/probe.js assets/www/elements.js assets/www/elements-ui.js assets/www/nodevideo.js assets/www/nodevideo-ui.js assets/www/nodevideo-pro.js assets/www/smooth-motion.js \
-                       assets/www/amz-media.js assets/www/amz-settings.js assets/www/amz-hub.js assets/www/amz-layers.js assets/www/amz-tools.js \
+                       assets/www/amz-media.js assets/www/amz-settings.js assets/www/amz-hub.js assets/www/amz-layers.js assets/www/amz-shapes.js assets/www/amz-tools.js \
                        assets/www/vendor/mediabunny/mediabunny.mjs; do
             if ! grep -q "$entry" <<<"$listing"; then
               echo "::error::missing $entry in APK"
@@ -149,7 +149,7 @@ jobs:
           grep -q 'oms-nodevideo-pro' /tmp/apk-index.html
           # The extra tools are separate files; if the tags are missing the tools button
           # still appears but every entry behind it silently does nothing.
-          for tag in oms-amz-media oms-amz-settings oms-amz-hub oms-amz-layers oms-amz-tools; do
+          for tag in oms-amz-media oms-amz-settings oms-amz-hub oms-amz-layers oms-amz-shapes oms-amz-tools; do
             if ! grep -q "$tag" /tmp/apk-index.html; then
               echo "::error::missing $tag script tag in the packaged document"
               exit 1
