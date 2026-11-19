@@ -114,105 +114,6 @@ function patchEditorScope(html) {
   return html;
 }
 
-/**
- * Repairs defects that a device tap report proved, keyed to the exact source text.
- *
- * Each entry is a fault with evidence: the tap report recorded the exception, the element that
- * received the touch, or the handler that never ran. They are applied to the copied document, so
- * `web/` stays a byte-exact vendored copy and every repair is visible here rather than in an
- * edited upstream file.
- */
-const DEFECT_PATCHES = [
-  {
-    id: 'freehand-thickness-label',
-    why:
-      'The brush HUD builds <input aria-label="Stroke thickness"> but startFreehand looked the ' +
-      'slider up as [aria-label="Tebal goresan"], so width was null and the first ' +
-      '`width.value = ...` threw. The freehand tool could not open at all. Recorded twice in the ' +
-      'device tap report as "Cannot set properties of null (setting \'value\')".',
-    from: "hud.querySelector('[aria-label=\"Tebal goresan\"]')",
-    to: "hud.querySelector('[aria-label=\"Stroke thickness\"]')",
-  },
-  {
-    id: 'freehand-null-guard',
-    why:
-      'Even with the label fixed, any future rename would throw the same way. The HUD is built ' +
-      'from a template string, so a missing control is a data error, not a crash: guard it once ' +
-      'and let the tool open with its defaults.',
-    from:
-      'color.value=settings.color;width.value=settings.width;smoothing.value=settings.smoothing;pressure.checked=settings.pressure;',
-    to:
-      'if(color)color.value=settings.color;if(width)width.value=settings.width;' +
-      'if(smoothing)smoothing.value=settings.smoothing;if(pressure)pressure.checked=settings.pressure;',
-  },
-];
-
-function patchDefects(html) {
-  for (const patch of DEFECT_PATCHES) {
-    const hits = html.split(patch.from).length - 1;
-    if (hits === 0) {
-      // Not fatal: upstream may have fixed it. Say so loudly so the patch list does not rot.
-      console.warn(`! defect ${patch.id}: pattern not found (already fixed upstream?)`);
-      continue;
-    }
-    if (hits > 1) {
-      console.warn(`! defect ${patch.id}: matched ${hits} times, patching all`);
-    }
-    html = html.split(patch.from).join(patch.to);
-    console.log(`  defect      ${patch.id} patched (${hits}x)`);
-  }
-  return html;
-}
-
-/**
- * Routes the editor's per-frame easing through the C++ core.
- *
- * `AnimationEngine.bezierYForX` is called for every animated property of every layer on every
- * rendered frame, which makes it the hottest arithmetic in the app and the reason it was the
- * first thing ported. The replacement keeps the original JavaScript body verbatim as the
- * fallback, so behaviour on a device without the native library is byte-for-byte what it was;
- * when libeditorhubcore is loaded the same call is answered in C++.
- *
- * The native implementation is covered by tests/native/test_core.cpp, which asserts it agrees
- * with this JavaScript across the easing presets before either is shipped.
- */
-const NATIVE_PATCHES = [
-  {
-    id: 'easing-to-native-core',
-    from:
-      'static bezierYForX(x,x1,y1,x2,y2){\n' +
-      '    const bx=t=>3*(1-t)*(1-t)*t*x1+3*(1-t)*t*t*x2+t*t*t;\n' +
-      '    const by=t=>3*(1-t)*(1-t)*t*y1+3*(1-t)*t*t*y2+t*t*t;\n' +
-      '    let lo=0,hi=1,t=x;for(let i=0;i<14;i++){t=(lo+hi)/2;if(bx(t)<x)lo=t;else hi=t}return by(t);\n' +
-      '  }',
-    to:
-      'static bezierYForX(x,x1,y1,x2,y2){\n' +
-      '    // Answered by the C++ core when the shared library is loaded; otherwise the\n' +
-      '    // JavaScript solver below is used unchanged. Both implementations are tested\n' +
-      '    // against each other, so which one answers cannot change the result.\n' +
-      '    const nativeCore=window.omsNativeCore;\n' +
-      '    if(nativeCore&&nativeCore.available){try{const r=nativeCore.bezierEase(x1,y1,x2,y2,x);if(r===r&&r>=0&&r<=1)return r}catch(e){}}\n' +
-      '    const bx=t=>3*(1-t)*(1-t)*t*x1+3*(1-t)*t*t*x2+t*t*t;\n' +
-      '    const by=t=>3*(1-t)*(1-t)*t*y1+3*(1-t)*t*t*y2+t*t*t;\n' +
-      '    let lo=0,hi=1,t=x;for(let i=0;i<14;i++){t=(lo+hi)/2;if(bx(t)<x)lo=t;else hi=t}return by(t);\n' +
-      '  }',
-  },
-];
-
-function patchNativeCallSites(html) {
-  for (const patch of NATIVE_PATCHES) {
-    const hits = html.split(patch.from).length - 1;
-    if (hits !== 1) {
-      // A call site that moved is a build failure, not a warning: shipping without the native
-      // routing would silently revert the port while every test still passed.
-      throw new Error(`native patch ${patch.id}: expected 1 match, found ${hits}`);
-    }
-    html = html.split(patch.from).join(patch.to);
-    console.log(`  native      ${patch.id} patched (${hits}x)`);
-  }
-  return html;
-}
-
 function injectShell(html) {
   if (html.includes('native-shell.js')) return html;
   const tag =
@@ -225,10 +126,6 @@ function injectShell(html) {
     '<script src="./probe.js" defer id="oms-probe"></script>\n' +
     '<script src="./check.js" defer id="oms-check"></script>\n' +
     '<script src="./report.js" defer id="oms-report"></script>\n' +
-    '<script src="./perf-hud.js" defer id="oms-perf-hud"></script>\n' +
-    '<script src="./codec-probe.js" defer id="oms-codec-probe"></script>\n' +
-    '<script src="./touch-fixes.js" defer id="oms-touch-fixes"></script>\n' +
-    '<script src="./native-core.js" defer id="oms-native-core"></script>\n' +
     '<script src="./native-shell.js" defer id="oms-native-shell"></script>\n';
   // The upstream document keeps a large trailing <style> block after </body>, so the
   // tag is anchored on the closing </html> instead: defer still guarantees the adapter
@@ -343,8 +240,6 @@ async function main() {
   let html = hoistCharset(applyTranslations(raw));
   html = localiseVendorImports(html, { vendoredMediabunny });
   html = patchEditorScope(html);
-  html = patchDefects(html);
-  html = patchNativeCallSites(html);
   html = injectShell(html);
 
   await rm(outDir, { recursive: true, force: true });
@@ -391,14 +286,7 @@ async function main() {
   }
   await cp(path.join(webDir, 'icons'), path.join(outDir, 'icons'), { recursive: true });
 
-  await cp(path.join(shellDir, 'native-core.js'), path.join(outDir, 'native-core.js'));
   await cp(path.join(shellDir, 'native-shell.js'), path.join(outDir, 'native-shell.js'));
-  // Frame instrumentation. Loaded before the adapter so it measures from the first frame.
-  await cp(path.join(shellDir, 'perf-hud.js'), path.join(outDir, 'perf-hud.js'));
-  // Encoder capability probe: answers "is the export on hardware?" with the platform's own list.
-  await cp(path.join(shellDir, 'codec-probe.js'), path.join(outDir, 'codec-probe.js'));
-  // Touch reachability: hit-testing and lost-click recovery, from the device tap report.
-  await cp(path.join(shellDir, 'touch-fixes.js'), path.join(outDir, 'touch-fixes.js'));
   // Names matter: `omsDiagnostics` belongs to the editor's own hub, so these ship as
   // report.js / check.js and expose window.omsReport / window.omsSelfTest.
   await cp(path.join(shellDir, 'report.js'), path.join(outDir, 'report.js'));

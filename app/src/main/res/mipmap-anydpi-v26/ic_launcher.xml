@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Adaptive icon: a gradient background and a TRANSPARENT foreground.
-
-  The previous foreground was an opaque white bitmap, which covered the background entirely and
-  made the launcher tile read as blank. The foreground below is transparent everywhere except
-  the mark, which is what an adaptive icon requires.
--->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@mipmap/ic_launcher_background" />
+    <background android:drawable="@color/editorshub_icon_background" />
     <foreground android:drawable="@mipmap/ic_launcher_foreground" />
 </adaptive-icon>

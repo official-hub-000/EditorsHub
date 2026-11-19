@@ -4,47 +4,6 @@ plugins {
 }
 
 /*
- * Native core — row 2 of the conversion table.
- *
- * The editor's hot paths move from JavaScript into C++ behind a small JNI surface so the same
- * routines can later run unchanged on any platform, and so the JVM never has to be in the loop
- * for per-frame work. The sources live in `app/src/main/cpp` and are built with the NDK's CMake
- * toolchain. Nothing in the app depends on the library being present: NativeCore probes for it
- * and reports which implementations are live, so a build without the NDK still runs the JS path.
- */
-val useNativeCore = providers.gradleProperty("editorhub.nativeCore").orNull != "false"
-val nativeCoreVersion = "1.0.0"
-
-android {
-    ndkVersion = "27.0.12077973"
-
-    defaultConfig {
-        buildConfigField("String", "NATIVE_CORE_VERSION", "\"$nativeCoreVersion\"")
-    }
-
-    if (useNativeCore) {
-        externalNativeBuild {
-            cmake {
-                path = file("src/main/cpp/CMakeLists.txt")
-                version = "3.22.1"
-            }
-        }
-        defaultConfig {
-            externalNativeBuild {
-                cmake {
-                    // arm64 covers essentially every phone shipped since 2017; x86_64 keeps the
-                    // emulator viable for diagnosis. 32-bit targets would double build time for a
-                    // product that has never supported a 32-bit device.
-                    abiFilters += listOf("arm64-v8a", "x86_64")
-                    cppFlags += listOf("-std=c++17", "-O2", "-ffast-math", "-fno-exceptions", "-fno-rtti")
-                    arguments += listOf("-DANDROID_STL=c++_static")
-                }
-            }
-        }
-    }
-}
-
-/*
  * The Android shell bundles the upstream Open Motion editor. `web/` is a read-only
  * vendored copy of https://github.com/Hada45/Open-Motion (MIT), and
  * tools/build-web-assets.mjs assembles web/ + native-shell/ + vendor/ into
@@ -116,7 +75,7 @@ android {
     // avoids a synchronous full-file inflate before the first byte of the document reaches
     // the parser. Compression only saved ~2 MB of APK size and cost real startup time.
     androidResources {
-        noCompress += listOf("html", "mjs", "wasm", "onnx", "json", "webmanifest", "hct")
+        noCompress += listOf("html", "mjs", "wasm", "onnx", "json", "webmanifest")
     }
 
     packaging {

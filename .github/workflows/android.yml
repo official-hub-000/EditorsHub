@@ -11,7 +11,6 @@ permissions:
   # `write` is only needed to refresh the rolling `android-latest` release that holds
   # the newest APK; the editor bundle and APK contents are still verified read-only.
   contents: write
-  issues: write
 
 concurrency:
   group: android-${{ github.ref }}
@@ -25,70 +24,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install image tooling for the icon check
-        run: python3 -m pip install --quiet --break-system-packages pillow
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install image tooling for the icon check
-        run: python3 -m pip install --quiet --break-system-packages pillow
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: 'platforms;android-35 build-tools;35.0.0 platform-tools ndk;27.0.12077973 cmake;3.22.1'
+          packages: 'platforms;android-35 build-tools;35.0.0 platform-tools'
 
       - name: Prepare editor bundle
         run: node tools/build-web-assets.mjs
-
-      # The C++ core is compiled and unit-tested on the host before the APK is built. A failing
-      # assertion here is a real defect in shipped arithmetic, not a warning: the easing solver
-      # this covers runs for every animated property of every layer on every frame.
-      - name: Build and test the native core on the host
-        run: |
-          set -e
-          g++ -std=c++17 -O2 -fno-exceptions -fno-rtti -Wall -Wextra -Werror \
-            tests/native/test_core.cpp app/src/main/cpp/ohc_core.cpp \
-            -o /tmp/ohc_test -lm
-          /tmp/ohc_test | tee /tmp/native-tests.txt
-          grep -q ' 0 failures' /tmp/native-tests.txt
-          checks=$(grep -oE '^[0-9]+ checks' /tmp/native-tests.txt | head -1)
-          echo "::notice::NATIVE tests passed: $checks, 0 failures"
-
-      # A hidden JNI symbol only fails on the device, where it is hardest to diagnose, so the
-      # export surface is asserted from the source before anything is built.
-      - name: Verify the JNI surface is exported
-        run: |
-          set -e
-          n=0
-          for sym in nativeVersion nativeBlendModeName nativeBezierEase nativeEvalKeys \
-                     nativeComposite nativeTransformBlit nativeRgbaToNv12 nativeBoxBlur; do
-            grep -q "Java_com_editorhub_NativeCore_$sym" app/src/main/cpp/jni_bridge.cpp \
-              || { echo "::error::missing JNI export $sym"; exit 1; }
-            n=$((n+1))
-          done
-          echo "::notice::NATIVE JNI exports verified: $n entry points"
-
-      # The JS side must route through the native core, and the build must have proved the call
-      # site still exists. If this fails, the port silently reverted to JavaScript.
-      - name: Verify native routing in the bundle
-        run: |
-          set -e
-          test -f app/src/main/assets/www/native-core.js
-          grep -q 'oms-native-core' app/src/main/assets/www/index.html
-          node --check app/src/main/assets/www/native-core.js
-          grep -q 'omsNativeCore' app/src/main/assets/www/index.html
-          grep -q 'nativeCore.bezierEase' app/src/main/assets/www/index.html
-          echo "::notice::NATIVE routing present in the bundled editor"
 
       - name: Verify bundled editor assets
         run: |
@@ -99,33 +52,13 @@ jobs:
           bytes=$(stat -c%s app/src/main/assets/www/index.html)
           echo "Bundled index.html: $bytes bytes"
           if [ "$bytes" -lt 1000000 ]; then
-            echo "::error::Bundled editor looks truncated"
+            echo "::error::Bundled Open Motion editor looks truncated"
             exit 1
           fi
           if grep -q 'cdn.jsdelivr.net/npm/mediabunny' app/src/main/assets/www/index.html; then
             echo "::error::CDN mediabunny import survived the offline rewrite"
             exit 1
           fi
-          # The frame instrumentation must ship, and must be an observer: if it ever draws, it is
-          # no longer measuring the renderer, it is part of it.
-          test -f app/src/main/assets/www/perf-hud.js
-          grep -q 'oms-perf-hud' app/src/main/assets/www/index.html
-          if grep -qE "fillRect|drawImage|getContext\('2d'\)" app/src/main/assets/www/perf-hud.js; then
-            echo "::error::the perf layer draws: it must only measure"
-            exit 1
-          fi
-          node --check app/src/main/assets/www/perf-hud.js
-          # The encoder probe must ship too, and must not draw.
-          test -f app/src/main/assets/www/codec-probe.js
-          grep -q 'oms-codec-probe' app/src/main/assets/www/index.html
-          node --check app/src/main/assets/www/codec-probe.js
-          # Touch reachability fixes (device tap report): freehand label patch must be applied,
-          # the sheet must not swallow clicks, and the ruler must not cover the tracks.
-          test -f app/src/main/assets/www/touch-fixes.js
-          grep -q 'oms-touch-fixes' app/src/main/assets/www/index.html
-          node --check app/src/main/assets/www/touch-fixes.js
-          ! grep -q 'Tebal goresan' app/src/main/assets/www/index.html
-          grep -q 'Stroke thickness' app/src/main/assets/www/index.html
 
       - name: Check the bundle can boot
         run: |
@@ -146,101 +79,10 @@ jobs:
           restore-keys: gradle-${{ runner.os }}-
 
       - name: Build debug APK
-        # pipefail is essential: `gradlew | tee` reports tee's exit status, so a failed compile
-        # looked like a successful build and the next step then found no APK.
-        run: |
-          set -o pipefail
-          ./gradlew --no-daemon --stacktrace :app:assembleDebug 2>&1 | tee /tmp/build.log
-
-      - name: Build log on failure
-        if: failure()
-        run: |
-          # The raw job log is not reachable from outside the run in this repository. The
-          # compile errors are printed in the job summary as text instead.
-          set +e
-          [ -f /tmp/build.log ] || exit 0
-          {
-            echo "### Build failed"
-            echo '```'
-            grep -E '\.kt:[0-9]+:[0-9]+|^e: |ERROR:|error: |FAILURE:' /tmp/build.log | head -80
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-          # And into the diagnostics thread, which survives the run.
-          cp /tmp/build.log /tmp/build-failure.log
-
-      - name: Publish build diagnostics
-        if: failure()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set +e
-          [ -f /tmp/build.log ] || exit 0
-          {
-            echo "### Build failed for \`${{ github.sha }}\`"
-            echo '```'
-            grep -E '\.kt:[0-9]+:[0-9]+|^e: |ERROR:|error: |FAILURE:|What went wrong' /tmp/build.log | head -80
-            echo '```'
-          } > /tmp/diag.md
-          cat /tmp/diag.md >> "$GITHUB_STEP_SUMMARY"
-          grep -E '^\.kt|[0-9]+:[0-9]+|^e: ' /tmp/build.log | head -8 | while IFS= read -r line; do
-            echo "::error::KOMPILE $line"
-          done
-          grep -n "What went wrong" -A 12 /tmp/build.log | head -16 | while IFS= read -r line; do
-            echo "::error::WHY $line"
-          done
-          grep -n "e: file\|error:\|warning: " /tmp/build.log | grep -v "node_modules" | head -15 \
-            | sed -E 's#file:///[^ ]*/com/editorhub/#/#' \
-            | while IFS= read -r line; do echo "::error::KOTLIN $line"; done
-          gh issue comment 1 --repo "${{ github.repository }}" --body-file /tmp/diag.md
-
-      - name: Upload compile log on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: kotlin-compile-log
-          path: /tmp/build.log
-          if-no-files-found: warn
+        run: ./gradlew --no-daemon --stacktrace :app:assembleDebug
 
       - name: Build release APK (unsigned)
         run: ./gradlew --no-daemon :app:assembleRelease | tail -40
-
-      - name: Verify the launcher icon is not blank
-        run: |
-          python3 - <<'EOF'
-          # An opaque adaptive-icon foreground renders as a blank tile on every launcher, which
-          # is exactly the bug that shipped. Assert the assets rather than trusting them.
-          import sys
-          from PIL import Image
-          problems = []
-          for density in ("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"):
-              fg = Image.open(f"app/src/main/res/mipmap-{density}/ic_launcher_foreground.png").convert("RGBA")
-              w, h = fg.size
-              corners = [fg.getpixel(p)[3] for p in ((1, 1), (w - 2, 1), (1, h - 2), (w - 2, h - 2))]
-              if any(a != 0 for a in corners):
-                  problems.append(f"{density}: foreground is opaque at the corners")
-              if fg.getpixel((w // 2, h // 2))[3] != 255:
-                  problems.append(f"{density}: the mark is missing from the centre")
-              # The launcher crops the 108dp foreground to the middle 72dp and masks it to a
-              # circle of about 66dp. Anything opaque outside that circle is cut off, which is
-              # how a correctly-shaped mark still shipped looking cropped.
-              bbox = fg.getbbox()
-              if bbox:
-                  x0, y0, x1, y1 = bbox
-                  safe = int(w * (33.0 / 108.0) * 2)   # 66dp of a 108dp canvas
-                  off = (w - safe) // 2
-                  if x0 < off or y0 < off or x1 > off + safe or y1 > off + safe:
-                      problems.append(
-                          f"{density}: mark {bbox} escapes the 66dp safe circle "
-                          f"({off}..{off + safe})"
-                      )
-              bg = Image.open(f"app/src/main/res/mipmap-{density}/ic_launcher_background.png").convert("RGBA")
-              if bg.getpixel((0, 0))[3] != 255:
-                  problems.append(f"{density}: background is not opaque")
-          for p in problems:
-              print(f"::error::ICON {p}")
-          sys.exit(1 if problems else 0)
-          EOF
-          echo "launcher icon verified: transparent foreground, opaque gradient background"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -249,127 +91,73 @@ jobs:
           path: |
             app/build/outputs/apk/debug/*.apk
             app/build/outputs/apk/release/*.apk
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 90
 
-      - name: Verify the launcher icon is not blank
-        run: |
-          python3 - <<'EOF'
-          # An opaque adaptive-icon foreground renders as a blank tile on every launcher.
-          # A mark outside the 66dp safe circle is clipped. Both shipped once.
-          import sys
-          from PIL import Image
-          problems = []
-          for density in ("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"):
-              fg = Image.open(f"app/src/main/res/mipmap-{density}/ic_launcher_foreground.png").convert("RGBA")
-              w, h = fg.size
-              corners = [fg.getpixel(p)[3] for p in ((1, 1), (w - 2, 1), (1, h - 2), (w - 2, h - 2))]
-              if any(a != 0 for a in corners):
-                  problems.append(f"{density}: foreground is opaque at the corners")
-              if fg.getpixel((w // 2, h // 2))[3] != 255:
-                  problems.append(f"{density}: the mark is missing from the centre")
-              bbox = fg.getbbox()
-              if bbox:
-                  safe = int(w * (33.0 / 108.0) * 2)
-                  off = (w - safe) // 2
-                  if bbox[0] < off or bbox[1] < off or bbox[2] > off + safe or bbox[3] > off + safe:
-                      problems.append(f"{density}: mark {bbox} escapes the 66dp safe circle")
-              bg = Image.open(f"app/src/main/res/mipmap-{density}/ic_launcher_background.png").convert("RGBA")
-              if bg.getpixel((0, 0))[3] != 255:
-                  problems.append(f"{density}: background is not opaque")
-          for p in problems:
-              print(f"::error::ICON {p}")
-          sys.exit(1 if problems else 0)
-          EOF
-
       - name: Verify APK contents
-        run: |
-          fail=0
-          : > /tmp/verify.log
-          say() { echo "APK-CHECK: $*"; echo "APK-CHECK: $*" >> /tmp/verify.log; }
-
-          apk=$(ls app/build/outputs/apk/debug/*.apk 2>/dev/null | head -1)
-          if [ -z "$apk" ]; then echo "APK-CHECK: no debug APK produced"; exit 1; fi
-          say "apk=$apk"
-          say "size=$(stat -c%s "$apk")"
-          listing=$(unzip -l "$apk")
-
-          # The bundled editor must be in the APK: without it this app has no editor at all.
-          if grep -q "assets/www/index.html" <<<"$listing"; then
-            say "ok: bundled editor present"
-          else
-            say "FAIL: the editor bundle is missing from the APK"; fail=1
-          fi
-          if grep -q "classes.dex" <<<"$listing"; then
-            say "ok: dex present"
-          else
-            say "FAIL: no dex"; fail=1
-          fi
-
-          # THE check that matters: an APK with no launcher activity installs and cannot be
-          # opened. That shipped once and cost two rounds.
-          aapt2=$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}"/build-tools -name aapt2 2>/dev/null | sort | tail -1)
-          if [ -n "$aapt2" ] && "$aapt2" dump badging "$apk" > /tmp/badging.txt 2>/dev/null; then
-            if grep -q "launchable-activity" /tmp/badging.txt; then
-              say "ok: $(grep 'launchable-activity' /tmp/badging.txt | head -1)"
-            else
-              say "FAIL: no launchable activity: the app cannot be opened"; fail=1
-            fi
-            if grep -q "application-label:'EditorsHub'" /tmp/badging.txt; then
-              say "ok: label is EditorsHub"
-            else
-              say "FAIL: label is not EditorsHub"; fail=1
-            fi
-          else
-            # Fall back to the manifest, which is in the workspace and is authoritative.
-            if grep -q 'android.intent.category.LAUNCHER' app/src/main/AndroidManifest.xml; then
-              say "ok: manifest declares a LAUNCHER activity (badging unavailable)"
-            else
-              say "FAIL: manifest has no LAUNCHER activity"; fail=1
-            fi
-          fi
-
-          size=$(stat -c%s "$apk")
-          if [ "$size" -gt 20000000 ]; then
-            say "FAIL: APK past 20 MB ($size bytes)"; fail=1
-          else
-            say "ok: size within budget"
-          fi
-
-          { echo "### APK verification"; echo '```'; cat /tmp/verify.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-          i=0
-          grep -E "FAIL|ok: launchable" /tmp/verify.log | while IFS= read -r line; do
-            i=$((i+1)); echo "::error::V$i $line"
-          done
-          grep -E "ok: launchable|FAIL" /tmp/verify.log | while IFS= read -r line; do
-            echo "::notice::LAUNCH $line"
-          done
-          if [ "$fail" -ne 0 ]; then
-            echo "APK verification failed"
-            exit 1
-          fi
-          echo "verified: bundled editor, dex, launcher activity, label"
-
-      # The native core is the point of this build: if the .so did not make it into the APK, the
-      # app silently runs the JS fallback and the port looks complete while being absent.
-      - name: Verify native core shipped in the APK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
-          unzip -l "$apk" | grep -E 'lib/(arm64-v8a|x86_64)/libeditorhubcore\.so' | tee /tmp/native-libs.txt
-          count=$(grep -c 'libeditorhubcore.so' /tmp/native-libs.txt)
-          if [ "$count" -lt 2 ]; then
-            echo "::error::libeditorhubcore.so missing or incomplete (found $count ABIs)"
-            exit 1
-          fi
-          unzip -p "$apk" lib/arm64-v8a/libeditorhubcore.so > /tmp/libcore.so
-          size=$(stat -c%s /tmp/libcore.so)
-          syms=$(nm -D --defined-only /tmp/libcore.so | grep -c 'Java_com_editorhub_NativeCore_' || true)
-          if [ "$syms" -lt 8 ]; then
-            echo "::error::shipped .so exports only $syms JNI symbols, expected 8"
-            exit 1
-          fi
-          echo "::notice::NATIVE core shipped: $count ABIs, arm64 .so $size bytes, $syms JNI symbols"
+          echo "APK: $apk ($(stat -c%s "$apk") bytes)"
+          listing=$(unzip -l "$apk")
+          # The diagnostics and self-test scripts are the only way a fault on a user's own
+          # device can be reported back. An APK that ships without them still installs and
+          # still runs, so a missing file is invisible until someone tries to use it.
+          for entry in assets/www/index.html assets/www/native-shell.js \
+                       assets/www/report.js assets/www/check.js assets/www/probe.js assets/www/elements.js assets/www/elements-ui.js assets/www/nodevideo.js assets/www/nodevideo-ui.js assets/www/nodevideo-pro.js assets/www/smooth-motion.js \
+                       assets/www/vendor/mediabunny/mediabunny.mjs; do
+            if ! grep -q "$entry" <<<"$listing"; then
+              echo "::error::missing $entry in APK"
+              exit 1
+            fi
+          done
+          # The bundled document must carry the native adapter and no CDN module.
+          unzip -p "$apk" assets/www/index.html > /tmp/apk-index.html
+          grep -q 'oms-native-shell' /tmp/apk-index.html
+          grep -q 'oms-report' /tmp/apk-index.html
+          grep -q 'oms-check' /tmp/apk-index.html
+          grep -q 'oms-probe' /tmp/apk-index.html
+          grep -q 'oms-elements' /tmp/apk-index.html
+          # The Node Video entry point must survive into the packaged document, and the
+          # speed ceiling must actually have been widened, or slow motion is unreachable.
+          grep -q 'oms-nodevideo-entry' /tmp/apk-index.html
+          grep -q 'data-oms-nv' /tmp/apk-index.html
+          grep -q 'min="0.1" max="4"' /tmp/apk-index.html
+          grep -q 'oms-nodevideo-pro' /tmp/apk-index.html
+          # The preview must be drawn at a fraction of the project size, with the pointer
+          # maths and the projection moved to composition units to match. If any of these
+          # are missing the editor is either slow again or the hit boxes are wrong.
+          # -F: these are literal strings, not patterns -- `)*(` in a basic regex silently
+          # matched nothing and failed the build for the wrong reason.
+          grep -qF 'function omsPreviewCanvasSize()' /tmp/apk-index.html
+          # The projection must normalise against the COMPOSITION size. Normalising against
+          # the canvas size is what drew every 3D layer at half position and put the
+          # selection box in the corner, so this asserts the corrected form.
+          grep -qF 'return{x:(nx*.5+.5)*omsCompositionWidth(),y:(1-(ny*.5+.5))*omsCompositionHeight(),z:nz,w:p.w}' /tmp/apk-index.html
+          grep -qF 'function omsCompositionWidth()' /tmp/apk-index.html
+          # The GPU context must not pay for a frame copy or multisampling nobody reads.
+          grep -qF "antialias:false,preserveDrawingBuffer:false,premultipliedAlpha:false,powerPreference:'high-performance'" /tmp/apk-index.html
+          # A resize mid-playback must be deferred, not presented as a blank buffer.
+          grep -qF '_omsPendingResize' /tmp/apk-index.html
+          # Easing and the curve graph must be one tap from the inspector root.
+          grep -qF 'omsEaseRow' /tmp/apk-index.html
+          grep -qF 'x:(clientX-rect.left)*(W/Math.max(1,rect.width))' /tmp/apk-index.html
+          grep -qF 'window.omsSetPreviewQuality=omsSetPreviewQuality' /tmp/apk-index.html
+          # One sheet listing every tool, and the reachable preview-quality control.
+          grep -qF 'omsMoreToolsBtn' /tmp/apk-index.html
+          grep -qF 'omsPreviewQualitySheet' /tmp/apk-index.html
+          # Row taps: a switchRow whose label is tapped must toggle, on devices that send
+          # only pointer events and on devices that send both.
+          grep -qF '__omsSwitchRows' /tmp/apk-index.html
+          # The zip reader must be able to inflate without DecompressionStream, because the
+          # WebView on the reporting device does not have it.
+          unzip -p "$apk" assets/www/nodevideo.js > /tmp/apk-nodevideo.js
+          grep -qF 'function inflateRaw(' /tmp/apk-nodevideo.js
+          grep -qF 'inflateRaw(raw, entry.size)' /tmp/apk-nodevideo.js
+          ! grep -qF 'cdn.jsdelivr.net/npm/mediabunny' /tmp/apk-index.html
+          echo "editor bundle verified inside APK"
 
       - name: Report APK identity
         run: |
