@@ -742,8 +742,14 @@
 
   function projectSearchBox() {
     var s = settings();
-    if (s && s.get('projectSearch') === false) return null;
-    if (document.getElementById('amzProjectSearch')) return document.getElementById('amzProjectSearch');
+    var existing = document.getElementById('amzProjectSearch');
+    /* Turning the switch off has to take the box away. Leaving it in place meant a setting that
+       could only ever be turned on, which is the opposite of a switch. */
+    if (s && s.get('projectSearch') === false) {
+      if (existing) existing.remove();
+      return null;
+    }
+    if (existing) return existing;
     var list = document.getElementById('projectList');
     if (!list || !list.parentNode) return null;
     var wrap = el('div', 'amzSearch');
