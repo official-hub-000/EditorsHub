@@ -317,6 +317,9 @@
         body.appendChild(settingsRow);
         body.appendChild(menuRow('effects'));
         body.appendChild(menuRow('shapes'));
+        body.appendChild(el('div', 'amzGroup', 'Text'));
+        body.appendChild(menuRow('shiftKf'));
+        body.appendChild(menuRow('splitText'));
         body.appendChild(el('div', 'amzGroup', 'Layers'));
         body.appendChild(menuRow('selectAll'));
         body.appendChild(menuRow('hideAll'));
@@ -368,6 +371,18 @@
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 2v20M2 12h20"/></svg>',
       open: function () { patch().linkSelectedTo('null'); },
     },
+    shiftKf: {
+      title: 'Shift keyframes',
+      desc: 'Moves a layer\'s animation earlier or later without moving the layer.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h13M12 7l5 5-5 5"/><path d="M20 5v14"/></svg>',
+      open: function () { select().openShiftKf(); },
+    },
+    splitText: {
+      title: 'Split text',
+      desc: 'Breaks a text layer into characters, words or lines.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16M4 12h9M4 18h13"/></svg>',
+      open: function () { select().openSplitText(); },
+    },
     clearCache: {
       title: 'Clear export cache',
       desc: 'Frees stored export data.',
@@ -375,6 +390,12 @@
       open: function () { patch().clearExportCache(); },
     },
   };
+
+  /** The selection-panel module, if it loaded. */
+  function select() {
+    if (window.omsAmzSelect) return window.omsAmzSelect;
+    return { openShiftKf: function () {}, openSplitText: function () {} };
+  }
 
   /** The patch module, if it loaded. Returns a no-op stand-in so a missing module cannot throw. */
   function patch() {
