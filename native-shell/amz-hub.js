@@ -519,10 +519,13 @@
     var pop = el('div', 'amzThemePop');
     pop.id = 'amzThemePop';
     var S2 = settings();
-    [['original', 'Original'], ['dark', 'Dark'], ['amoled', 'Amoled']].forEach(function (o) {
+    /* The palettes come from settings, so a theme added there appears here without a second
+       list to keep in step. Swatches use each theme's own background and text colour. */
+    var themes = (S2.THEMES || []).map(function (t) { return [t.id, t.label, t.bg || '#ffffff']; });
+    themes.forEach(function (o) {
       var b = el('button');
       b.setAttribute('aria-pressed', String(S2.get('theme') === o[0]));
-      b.innerHTML = '<span class="dot"></span>' + esc(o[1]);
+      b.innerHTML = '<span class="dot" style="background:' + o[2] + '"></span>' + esc(o[1]);
       b.onclick = function () {
         S2.set('theme', o[0]);
         pop.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); });

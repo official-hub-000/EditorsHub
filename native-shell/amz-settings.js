@@ -56,7 +56,7 @@
       help: 'Dragging a layer on the preview snaps its centre and edges to the canvas.' },
 
     // ------------------------------------------------------------- interface
-    { id: 'theme', group: 'Display', type: 'choice', label: 'Theme', options: [['original', 'Original'], ['dark', 'Dark'], ['amoled', 'Amoled']], default: 'original',
+    { id: 'theme', group: 'Display', type: 'choice', label: 'Theme', options: [['original', 'Original'], ['dark', 'Dark'], ['amoled', 'Amoled'], ['midnight', 'Midnight'], ['nord', 'Nord'], ['forest', 'Forest'], ['plum', 'Plum'], ['light', 'Light'], ['sepia', 'Sepia']], default: 'original',
       help: 'Original is the light editor chrome. Dark greys the tool screens and dialogs. Amoled is black for OLED panels.' },
     { id: 'iosStyles', group: 'Display', type: 'bool', label: 'iOS Styles', default: false,
       help: 'iOS look for the trim grips and the share button.' },
@@ -178,45 +178,75 @@
   }
 
   /*
-   * Theme.
+   * Themes.
    *
-   * Implemented as a document-level attribute plus a small style block, so it re-colours the
-   * editor without any component knowing a theme exists. Amoled is dark with true black surfaces;
-   * Dark is dark with the standard greys.
+   * A theme is a palette, not a branch: surfaces, borders and text colours are read from the
+   * THEMES table and written into one style block, so adding a theme is adding a row rather
+   * than another if-statement. Everything uses the editor's existing class names, so the
+   * editor re-colours without any component knowing a theme exists.
    */
+  var THEMES = [
+    { id: 'original', label: 'Original' },
+    { id: 'dark', label: 'Dark',
+      bg: '#0d1016', surface: '#151a22', line: '#262d38', text: '#e8edf4', muted: '#9aa7b8' },
+    { id: 'amoled', label: 'Amoled',
+      bg: '#000000', surface: '#050506', line: '#1a1a1c', text: '#ffffff', muted: '#8b8b92' },
+    { id: 'midnight', label: 'Midnight',
+      bg: '#070d1c', surface: '#0f1830', line: '#1e2c4d', text: '#e4ecfb', muted: '#8fa3c4' },
+    { id: 'nord', label: 'Nord',
+      bg: '#232a35', surface: '#2e3644', line: '#3f4a5c', text: '#eceff4', muted: '#a3aebf' },
+    { id: 'forest', label: 'Forest',
+      bg: '#0b1512', surface: '#12211c', line: '#1f3a31', text: '#e2f1e9', muted: '#8fb3a2' },
+    { id: 'plum', label: 'Plum',
+      bg: '#150d1c', surface: '#21152c', line: '#382347', text: '#f2e6fa', muted: '#b39cc4' },
+    { id: 'light', label: 'Light', light: true,
+      bg: '#f6f7f9', surface: '#ffffff', line: '#d8dde5', text: '#16191f', muted: '#5c6673' },
+    { id: 'sepia', label: 'Sepia', light: true,
+      bg: '#f6f1e6', surface: '#fffdf7', line: '#ded3bd', text: '#2b2418', muted: '#6b5f4a' },
+  ];
+
+  function themeById(id) {
+    for (var i = 0; i < THEMES.length; i++) if (THEMES[i].id === id) return THEMES[i];
+    return THEMES[0];
+  }
+
   function applyTheme() {
-    var theme = get('theme') || 'original';
-    document.documentElement.setAttribute('data-amz-theme', theme);
+    var t = themeById(get('theme') || 'original');
+    document.documentElement.setAttribute('data-amz-theme', t.id);
     var el = document.getElementById('amz-theme-style');
     if (!el) {
       el = document.createElement('style');
       el.id = 'amz-theme-style';
       document.head.appendChild(el);
     }
-    var dark = theme === 'dark' || theme === 'amoled';
-    var black = theme === 'amoled' ? '#000' : '#0d1016';
-    var surface = theme === 'amoled' ? '#050506' : '#151a22';
-    var line = theme === 'amoled' ? '#1a1a1c' : '#262d38';
-    el.textContent = !dark ? '' : (
-      /* The editor's own surfaces. These are the names it already uses, so nothing else
-         has to change to follow the theme. */
+    if (!t.bg) { el.textContent = ''; return; }
+
+    /* Telling the platform which way the palette runs makes native controls - scrollbars,
+       caret, date pickers - match, instead of staying stubbornly light on a dark theme. */
+    try { document.documentElement.style.colorScheme = t.light ? 'light' : 'dark'; } catch (e) {}
+
+    var surfaces =
       'html[data-amz-theme] body,' +
       'html[data-amz-theme] .app,' +
       'html[data-amz-theme] #stage,' +
       'html[data-amz-theme] .timelineArea,' +
       'html[data-amz-theme] .transport,' +
       'html[data-amz-theme] #drawer,' +
-      'html[data-amz-theme] #home{background:' + black + ' !important;color:#e8edf4 !important;}' +
+      'html[data-amz-theme] #home';
+
+    el.textContent =
+      surfaces + '{background:' + t.bg + ' !important;color:' + t.text + ' !important;}' +
       'html[data-amz-theme] .projectCard,' +
       'html[data-amz-theme] .mHomeHero,' +
       'html[data-amz-theme] .effectCard,' +
-      'html[data-amz-theme] .amActionBtn{background:' + surface + ' !important;border-color:' + line + ' !important;color:#e8edf4 !important;}' +
+      'html[data-amz-theme] .amActionBtn' +
+        '{background:' + t.surface + ' !important;border-color:' + t.line + ' !important;color:' + t.text + ' !important;}' +
       'html[data-amz-theme] .miniNote,' +
-      'html[data-amz-theme] small{color:#9aa7b8 !important;}' +
+      'html[data-amz-theme] small{color:' + t.muted + ' !important;}' +
       'html[data-amz-theme] input,' +
       'html[data-amz-theme] select,' +
-      'html[data-amz-theme] textarea{background:' + surface + ' !important;color:#e8edf4 !important;border-color:' + line + ' !important;}'
-    );
+      'html[data-amz-theme] textarea' +
+        '{background:' + t.surface + ' !important;color:' + t.text + ' !important;border-color:' + t.line + ' !important;}';
   }
 
   /*
@@ -263,6 +293,7 @@
 
   var api = {
     SPECS: SPECS,
+    THEMES: THEMES,
     get: get,
     set: set,
     reset: reset,
