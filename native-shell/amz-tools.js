@@ -148,27 +148,33 @@
    * can be used straight away instead of only being saved to disk.
    */
   function addToProject(blob, name, type) {
-    try {
-      var model = window.model;
-      if (!model || !model.addLayer) return 'Editor model not reachable';
-      var file = new File([blob], name, { type: blob.type });
-      var url = URL.createObjectURL(file);
-      var layer = model.addLayer(type || (blob.type.indexOf('audio') === 0 ? 'audio' : 'video'), { name: name });
-      if (layer) {
-        layer.mediaFile = file;
-        layer.mediaUrl = url;
-        layer.name = name;
-        if (layer.src !== undefined) layer.src = url;
-        if (window.history && window.history.commit) window.history.commit('Add ' + name);
-        if (window.renderer && window.renderer.render) window.renderer.render();
-        if (window.refreshLayers) window.refreshLayers();
-        return 'Added "' + name + '" to the project';
+    return new Promise(function (resolve) {
+      try {
+        var model = window.model;
+        if (!model || !model.addLayer) return resolve('No project is open — save the file instead');
+        var reader = new FileReader();
+        reader.onload = function () {
+          try {
+            /* The editor identifies media by dataUrl (and an assetId derived from it), so the
+               result is attached the same way a hand-imported file is. Attaching a File
+               object instead produces a layer that exists but draws nothing. */
+            var layer = model.addLayer(type || (blob.type.indexOf('audio') === 0 ? 'audio' : 'video'),
+              { name: name, dataUrl: reader.result });
+            if (!layer) return resolve('Could not add a layer');
+            try { model.hydrateLayer && model.hydrateLayer(layer); } catch (e) {}
+            if (window.history && window.history.push) window.history.push();
+            if (window.renderer && window.renderer.render) window.renderer.render();
+            if (window.ui && window.ui.rebuildAll) window.ui.rebuildAll();
+            resolve('Added "' + name + '" to the project');
+          } catch (e) { resolve('Could not add to the project: ' + e.message); }
+        };
+        reader.onerror = function () { resolve('Could not read the result'); };
+        reader.readAsDataURL(blob);
+      } catch (e) {
+        M.log('addToProject: ' + e.message);
+        resolve('Could not add to the project: ' + e.message);
       }
-      return 'Could not add a layer';
-    } catch (e) {
-      M.log('addToProject: ' + e.message);
-      return 'Could not add to the project: ' + e.message;
-    }
+    });
   }
 
   /* ------------------------------------------------------------------------- the tools */
@@ -274,7 +280,7 @@
                 M.save(blob, baseName(src.name) + '-depth.png', 'export').then(notify);
               } },
               { label: 'Add to project', onClick: function () {
-                notify(addToProject(new File([blob], baseName(src.name) + '-depth.png', { type: 'image/png' }), baseName(src.name) + '-depth.png', 'video'));
+                addToProject(blob, baseName(src.name) + '-depth.png', 'video').then(notify);
               } },
             ]);
             out.note('This is an estimate built from luminance and local contrast, not a trained depth network. It reads a normal shot as sky-far, foreground-near, which is enough to drive a parallax or displace a layer, but it will not separate two objects at the same distance.');
@@ -367,7 +373,7 @@
                 M.save(blob, baseName(src.name) + '-cutout.png', 'export').then(notify);
               } },
               { label: 'Add to project', onClick: function () {
-                notify(addToProject(new File([blob], baseName(src.name) + '-cutout.png', { type: 'image/png' }), baseName(src.name) + '-cutout.png', 'video'));
+                addToProject(blob, baseName(src.name) + '-cutout.png', 'video').then(notify);
               } },
             ]);
           });
@@ -487,7 +493,7 @@
             box.preview(out);
             box.actions([
               { label: 'Save PNG', primary: true, onClick: function () { M.save(blob, baseName(src.name) + '-' + scale + 'x.png', 'export').then(notify); } },
-              { label: 'Add to project', onClick: function () { notify(addToProject(new File([blob], baseName(src.name) + '-' + scale + 'x.png', { type: 'image/png' }), baseName(src.name) + '-' + scale + 'x.png', 'video')); } },
+              { label: 'Add to project', onClick: function () { addToProject(blob, baseName(src.name) + '-' + scale + 'x.png', 'video').then(notify); } },
             ]);
             box.note('Bicubic enlargement followed by an unsharp mask. It removes the softness a plain stretch leaves, but it cannot invent detail that was never recorded.');
           });
@@ -634,7 +640,7 @@
             if (out.blob) {
               box.actions([
                 { label: 'Save MP4', primary: true, onClick: function () { M.save(out.blob, out.name, 'export').then(notify); } },
-                { label: 'Add to project', onClick: function () { notify(addToProject(out.blob, out.name, 'video')); } },
+                { label: 'Add to project', onClick: function () { addToProject(out.blob, out.name, 'video').then(notify); } },
               ]);
             } else {
               box.note(out.message);
@@ -890,7 +896,7 @@
             box.line('Length', audio.duration.toFixed(2) + ' s');
             box.actions([
               { label: 'Save WAV', primary: true, onClick: function () { M.save(blob, baseName(src.name) + '-' + rate + '.wav', 'export').then(notify); } },
-              { label: 'Add to project', onClick: function () { notify(addToProject(blob, baseName(src.name) + '.wav', 'audio')); } },
+              { label: 'Add to project', onClick: function () { addToProject(blob, baseName(src.name) + '.wav', 'audio').then(notify); } },
             ]);
           });
         },
@@ -938,7 +944,7 @@
             if (made.blob) {
               box.actions([
                 { label: 'Save MP4', primary: true, onClick: function () { M.save(made.blob, made.name, 'export').then(notify); } },
-                { label: 'Add to project', onClick: function () { notify(addToProject(made.blob, made.name, 'video')); } },
+                { label: 'Add to project', onClick: function () { addToProject(made.blob, made.name, 'video').then(notify); } },
               ]);
             } else {
               box.note(made.message);
@@ -1082,7 +1088,7 @@
               if (made.blob) {
                 box.actions([
                   { label: 'Save MP4', primary: true, onClick: function () { M.save(made.blob, baseName(src.name) + '-reversed.mp4', 'export').then(notify); } },
-                  { label: 'Add to project', onClick: function () { notify(addToProject(made.blob, baseName(src.name) + '-reversed.mp4', 'video')); } },
+                  { label: 'Add to project', onClick: function () { addToProject(made.blob, baseName(src.name) + '-reversed.mp4', 'video').then(notify); } },
                 ]);
               } else { box.note(made.message); }
             } else if (reversedAudio) {
@@ -1093,7 +1099,7 @@
               ab.line('Length', media.audio.duration.toFixed(2) + ' s');
               ab.actions([
                 { label: 'Save WAV', primary: true, onClick: function () { M.save(blob, baseName(src.name) + '-reversed.wav', 'export').then(notify); } },
-                { label: 'Add to project', onClick: function () { notify(addToProject(blob, baseName(src.name) + '-reversed.wav', 'audio')); } },
+                { label: 'Add to project', onClick: function () { addToProject(blob, baseName(src.name) + '-reversed.wav', 'audio').then(notify); } },
               ]);
             } else {
               throw new Error('Nothing to reverse in that file');
@@ -1164,7 +1170,7 @@
             box.line('Size', (blob.size / 1048576).toFixed(2) + ' MB');
             box.actions([
               { label: 'Save', primary: true, onClick: function () { M.save(blob, name, 'export').then(notify); } },
-              { label: 'Add to project', onClick: function () { notify(addToProject(blob, name, to === 'wav' ? 'audio' : to === 'mp3' ? 'audio' : 'video')); } },
+              { label: 'Add to project', onClick: function () { addToProject(blob, name, to === 'wav' ? 'audio' : to === 'mp3' ? 'audio' : 'video').then(notify); } },
             ]);
           });
         },
@@ -1276,7 +1282,7 @@
               { label: 'Save PNG', primary: true, onClick: function () { M.save(blob, baseName(src.name) + '-3d.png', 'export').then(notify); } },
               { label: 'Add to project', onClick: function () {
                 var name = baseName(src.name) + '-3d.png';
-                notify(addToProject(new File([blob], name, { type: 'image/png' }), name, 'video'));
+                addToProject(blob, name, 'video').then(notify);
               } },
             ]);
           });
@@ -1294,25 +1300,32 @@
   function installExportBridge() {
     if (window.omsAmzExport) return;
     window.omsAmzExport = {
+      /** Turns a picked file into a real layer, so the editor's own exporter can write it. */
       fromFile: function (src, opts) {
         opts = opts || {};
-        try {
-          var model = window.model;
-          if (!model || !model.addLayer) return { ok: false, message: 'No project is open' };
-          var isAudio = M.isAudioName(src.name);
-          var layer = model.addLayer(isAudio ? 'audio' : 'video', { name: src.name });
-          if (!layer) return { ok: false, message: 'Could not create a layer' };
-          layer.mediaFile = src.file;
-          layer.mediaUrl = src.url;
-          layer.name = src.name;
-          if (opts.width && model.width !== undefined && !isAudio) { model.width = opts.width; model.height = opts.height; }
-          if (window.history && window.history.commit) window.history.commit('Import ' + src.name);
-          if (window.renderer && window.renderer.render) window.renderer.render();
-          if (window.refreshLayers) window.refreshLayers();
-          return { ok: true, layer: layer };
-        } catch (e) {
-          return { ok: false, message: e.message };
-        }
+        return new Promise(function (resolve) {
+          try {
+            var model = window.model;
+            if (!model || !model.addLayer) return resolve({ ok: false, message: 'No project is open' });
+            var isAudio = M.isAudioName(src.name);
+            var reader = new FileReader();
+            reader.onload = function () {
+              try {
+                var layer = model.addLayer(isAudio ? 'audio' : 'video', { name: src.name, dataUrl: reader.result });
+                if (!layer) return resolve({ ok: false, message: 'Could not create a layer' });
+                try { model.hydrateLayer && model.hydrateLayer(layer); } catch (e) {}
+                if (window.history && window.history.push) window.history.push();
+                if (window.renderer && window.renderer.render) window.renderer.render();
+                if (window.ui && window.ui.rebuildAll) window.ui.rebuildAll();
+                resolve({ ok: true, layer: layer });
+              } catch (e) { resolve({ ok: false, message: e.message }); }
+            };
+            reader.onerror = function () { resolve({ ok: false, message: 'Could not read the file' }); };
+            reader.readAsDataURL(src.file);
+          } catch (e) {
+            resolve({ ok: false, message: e.message });
+          }
+        });
       },
       report: function (res) {
         try {
