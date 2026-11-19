@@ -37,11 +37,11 @@
     { id: 'capPreviewFps', group: 'Editor', type: 'bool', label: 'Cap Preview FPS', default: true,
       help: 'Applies Preview FPS Cap. When off, the preview draws as fast as frames arrive.' },
     { id: 'skipLateFrames', group: 'Editor', type: 'bool', label: 'Skip Late Frames', default: true,
-      help: 'While playing, a frame already far enough behind the playhead is dropped instead of drawn, so playback catches up rather than showing stale pictures.' },
+      help: 'Cannot be wired from an extension: the core\u2019s playback loop drops frames by its own rules and exposes no hook. Left visible for parity; it changes nothing.' },
     { id: 'frameCache', group: 'Editor', type: 'bool', label: 'Frame Cache', default: true,
       help: 'Keeps drawn preview frames in memory so replaying a section is instant the second time. Shows a green line on the ruler where frames are cached.' },
     { id: 'frameCacheMb', group: 'Editor', type: 'number', label: 'Frame Cache Size (MB)', min: 64, max: 1024, default: 192,
-      help: 'Memory the frame cache may use. Lower it if the app closes during long previews.' },
+      help: 'Cannot be wired from an extension: the core sizes its cache internally. Left visible for parity; it changes nothing.' },
     { id: 'lockPreviewButton', group: 'Editor', type: 'bool', label: 'Lock Preview Button', default: true,
       help: 'Shows a lock next to the preview quality control that stops playback while you scrub.' },
     { id: 'confirmLeaveEditor', group: 'Editor', type: 'bool', label: 'Confirm Before Leaving Editor', default: true,
@@ -69,7 +69,7 @@
     { id: 'animatedThumbs', group: 'Display', type: 'bool', label: 'Animated Effect Thumbnails', default: true,
       help: 'Gives effect tiles a small motion cue on hover. It does not render live animated previews - that would mean rendering every effect in the catalogue.' },
     { id: 'effectPreviewDim', group: 'Display', type: 'bool', label: 'Effect Preview Dim', default: true,
-      help: 'Puts a 50% black layer under the text on an effect description page so the title stays readable on bright previews.' },
+      help: 'Cannot be wired from an extension: that page is built inside the core. Left visible for parity; it changes nothing.' },
 
     // ------------------------------------------------------------- projects
     { id: 'projectSearch', group: 'Home & Projects', type: 'bool', label: 'Project Search Bar', default: true,
@@ -79,7 +79,7 @@
       default: 'en', restart: false,
       help: 'Interface language. Applies immediately.' },
     { id: 'thumbnailFrameOnExport', group: 'Home & Projects', type: 'bool', label: 'Thumbnail Frame on Export', default: false,
-      help: 'When a thumbnail frame is set, every video export starts with it as one extra first frame so galleries use it as the cover.' },
+      help: 'Cannot be wired from an extension: the exporter is core code and would need a real change there, not a wrapper. Left visible for parity; it changes nothing.' },
 
     // --------------------------------------------------------------- effects
     { id: 'effectSearchDelay', group: 'Effect Browser', type: 'number', label: 'Effect Search Delay (ms)', min: 50, max: 1000, default: 250,
@@ -91,7 +91,7 @@
     { id: 'autoFillCache', group: 'Performance', type: 'bool', label: 'Auto Fill Frame Cache', default: false,
       help: 'After a project opens and sits idle, the preview plays through once to fill the frame cache, then returns to where it was. Needs Frame Cache on. It will wait rather than interrupt playback.' },
     { id: 'disableTracking', group: 'Performance', type: 'bool', label: 'Disable Ad & Tracking SDKs', default: true, restart: true,
-      help: 'This build contains no ad or tracking SDK, so the switch has nothing to disable and is kept only so a ported setting has a home.' },
+      help: 'Correct: this build contains no ad or tracking SDK, so there is genuinely nothing to disable. The switch exists only so the panel matches what you had.' },
     { id: 'exportLog', group: 'Performance', type: 'bool', label: 'Export Log', default: false,
       help: 'Echoes the exporter\'s own log lines to the console so a failed export can be read back. It does not write a file on its own.' },
 
