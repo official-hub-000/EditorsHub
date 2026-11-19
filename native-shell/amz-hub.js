@@ -392,7 +392,8 @@
         if (!a) return notify('Adjustment layers are still loading');
         var made = a.addAdjustmentLayer();
         if (!made) return notify('Could not add an adjustment layer');
-        notify('Adjustment layer added \u2014 give it effects to grade the scene');
+        notify('Adjustment layer added');
+        a.openAdjustmentPicker(made);
       },
     },
     clearCache: {

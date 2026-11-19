@@ -219,10 +219,75 @@
     return layer;
   }
 
+  /* ------------------------------------------------------------------ choosing an effect */
+
+  /**
+   * Opens a picker that adds an effect to the adjustment rather than to a clip.
+   *
+   * The effect browser already applies to the selected layer, and an adjustment layer can be
+   * selected, so this exists for the case where you just added one and want to see it do
+   * something without hunting for it in the drawer.
+   */
+  function openAdjustmentPicker(layer) {
+    var hub = window.omsAmzHub;
+    if (!hub || !hub.sheet) return;
+    var catalog = window.OMS_EFFECT_CATALOG || [];
+    /* Only effects this layer can actually accept, so the list is not full of rejections. */
+    var usable = catalog.filter(function (spec) {
+      try {
+        var cap = window.OMSUnifiedRender && window.OMSUnifiedRender.capability;
+        if (!cap) return true;
+        return !!cap(layer, spec).available;
+      } catch (e) { return true; }
+    });
+
+    hub.sheet({
+      title: 'Adjustment effect',
+      subtitle: 'Applies to everything beneath this layer',
+      build: function (body) {
+        var groups = {}, order = [];
+        usable.forEach(function (spec) {
+          var key = spec.category || 'Lain';
+          if (!groups[key]) { groups[key] = []; order.push(key); }
+          groups[key].push(spec);
+        });
+        order.forEach(function (cat) {
+          var head = document.createElement('div');
+          head.className = 'amzGroup';
+          head.textContent = cat;
+          body.appendChild(head);
+          groups[cat].forEach(function (spec) {
+            var row = document.createElement('div');
+            row.className = 'amzTool';
+            row.innerHTML = '<div class="amzToolText"><b>' + spec.name + '</b><p>' +
+              ((spec.params || []).length) + ' controls</p></div><div class="chev">+</div>';
+            row.onclick = function () {
+              if (!window.omsEffectInstance) return;
+              try {
+                if (window.history && window.history.push) window.history.push();
+                layer.effectStack = layer.effectStack || [];
+                layer.effectStack.push(window.omsEffectInstance(spec.id, {}));
+                changed();
+                try { window.renderer.render(); } catch (e) {}
+                try { window.timeline.rebuild(); } catch (e) {}
+                if (hub.notify) hub.notify(spec.name + ' added to the adjustment');
+              } catch (e) {
+                if (hub.notify) hub.notify('Could not add that effect');
+              }
+            };
+            body.appendChild(row);
+          });
+        });
+      },
+      footer: [{ label: 'Done', primary: true }],
+    });
+  }
+
   window.omsAmzAdjust = {
     TYPE: TYPE,
     install: install,
     addAdjustmentLayer: addAdjustmentLayer,
+    openAdjustmentPicker: openAdjustmentPicker,
     applyAdjustments: applyAdjustments,
     activeAdjustments: activeAdjustments,
     isAdjustment: isAdjustment,
