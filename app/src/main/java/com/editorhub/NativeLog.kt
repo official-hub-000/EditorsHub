@@ -6,6 +6,11 @@ import android.util.Log
 object NativeLog {
     private const val TAG = "EditorsHub"
 
+    /**
+     * JvmStatic so Java callers (the MP3 encoder) can reach this as NativeLog.log(...)
+     * instead of having to go through the INSTANCE field of the Kotlin object.
+     */
+    @JvmStatic
     fun log(level: String, message: String?, source: String?, line: Int) {
         val text = buildString {
             append(message ?: "")
