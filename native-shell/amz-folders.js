@@ -78,15 +78,20 @@
    * Cards are matched by the id the browser already put on them (`data-effect-library`), and
    * moved - not copied - into their folder, so every existing click handler keeps working.
    */
-  function applyFolders() {
+  function applyFolders(force) {
     var list = document.getElementById('effectLibraryList') || document.querySelector('.effectLibraryList');
     if (!list) return false;
-    if (list.getAttribute('data-amz-folded') === '1') return true;
+    var catalog = window.OMS_EFFECT_CATALOG || [];
+    /* A fold built before the catalogue exists would put every card in "Other" and then mark
+       itself done, so the wrong grouping would stick for the session. Refold when the
+       catalogue arrives, or when the caller asks. */
+    if (list.getAttribute('data-amz-folded') === '1' && !force) {
+      if (Number(list.getAttribute('data-amz-catalog')) === catalog.length) return true;
+      unfold(list);
+    }
 
     var cards = list.querySelectorAll('[data-effect-library]');
     if (!cards.length) return false;
-
-    var catalog = window.OMS_EFFECT_CATALOG || [];
     var byId = {};
     for (var i = 0; i < catalog.length; i++) byId[catalog[i].id] = catalog[i];
 
@@ -107,6 +112,14 @@
       var rb = rank[b] === undefined ? 999 : rank[b];
       return ra - rb;
     });
+
+    /* Remember the order the browser drew the cards in before any card is moved, so unfolding
+       restores that order rather than leaving the list grouped by folder forever. */
+    var originalOrder = [];
+    Array.prototype.forEach.call(cards, function (card) {
+      originalOrder.push(card.getAttribute('data-effect-library'));
+    });
+    list.setAttribute('data-amz-order', originalOrder.join('|'));
 
     var holder = document.createElement('div');
     holder.className = 'amzFolders';
@@ -162,6 +175,8 @@
 
     list.appendChild(holder);
     list.setAttribute('data-amz-folded', '1');
+    list.setAttribute('data-amz-catalog', String(catalog.length));
+    buildTiles();
     return true;
   }
 
@@ -208,6 +223,102 @@
     return true;
   }
 
+  /**
+   * Puts every card back where the browser had it and drops the wrappers.
+   *
+   * Cards are moved, not cloned, so this is a plain re-insert - and doing it here means a
+   * refold starts from the browser's own order rather than from the previous fold's.
+   */
+  function unfold(list) {
+    var holder = list.querySelector('.amzFolders');
+    if (holder) {
+      var order = String(list.getAttribute('data-amz-order') || '').split('|');
+      var byId = {};
+      Array.prototype.forEach.call(holder.querySelectorAll('[data-effect-library]'), function (card) {
+        byId[card.getAttribute('data-effect-library')] = card;
+      });
+      /* Put the cards back in the recorded order. Anything the browser added since the fold is
+         not in that list and is appended after, so nothing is ever dropped. */
+      order.forEach(function (id) {
+        if (byId[id]) { list.appendChild(byId[id]); delete byId[id]; }
+      });
+      Object.keys(byId).forEach(function (id) { list.appendChild(byId[id]); });
+      holder.remove();
+      list.removeAttribute('data-amz-order');
+    }
+    var tiles = document.getElementById('amzEffectTiles');
+    if (tiles) tiles.remove();
+    list.removeAttribute('data-amz-folded');
+    list.removeAttribute('data-amz-catalog');
+  }
+
+  /*
+   * Category tiles.
+   *
+   * The mod's browser opens on a grid of category tiles before the list. The tiles here are a
+   * navigation surface, not decoration: each one opens and scrolls to its folder, so tapping a
+   * tile and tapping the folder header do the same thing.
+   *
+   * The mod uses photographic previews per category. These use a distinct tint per category
+   * instead, because a photographic preview would have to be a rendered frame of that effect,
+   * and a still that is not actually the effect's output is a lie dressed as a preview.
+   */
+  var TILE_TINT = {
+    particles: 'linear-gradient(135deg,#1b3a4b,#0d1f2b)',
+    distort: 'linear-gradient(135deg,#3b2a52,#181026)',
+    colour: 'linear-gradient(135deg,#4b2f1b,#24160c)',
+    blur: 'linear-gradient(135deg,#243b4a,#101c24)',
+    style: 'linear-gradient(135deg,#3d3520,#1d1810)',
+    move: 'linear-gradient(135deg,#1f3b33,#0d1c17)',
+    generated: 'linear-gradient(135deg,#42263a,#1e1018)',
+    other: 'linear-gradient(135deg,#2c2f36,#14161a)',
+  };
+
+  function buildTiles() {
+    var list = document.getElementById('effectLibraryList') || document.querySelector('.effectLibraryList');
+    if (!list || document.getElementById('amzEffectTiles')) return false;
+
+    var catalog = window.OMS_EFFECT_CATALOG || [];
+    var counts = {};
+    catalog.forEach(function (spec) {
+      var f = folderFor(spec);
+      if (!f) return;
+      counts[f.id] = (counts[f.id] || 0) + 1;
+    });
+
+    var wrap = document.createElement('div');
+    wrap.id = 'amzEffectTiles';
+    wrap.className = 'amzTiles';
+
+    FOLDERS.forEach(function (f) {
+      if (f.id === 'other' && !counts[f.id]) return;
+      var tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'amzTile';
+      tile.setAttribute('data-amz-tile', f.id);
+      tile.style.background = TILE_TINT[f.id] || TILE_TINT.other;
+      tile.innerHTML =
+        '<span class="amzTileGlyph">' + f.glyph + '</span>' +
+        '<span class="amzTileName">' + f.label + '</span>' +
+        '<span class="amzTileCount">' + (counts[f.id] || 0) + '</span>';
+      tile.addEventListener('click', function () {
+        var section = list.querySelector('[data-amz-folder="' + f.id + '"]');
+        if (!section) return;
+        if (!section.classList.contains('open')) {
+          var head = section.querySelector('.amzFolderHead');
+          if (head) head.click();
+        }
+        try { section.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) {}
+        section.classList.add('amzFlash');
+        setTimeout(function () { section.classList.remove('amzFlash'); }, 700);
+      });
+      wrap.appendChild(tile);
+    });
+
+    list.parentNode.insertBefore(wrap, list);
+    return true;
+  }
+
   /* Folder chrome. Deliberately quiet - it sits inside the effect browser, which already has
      its own visual language, so it borrows the drawer's colours rather than introducing new
      ones. */
@@ -227,7 +338,14 @@
       '.amzFolderBody{display:none;padding:0 6px 8px;flex-wrap:wrap;gap:8px}' +
       '.amzFolder.open .amzFolderBody{display:flex}' +
       '.amzFolderBody .effectLibraryCard{flex:0 0 auto}' +
-      '.amzCardMark{position:absolute;top:5px;right:6px;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:rgba(255,255,255,.16)}';
+      '.amzCardMark{position:absolute;top:5px;right:6px;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:rgba(255,255,255,.16)}' +
+      '.amzTiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 12px}' +
+      '.amzTile{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;min-height:74px;padding:11px 12px;border-radius:13px;border:1px solid rgba(255,255,255,.09);color:#f2f5f9;font:inherit;cursor:pointer;overflow:hidden;text-align:left}' +
+      '.amzTile:active{transform:scale(.985)}' +
+      '.amzTileGlyph{position:absolute;top:9px;right:11px;font-size:15px;opacity:.5}' +
+      '.amzTileName{font-size:12.5px;font-weight:600;line-height:1.25}' +
+      '.amzTileCount{font-size:11px;opacity:.6;margin-top:2px;font-variant-numeric:tabular-nums}' +
+      '.amzFolder.amzFlash{border-color:rgba(255,255,255,.4)}';
     document.head.appendChild(style);
   }
 
@@ -244,6 +362,8 @@
     FOLDERS: FOLDERS,
     install: install,
     applyFolders: applyFolders,
+    buildTiles: buildTiles,
+    unfold: unfold,
     folderFor: folderFor,
     isOpen: isOpen,
     get installed() { return installed; },
