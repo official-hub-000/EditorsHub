@@ -111,6 +111,11 @@
     '.amzResult .amz-btn.amz-primary,.amz-result .amz-btn.amz-primary{background:var(--amz-accent);color:var(--amz-accent-ink)}',
     '.amz-btn:disabled{opacity:.45}',
     '.amz-panel,.amzPanel{display:block}',
+    '.amzShapeHeading{grid-column:1/-1;margin:14px 2px 6px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#93a1b3;}',
+    '.amzShapeHeading:first-child{margin-top:4px}',
+    '.amzShapeChips{display:flex;flex-wrap:wrap;gap:7px;margin:0 2px 10px}',
+    '.amzShapeChip{height:36px;padding:0 13px;border-radius:999px;border:1px solid var(--amz-line);background:var(--amz-surface-2);color:var(--amz-text);font-size:12.5px;cursor:pointer}',
+    '.amzShapeChip:active{background:var(--amz-accent);color:var(--amz-accent-ink)}',
     '.amzRow2,.amz-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}',
     '.amz-row.amz-actions .amz-btn,.amzActions .amz-btn,.amz-row.amz-actions .amzBtn{flex:1;min-width:130px;height:46px;border-radius:14px;border:0;font-size:14px;font-weight:700;background:rgba(255,255,255,.08);color:var(--amz-text);cursor:pointer}',
     '.amz-row.amz-actions .amz-btn.amz-primary{background:var(--amz-accent);color:var(--amz-accent-ink)}',
@@ -307,6 +312,124 @@
           '<div class="chev">&#8250;</div>';
         settingsRow.onclick = openSettings;
         body.appendChild(settingsRow);
+        body.appendChild(menuRow('effects'));
+        body.appendChild(menuRow('shapes'));
+      },
+      footer: [{ label: 'Close' }],
+    });
+  }
+
+  /* ------------------------------------------------------------- extra effects & shapes */
+
+  var MENU = {
+    effects: {
+      title: 'Extra effects',
+      desc: 'Shader effects added on top of the built-in ones.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/></svg>',
+      open: function () { openExtraEffects(); },
+    },
+    shapes: {
+      title: 'Extra shapes',
+      desc: 'Shapes added to the shape picker.',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 3 9 6.5-3.4 10.5H6.4L3 9.5 12 3Z"/></svg>',
+      open: function () { openExtraShapes(); },
+    },
+  };
+
+  function menuRow(key) {
+    var m = MENU[key];
+    var count = key === 'effects' ? extraEffectCount() : extraShapeCount();
+    var row = el('div', 'amzTool');
+    row.innerHTML =
+      '<div class="amzToolIcon">' + m.icon + '</div>' +
+      '<div class="amzToolText"><b>' + esc(m.title) + '</b><p>' + count + ' available \u00b7 ' + esc(m.desc) + '</p></div>' +
+      '<div class="chev">&#8250;</div>';
+    row.onclick = function () { try { m.open(); } catch (e) { notify('Could not open that: ' + e.message); } };
+    return row;
+  }
+
+  function extraEffectCount() {
+    try { return window.omsAmzEffects ? window.omsAmzEffects.EFFECTS.length : 0; } catch (e) { return 0; }
+  }
+  function extraShapeCount() {
+    try { return window.omsAmzShapes ? Object.keys(window.omsAmzShapes.SHAPES).length : 0; } catch (e) { return 0; }
+  }
+
+  /**
+   * Lists the added effects and applies one to the selected layer. Applying from here rather
+   * than only from the effect browser matters because the browser needs a layer selected
+   * first; this sheet says so instead of failing silently.
+   */
+  function openExtraEffects() {
+    var C = window.OMS_EFFECT_CATALOG || [];
+    var mine = [];
+    for (var i = 0; i < C.length; i++) {
+      if (C[i] && String(C[i].id).indexOf('amz_') === 0) mine.push(C[i]);
+    }
+    var groups = {}, order = [];
+    mine.forEach(function (spec) {
+      var key = spec.category || 'Lain';
+      if (!groups[key]) { groups[key] = []; order.push(key); }
+      groups[key].push(spec);
+    });
+    sheet({
+      title: 'Extra effects',
+      subtitle: mine.length + ' shader effects',
+      build: function (body) {
+        var note = el('div', 'amz-field');
+        note.appendChild(el('div', 'amz-label', 'How these work'));
+        note.appendChild(el('p', 'amz-note', 'Each is a fragment shader running through the editor\'s own effect pipeline, so it previews and exports like a built-in one. Select a layer, then tap an effect to add it.'));
+        body.appendChild(note);
+        order.forEach(function (cat) {
+          body.appendChild(el('div', 'amzGroup', esc(cat)));
+          groups[cat].forEach(function (spec) {
+            var row = el('div', 'amzTool');
+            row.innerHTML =
+              '<div class="amzToolIcon">' + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/></svg>' + '</div>' +
+              '<div class="amzToolText"><b>' + esc(spec.name) + '</b><p>' + (spec.params ? spec.params.length : 0) + ' controls</p></div>' +
+              '<div class="chev">+</div>';
+            row.onclick = function () {
+              if (!window.omsAmzEffects) return notify('Effects are still loading');
+              var selected = window.model && window.model.layers
+                ? window.model.layers.find(function (l) { return l && l.id === window.model.selected; })
+                : null;
+              if (!selected) return notify('Select a layer first, then tap the effect');
+              window.omsAmzEffects.applyTo(selected, spec.id);
+            };
+            body.appendChild(row);
+          });
+        });
+      },
+      footer: [{ label: 'Close' }],
+    });
+  }
+
+  function openExtraShapes() {
+    var shapes = window.omsAmzShapes;
+    var groups = shapes ? shapes.GROUPS : [];
+    sheet({
+      title: 'Extra shapes',
+      subtitle: (shapes ? Object.keys(shapes.SHAPES).length : 0) + ' shapes',
+      build: function (body) {
+        body.appendChild(el('p', 'amz-note', 'These are also in the shape picker under Add to Shapes. Listed here so you can see what was added and drop one in directly.'));
+        groups.forEach(function (group) {
+          body.appendChild(el('div', 'amzGroup', esc(group.label)));
+          var wrap = el('div', 'amzShapeChips');
+          group.items.forEach(function (id) {
+            if (!shapes || !shapes.SHAPES[id]) return;
+            var b = el('button', 'amzShapeChip', esc(shapes.LABELS[id] || id));
+            b.onclick = function () {
+              try {
+                if (window.history && window.history.push) window.history.push();
+                window.model.addLayer('shape', { shape: id, name: shapes.LABELS[id] || id });
+                if (window.ui && window.ui.rebuildAll) window.ui.rebuildAll();
+                notify(shapes.LABELS[id] || id);
+              } catch (e) { notify('Could not add that shape'); }
+            };
+            wrap.appendChild(b);
+          });
+          body.appendChild(wrap);
+        });
       },
       footer: [{ label: 'Close' }],
     });
@@ -687,6 +810,8 @@
     openSettings: openSettings,
     openFeedback: openFeedback,
     openThemePicker: openThemePicker,
+    openExtraEffects: openExtraEffects,
+    openExtraShapes: openExtraShapes,
     syncButton: syncButton,
     syncProjectSearch: syncProjectSearch,
     syncHome: syncHome,
