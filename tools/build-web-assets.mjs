@@ -126,6 +126,10 @@ function injectShell(html) {
     '<script src="./probe.js" defer id="oms-probe"></script>\n' +
     '<script src="./check.js" defer id="oms-check"></script>\n' +
     '<script src="./report.js" defer id="oms-report"></script>\n' +
+    '<script src="./amz-media.js" defer id="oms-amz-media"></script>\n' +
+    '<script src="./amz-settings.js" defer id="oms-amz-settings"></script>\n' +
+    '<script src="./amz-hub.js" defer id="oms-amz-hub"></script>\n' +
+    '<script src="./amz-tools.js" defer id="oms-amz-tools"></script>\n' +
     '<script src="./native-shell.js" defer id="oms-native-shell"></script>\n';
   // The upstream document keeps a large trailing <style> block after </body>, so the
   // tag is anchored on the closing </html> instead: defer still guarantees the adapter
@@ -298,6 +302,9 @@ async function main() {
   await cp(path.join(shellDir, 'nodevideo-ui.js'), path.join(outDir, 'nodevideo-ui.js'));
   await cp(path.join(shellDir, 'nodevideo-pro.js'), path.join(outDir, 'nodevideo-pro.js'));
   await cp(path.join(shellDir, 'smooth-motion.js'), path.join(outDir, 'smooth-motion.js'));
+  for (const extra of ['amz-media.js', 'amz-settings.js', 'amz-hub.js', 'amz-tools.js']) {
+    await cp(path.join(shellDir, extra), path.join(outDir, extra));
+  }
 
   if (vendoredMediabunny) {
     await cp(
