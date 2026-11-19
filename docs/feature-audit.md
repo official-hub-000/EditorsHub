@@ -404,7 +404,7 @@ This is worth confirming on device before trusting any project to survive an upd
 | Effects | 243 (93 base + 150) | 93 base + **24 rendering** |
 | Effect categories | 36 (12 browse + 24 groups) | 8 |
 | Shapes | 66 + 96 new = 162 | 66 base + **58 new** |
-| Layer types | 8 | 4 (camera, null, group, element) |
+| Layer types | 8 | **9** (video, audio, text, shape, group, camera, null, mesh, **adjustment**) |
 | Selection panels | 16 (2 pages) | ~6 |
 | Patch toggles | 28 | **31** (18 mapped, rest not applicable) |
 | Media tools | 13 | **15** (incl. native MP3) |
