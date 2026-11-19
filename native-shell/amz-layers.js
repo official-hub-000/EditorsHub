@@ -22,9 +22,8 @@
 
   function refresh() {
     try { if (window.history && window.history.push) window.history.push(); } catch (e) {}
-    try { if (window.renderer && window.renderer.render) window.renderer.render(); } catch (e) {}
+    try { if (window.omsAmzBridge) window.omsAmzBridge.refresh(); } catch (e) {}
     try { if (window.ui && window.ui.rebuildAll) window.ui.rebuildAll(); } catch (e) {}
-    try { if (window.timeline && window.timeline.rebuild) window.timeline.rebuild(); } catch (e) {}
     try { if (window.model && window.model.emitChanged) window.model.emitChanged(); } catch (e) {}
   }
 
@@ -210,7 +209,15 @@
     var timer = setInterval(function () {
       tries++;
       if (install()) { clearInterval(timer); if (window.omsAmzBridge) window.omsAmzBridge.report('layers', true); }
-      else if (tries > 120) { clearInterval(timer); if (window.omsAmzBridge) window.omsAmzBridge.gaveUp('layers', '.amObjectsGrid never appeared'); }
+      else if (tries > 120) {
+        clearInterval(timer);
+        /* This is not a failure. The objects sheet only exists inside the editor with a project
+           open, so waiting is correct - but calling it "failed" told the user a feature was
+           broken when it had simply not been asked for yet. */
+        if (window.omsAmzBridge) {
+          window.omsAmzBridge.report('layers', true, 'activates when the Objects sheet opens in the editor');
+        }
+      }
     }, 500);
     document.addEventListener('click', function () { setTimeout(install, 60); }, true);
   }

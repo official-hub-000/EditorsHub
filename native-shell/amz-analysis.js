@@ -288,8 +288,7 @@
             checkpoint();
             var n = applyBeats(layer, res.times, style);
             changed();
-            try { window.timeline.rebuild(); } catch (e) {}
-            try { window.renderer.render(); } catch (e) {}
+            try { if (window.omsAmzBridge) window.omsAmzBridge.refresh(); } catch (e) {}
             out.textContent = 'Found ' + n + ' hits over ' + res.duration.toFixed(1) + ' s and keyed them.';
             notify(n + ' hits keyed');
           }).catch(function (e) {
@@ -387,7 +386,7 @@
               n++;
             });
             changed();
-            try { window.timeline.rebuild(); } catch (e) {}
+            try { if (window.omsAmzBridge) window.omsAmzBridge.refresh(); } catch (e) {}
             out.textContent = 'Keyed ' + n + ' hits, scaled by loudness.';
             notify(n + ' keys from audio');
           }).catch(function (e) {

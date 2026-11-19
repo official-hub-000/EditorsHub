@@ -163,7 +163,7 @@
             if (!layer) return resolve('Could not add a layer');
             try { model.hydrateLayer && model.hydrateLayer(layer); } catch (e) {}
             if (window.history && window.history.push) window.history.push();
-            if (window.renderer && window.renderer.render) window.renderer.render();
+            if (window.omsAmzBridge) window.omsAmzBridge.refresh();
             if (window.ui && window.ui.rebuildAll) window.ui.rebuildAll();
             resolve('Added "' + name + '" to the project');
           } catch (e) { resolve('Could not add to the project: ' + e.message); }
@@ -1375,7 +1375,7 @@
                 if (!layer) return resolve({ ok: false, message: 'Could not create a layer' });
                 try { model.hydrateLayer && model.hydrateLayer(layer); } catch (e) {}
                 if (window.history && window.history.push) window.history.push();
-                if (window.renderer && window.renderer.render) window.renderer.render();
+                if (window.omsAmzBridge) window.omsAmzBridge.refresh();
                 if (window.ui && window.ui.rebuildAll) window.ui.rebuildAll();
                 resolve({ ok: true, layer: layer });
               } catch (e) { resolve({ ok: false, message: e.message }); }

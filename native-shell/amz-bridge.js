@@ -33,7 +33,9 @@
    */
   function refresh() {
     var touched = false;
-    var ui = window.ui;
+    /* The core publishes its own objects as __oms* aliases; window.ui is set too, but the
+       timeline and bus are only reachable through the aliases. */
+    var ui = window.__omsUi || window.ui;
     try {
       if (ui && typeof ui.render === 'function') { ui.render(); touched = true; }
     } catch (e) {}
@@ -43,11 +45,26 @@
     try {
       if (ui && typeof ui.updateTimeline === 'function') { ui.updateTimeline(); touched = true; }
     } catch (e) {}
+    /* The renderer and timeline are only reachable through the aliases. A redraw that never
+       reaches them is indistinguishable from an edit that did nothing. */
+    try {
+      var r = window.__omsRenderer;
+      if (r && typeof r.render === 'function') { r.render(); touched = true; }
+    } catch (e) {}
+    try {
+      var t = window.__omsTimeline;
+      if (t && typeof t.rebuild === 'function') { t.rebuild(); touched = true; }
+    } catch (e) {}
     return touched;
   }
 
   /** A recorded undo step. `history` is the browser's; the model keeps its own stack. */
   function checkpoint() {
+    /* __omsHistory is the core's undo stack; pushing it is what makes an edit undoable. */
+    try {
+      var h = window.__omsHistory || null;
+      if (h && typeof h.push === 'function') { h.push(); return true; }
+    } catch (e) {}
     var m = model();
     try {
       if (m && m.history && typeof m.history.push === 'function') { m.history.push(); return true; }
@@ -150,10 +167,47 @@
     } catch (e) {}
   }
 
+  /*
+   * Which globals each extension publishes. Every module sets one on load, so presence is a
+   * reliable "did the script run" signal - and unlike the per-module report() calls, it needs
+   * no cooperation, so a module added later cannot silently go unlisted.
+   */
+  var GLOBALS = {
+    bridge: 'omsAmzBridge',
+    settings: 'omsAmzSettings',
+    media: 'omsAmzMedia',
+    layers: 'omsAmzLayers',
+    effects: 'omsAmzEffects',
+    languages: 'omsAmzLanguages',
+    shapes: 'omsAmzShapes',
+    folders: 'omsAmzFolders',
+    patch: 'omsAmzPatch',
+    select: 'omsAmzSelect',
+    adjust: 'omsAmzAdjust',
+    tools: 'omsAmzTools',
+    analysis: 'omsAmzAnalysis',
+    scopes: 'omsAmzScopes',
+    sequence: 'omsAmzSequence',
+    inspector: 'omsAmzInspector',
+    settingswire: 'omsAmzSettingsWire',
+  };
+
   function installReport() {
-    var names = Object.keys(status);
-    var failed = names.filter(function (k) { return !status[k].ok; });
-    return { total: names.length, failed: failed, all: status };
+    var names = Object.keys(GLOBALS);
+    var merged = {};
+    names.forEach(function (k) {
+      var loaded = !!window[GLOBALS[k]];
+      var claimed = status[k];
+      merged[k] = {
+        loaded: loaded,
+        /* A module that never called report() is still listed, with what we can prove. */
+        ok: claimed ? claimed.ok : loaded,
+        detail: claimed ? claimed.detail : (loaded ? '' : 'script did not run'),
+      };
+    });
+    var failed = names.filter(function (k) { return merged[k].loaded && !merged[k].ok; });
+    var missing = names.filter(function (k) { return !merged[k].loaded; });
+    return { total: names.length, failed: failed, missing: missing, all: merged };
   }
 
   window.omsAmzBridge = {

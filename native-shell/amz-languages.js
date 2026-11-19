@@ -144,23 +144,50 @@
    * They are declared with const, so reassignment throws; the entries are pushed and added
    * key by key instead, which is legal and leaves the existing fourteen untouched.
    */
+  /*
+   * HOME_LANGUAGES and HOME_I18N are private to the core's IIFE, so the old guard could never
+   * pass - which is exactly what the device reported. The language sheet is real markup
+   * (#languageList), rebuilt by the core whenever it opens, so the honest hook is the DOM:
+   * add the extra languages as rows in that list, and let the core's own click handler save
+   * the choice. Detection is therefore "does the sheet exist", not "is a variable set".
+   */
+  function languageSheet() {
+    return document.getElementById('languageList');
+  }
+
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
   function install() {
     if (applied) return true;
-    var langs = window.HOME_LANGUAGES;
-    var i18n = window.HOME_I18N;
-    if (!langs || !i18n) return false;
+    var list = languageSheet();
+    if (!list) return false;
+    /* The core populates the list when the sheet opens. If it is still empty, wait. */
+    if (!list.children.length) return false;
 
     var existing = {};
-    for (var i = 0; i < langs.length; i++) existing[langs[i].id] = true;
+    var rows = list.querySelectorAll('[data-language]');
+    for (var i = 0; i < rows.length; i++) existing[rows[i].dataset.language] = true;
 
     var added = 0;
     ADDITIONS.forEach(function (entry) {
       try {
-        if (!existing[entry.meta.id]) {
-          langs.push(entry.meta);
-          added++;
-        }
-        i18n[entry.meta.id] = entry.strings;
+        if (existing[entry.meta.id]) return;
+        /* A row in the core's own list. Clicking it goes through the core's handler, which
+           reads data-language and saves the choice - so the state stays in one place. */
+        var row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'languageOption';
+        row.setAttribute('data-language', entry.meta.id);
+        row.setAttribute('data-amz-extra-language', '1');
+        row.innerHTML = '<span class="languageCode">' + esc(entry.meta.code || entry.meta.id.toUpperCase()) +
+          '</span><span class="languageName">' + esc(entry.meta.name) + '</span>';
+        list.appendChild(row);
+        existing[entry.meta.id] = true;
+        added++;
       } catch (e) {
         failures.push(entry.meta.id + ': ' + e.message);
       }
@@ -171,6 +198,7 @@
       var select = document.getElementById('langSelect') || document.querySelector('[data-language-select]');
       if (select) {
         ADDITIONS.forEach(function (entry) {
+          if (!select) return;
           var has = false;
           for (var o = 0; o < select.options.length; o++) {
             if (select.options[o].value === entry.meta.id) { has = true; break; }
@@ -188,7 +216,7 @@
     }
 
     applied = added > 0 || failures.length === 0;
-    if (added) log(added + ' languages added (' + langs.length + ' total)');
+    if (added) log(added + ' languages added (' + rows.length + ' total)');
     return applied;
   }
 

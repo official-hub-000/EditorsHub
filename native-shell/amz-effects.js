@@ -326,14 +326,40 @@ outColor=vec4(clamp(col,0.,1.),c.a);`);
 
   var installed = false;
 
+  /*
+   * The core is a single IIFE, so OMS_EFFECT_CATALOG and OMS_EFFECT_BY_ID are private locals -
+   * window.OMS_EFFECT_CATALOG is always undefined. That check is what made the device report
+   * "omsNativeEffects or OMS_EFFECT_CATALOG missing" while omsNativeEffects was in fact present.
+   *
+   * The parts that matter are reachable: omsNativeEffects.register() puts a shader in the
+   * renderer, and omsNativeEffects.supported tells us what the GPU accepted. So registration
+   * is driven by that, and the visible catalogue is discovered from the panel's spec lookup.
+   */
+  function catalogue() {
+    /* Reach the live map through anything the core exposes. omsEffectsPanel resolves an id to
+       a spec through omsEffectSpec, which closes over the real map. */
+    try {
+      var panel = window.omsEffectsPanel;
+      if (panel && typeof panel.read === 'function') return panel;
+    } catch (e) {}
+    return null;
+  }
+
+  function specKnown(id) {
+    try {
+      var sup = window.omsNativeEffects && window.omsNativeEffects.supported;
+      if (sup && typeof sup.has === 'function' && sup.has(id)) return true;
+    } catch (e) {}
+    return false;
+  }
+
   function install() {
     if (installed) return true;
     var native = window.omsNativeEffects;
     if (!native || typeof native.register !== 'function') return false;
-    if (!window.OMS_EFFECT_CATALOG) return false;
 
     EFFECTS.forEach(function (spec) {
-      if (window.OMS_EFFECT_BY_ID && window.OMS_EFFECT_BY_ID.has(spec.id)) return;
+      if (specKnown(spec.id)) { registered.push(spec.id); return; }
       try {
         var frozen = Object.freeze({
           id: spec.id,
@@ -344,8 +370,16 @@ outColor=vec4(clamp(col,0.,1.),c.a);`);
           params: spec.params,
         });
         native.register(spec.id, spec.body, spec.extra);
-        window.OMS_EFFECT_BY_ID.set(spec.id, frozen);
-        window.OMS_EFFECT_CATALOG = Object.freeze([].concat(window.OMS_EFFECT_CATALOG, [frozen]));
+        /* Best effort: if the private map ever becomes reachable, keep it consistent. This is
+           guarded because it is normally not reachable and must not decide success. */
+        try {
+          if (window.OMS_EFFECT_BY_ID && typeof window.OMS_EFFECT_BY_ID.set === 'function') {
+            window.OMS_EFFECT_BY_ID.set(spec.id, frozen);
+          }
+          if (window.OMS_EFFECT_CATALOG) {
+            window.OMS_EFFECT_CATALOG = Object.freeze([].concat(window.OMS_EFFECT_CATALOG, [frozen]));
+          }
+        } catch (e) {}
         registered.push(spec.id);
       } catch (e) {
         failed.push(spec.id + ': ' + e.message);
@@ -354,6 +388,11 @@ outColor=vec4(clamp(col,0.,1.),c.a);`);
     });
 
     installed = registered.length > 0;
+    try {
+      if (window.omsAmzBridge && window.omsAmzBridge.report) {
+        window.omsAmzBridge.report('effects', installed, registered.length + ' registered' + (failed.length ? ', ' + failed.length + ' failed' : ''));
+      }
+    } catch (e) {}
     if (registered.length) {
       log(registered.length + ' effects registered' + (failed.length ? ', ' + failed.length + ' failed' : ''));
       try { if (window.ui && window.ui.rebuildAll) window.ui.rebuildAll(); } catch (e) {}
@@ -374,7 +413,7 @@ outColor=vec4(clamp(col,0.,1.),c.a);`);
       var inst = window.omsEffectInstance(id, {});
       if (!inst) return notify('That effect is not available');
       layer.effectStack.push(inst);
-      if (window.renderer && window.renderer.render) window.renderer.render();
+      if (window.omsAmzBridge) window.omsAmzBridge.refresh();
       if (window.ui && window.ui.rebuildAll) window.ui.rebuildAll();
       notify('Added ' + (labelOf(id) || id));
       return inst;

@@ -1022,62 +1022,56 @@
    */
   function openDiagnostics() {
     var b = window.omsAmzBridge;
-    var rep = b && b.installReport ? b.installReport() : { total: 0, failed: [], all: {} };
-    var modules = [
-      ['bridge', 'Core bridge, undo and redraw'],
-      ['settings', 'Settings store'],
-      ['layers', 'Extra layer types'],
-      ['effects', 'Extra shader effects'],
-      ['languages', 'Extra languages'],
-      ['shapes', 'Extra shapes'],
-      ['folders', 'Effect folders'],
-      ['adjust', 'Adjustment layers'],
-      ['tools', 'Labs media tools'],
-      ['analysis', 'Beat Maker and Audio Keys'],
-      ['scopes', 'Vectorscope'],
-      ['sequence', 'Image sequences'],
-      ['inspector', 'Paged inspector'],
-      ['settingswire', 'Settings wiring'],
-    ];
+    var rep = b && b.installReport ? b.installReport() : { total: 0, failed: [], missing: [], all: {} };
+    var LABELS = {
+      bridge: 'Core bridge, undo and redraw',
+      settings: 'Settings store',
+      media: 'Media decode and encode',
+      layers: 'Extra layer types',
+      effects: 'Extra shader effects',
+      languages: 'Extra languages',
+      shapes: 'Extra shapes',
+      folders: 'Effect folders',
+      patch: 'Text and style patches',
+      select: 'Shift KF and Split Text',
+      adjust: 'Adjustment layers',
+      tools: 'Labs media tools',
+      analysis: 'Beat Maker and Audio Keys',
+      scopes: 'Vectorscope',
+      sequence: 'Image sequences',
+      inspector: 'Paged inspector',
+      settingswire: 'Settings wiring',
+    };
+
     var api = sheet({
       title: 'Diagnostics',
       subtitle: 'What loaded on this device',
       build: function (body) {
-        var intro = el('p', 'amzNote',
-          'Every extra feature loads as a separate script and then waits for the part of the editor it needs. ' +
-          'If that part never appears the feature stays silent, which looks identical to it being missing. ' +
-          'This is the honest list.');
-        body.appendChild(intro);
+        body.appendChild(el('p', 'amzNote',
+          'Every extra feature is a separate script that loads and then waits for the part of the editor it needs. ' +
+          'This says which scripts ran and which reported a problem, so nothing has to be guessed.'));
 
         var rows = el('div', 'amzDiagList');
-        var failed = 0;
-        modules.forEach(function (m) {
-          var known = rep.all[m[0]];
-          var present = !!window[{
-            bridge: 'omsAmzBridge', settings: 'omsAmzSettings', layers: 'omsAmzLayers',
-            effects: 'omsAmzEffects', languages: 'omsAmzLanguages', shapes: 'omsAmzShapes',
-            folders: 'omsAmzFolders', adjust: 'omsAmzAdjust', tools: 'omsAmzTools',
-            analysis: 'omsAmzAnalysis', scopes: 'omsAmzScopes', sequence: 'omsAmzSequence',
-            inspector: 'omsAmzInspector', settingswire: 'omsAmzSettingsWire',
-          }[m[0]]];
-          var okState = present && (!known || known.ok);
-          if (!okState) failed++;
-          var row = el('div', 'amzDiagRow' + (okState ? ' ok' : ' bad'));
-          row.innerHTML = '<span class="amzDiagDot"></span><b>' + esc(m[1]) + '</b>' +
-            '<em>' + (okState ? 'running' : (present ? 'loaded, waiting for the editor' : 'not loaded')) + '</em>';
+        var bad = 0, absent = 0;
+        Object.keys(LABELS).forEach(function (k) {
+          var st = rep.all[k] || { loaded: false, ok: false, detail: '' };
+          var good = st.loaded && st.ok;
+          if (!st.loaded) absent++; else if (!st.ok) bad++;
+          var row = el('div', 'amzDiagRow' + (good ? ' ok' : ' bad'));
+          row.innerHTML = '<span class="amzDiagDot"></span><b>' + esc(LABELS[k]) + '</b><em>' +
+            (good ? 'running' : (!st.loaded ? 'script missing' : 'reporting a problem')) + '</em>';
           rows.appendChild(row);
-          if (!okState && known && known.detail) {
-            var why = el('div', 'amzDiagWhy', esc(known.detail));
-            rows.appendChild(why);
+          if (!good && st.detail) {
+            rows.appendChild(el('div', 'amzDiagWhy', esc(st.detail)));
           }
         });
         body.appendChild(rows);
 
-        var summary = el('p', 'amzNote',
-          failed === 0
-            ? 'All ' + modules.length + ' modules are running.'
-            : failed + ' of ' + modules.length + ' modules are not fully running. The ones marked "waiting" need a part of the editor that has not been built yet in this session - open a project and try again.');
-        body.appendChild(summary);
+        var working = rep.total - bad - absent;
+        body.appendChild(el('p', 'amzNote',
+          working + ' of ' + rep.total + ' modules running' +
+          (absent ? ', ' + absent + ' script(s) not loaded' : '') +
+          (bad ? ', ' + bad + ' reporting a problem' : '') + '.'));
 
         var again = el('button', 'amzBtn', 'Check again');
         again.onclick = function () {
@@ -1088,17 +1082,14 @@
 
         var copy = el('button', 'amzBtn', 'Copy report');
         copy.onclick = function () {
-          var text = modules.map(function (m) {
-            var known = rep.all[m[0]];
-            return m[1] + ': ' + (known ? (known.ok ? 'running' : 'failed ' + known.detail) : 'not reported');
-          }).join('\n') + '\n\nBuild: ' + (window.__omsBuildStamp || 'unknown') +
-            '\nViewport: ' + innerWidth + 'x' + innerHeight + ' @' + (devicePixelRatio || 1) + 'x';
+          var text = Object.keys(LABELS).map(function (k) {
+            var st = rep.all[k] || {};
+            return LABELS[k] + ': ' + (st.loaded ? (st.ok ? 'running' : 'PROBLEM ' + (st.detail || '')) : 'NOT LOADED');
+          }).join('\n') + '\n\nViewport: ' + innerWidth + 'x' + innerHeight + ' @' + (devicePixelRatio || 1) + 'x';
           try {
             if (navigator.clipboard) navigator.clipboard.writeText(text);
             notify('Report copied');
-          } catch (e) {
-            notify('Could not copy');
-          }
+          } catch (e) { notify('Could not copy'); }
         };
         body.appendChild(copy);
       },

@@ -167,9 +167,14 @@
      * and the post-frame grade both silently did nothing while the picker still worked, which
      * is the worst kind of half-working state because it looks fine.
      */
+    /*
+     * The core is one IIFE, so `renderer` is private. It is published as window.__omsRenderer.
+     * The previous attempt looked for window.renderer - which never exists - and then for a
+     * bare `renderer`, which is unreachable from a different script because the whole core
+     * lives inside a closure. That is why the device reported "renderer never became reachable".
+     */
     var r = null;
-    try { if (typeof renderer !== 'undefined') r = renderer; } catch (e) {}
-    if (!r) { try { r = window.omsRenderer || null; } catch (e) {} }
+    try { r = window.__omsRenderer || window.omsRenderer || null; } catch (e) {}
     if (!r || typeof r.drawLayer !== 'function') return false;
     if (r.__amzAdjust) { installed = true; return true; }
 

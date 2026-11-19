@@ -77,11 +77,27 @@
   function selectAllLayers() {
     var m = window.model;
     if (!m || !Array.isArray(m.layers) || !m.layers.length) return notify('No layers to select');
-    /* The editor is built around one selected layer, so "all" means the whole stack is
-       selected for the operations that take a set; highlight it so the result is visible. */
-    m.selection = m.layers.map(function (l) { return l.id; });
-    try { window.bus.emit('model:changed'); } catch (e) {}
-    notify(m.layers.length + ' layers selected');
+    /*
+     * The previous version wrote model.selection, which the editor does not read, and emitted on
+     * window.bus, which does not exist. Nothing changed on screen, so the tap looked dead.
+     *
+     * The editor's real multi-select is a Set on the UI controller plus a mode flag. Highlighting
+     * the whole stack is what "select all" should look like, so it goes through that.
+     */
+    var ui = window.__omsUi || window.ui;
+    var changed = false;
+    try {
+      if (ui && ui.layerMultiSelectedIds && typeof ui.layerMultiSelectedIds.add === 'function') {
+        ui.layerMultiSelectedIds.clear();
+        m.layers.forEach(function (l) { ui.layerMultiSelectedIds.add(l.id); });
+        ui.layerMultiSelectMode = true;
+        ui.layerMultiFocusId = m.selected || m.layers[0].id;
+        changed = true;
+        if (typeof ui.refreshSelectionRows === 'function') ui.refreshSelectionRows();
+      }
+    } catch (e) {}
+    if (window.omsAmzBridge) window.omsAmzBridge.refresh();
+    notify(m.layers.length + ' layers selected' + (changed ? '' : ' (highlight only)'));
   }
 
   function toggleAllLayers() {
@@ -89,7 +105,7 @@
     if (!m || !Array.isArray(m.layers) || !m.layers.length) return notify('No layers');
     var anyVisible = m.layers.some(function (l) { return !l.hidden; });
     m.layers.forEach(function (l) { l.hidden = anyVisible; });
-    try { window.bus.emit('model:changed'); } catch (e) {}
+    if (window.omsAmzBridge) window.omsAmzBridge.refresh();
     notify(anyVisible ? 'All layers hidden' : 'All layers shown');
   }
 
@@ -108,9 +124,11 @@
     if (layer.type === type) return notify('That is already a ' + type + ' layer');
     var target = (m.layers || []).filter(function (l) { return l.type === type && l.id !== layer.id; })[0];
     if (!target) return notify('Add a ' + (type === 'camera' ? 'camera' : 'null') + ' layer first');
-    try { if (window.history && window.history.push) window.history.push(); } catch (e) {}
+    if (window.omsAmzBridge) window.omsAmzBridge.checkpoint();
     layer.parentId = target.id;
-    try { window.bus.emit('model:changed'); } catch (e) {}
+    /* The editor stores hierarchy as parentId, so this is the real link - but nothing redrew
+       afterwards, which is why the tap appeared to do nothing. */
+    if (window.omsAmzBridge) window.omsAmzBridge.refresh();
     notify('Linked to ' + (target.name || type));
   }
 
