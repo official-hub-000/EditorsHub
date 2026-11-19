@@ -832,7 +832,49 @@
                 }, 'image/png');
               },
             }]);
-            box.note('A frame is saved as a check on the correction. To stabilise the actual clip, apply the offsets as position keyframes — the numbers are shown so they can be typed in.');
+            /* ---- Write the correction onto the layer as position keyframes ---- */
+            var layer = (function () {
+              var m = window.model;
+              if (!m) return null;
+              try { if (typeof m.selectedLayer === 'function') return m.selectedLayer(); } catch (e) {}
+              for (var i = 0; i < (m.layers || []).length; i++) if (m.layers[i].id === m.selected) return m.layers[i];
+              return null;
+            })();
+
+            var worst = Math.round(Math.max.apply(null, offsets.map(function (o) { return Math.hypot(o.dx, o.dy); })));
+            box.line('Worst correction', worst + ' px');
+
+            if (layer && window.omsAmzBridge) {
+              box.actions([{
+                label: 'Apply to selected layer',
+                primary: true,
+                onClick: function () {
+                  var fps = media.fps || 24;
+                  var baseX = Number(layer.x) || 0;
+                  var baseY = Number(layer.y) || 0;
+                  window.omsAmzBridge.checkpoint();
+                  var wrote = 0;
+                  for (var i2 = 0; i2 < offsets.length; i2++) {
+                    /* Project time then the layer's own local time - a key outside the layer's
+                       span is invisible and looks like the tool silently failed. */
+                    var projectTime = (src.startTime || 0) + i2 / fps;
+                    var localTime = window.omsAmzBridge.layerLocalTime(layer, projectTime);
+                    if (localTime > (Number(layer.duration) || Infinity)) break;
+                    window.omsAmzBridge.setKey(layer, 'x', localTime, baseX + (smooth[i2].dx - offsets[i2].dx), 'linear');
+                    window.omsAmzBridge.setKey(layer, 'y', localTime, baseY + (smooth[i2].dy - offsets[i2].dy), 'linear');
+                    wrote++;
+                  }
+                  window.omsAmzBridge.refresh();
+                  notify(wrote ? 'Wrote ' + wrote + ' position keyframes' : 'No keyframes written');
+                  box.note(wrote
+                    ? 'Wrote ' + wrote + ' position keyframes onto "' + (layer.name || 'the selected layer') + '", one per measured frame. Undo removes them all.'
+                    : 'The selected layer has no room for these keys in its span.');
+                },
+              }]);
+              box.note('The shake is already measured; applying it writes one position keyframe per analysed frame so the layer counter-moves. The saved frame above is a check.');
+            } else {
+              box.note('A frame is saved as a check on the correction. Select the video layer first and this panel will write the offsets onto it automatically.');
+            }
           });
         },
       }]);

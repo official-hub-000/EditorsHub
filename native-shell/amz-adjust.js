@@ -31,7 +31,7 @@
     } catch (e) {}
   }
   function changed() {
-    try { if (window.bus && window.bus.emit) window.bus.emit('model:changed'); } catch (e) {}
+    try { if (window.omsAmzBridge) window.omsAmzBridge.refresh(); } catch (e) {}
   }
   function isAdjustment(l) {
     return !!l && l.type === TYPE;
@@ -160,12 +160,21 @@
    */
   function install() {
     if (installed) return true;
-    var renderer = window.renderer;
-    if (!renderer || typeof renderer.drawLayer !== 'function') return false;
-    if (renderer.__amzAdjust) { installed = true; return true; }
+    /*
+     * The editor core is classic scripts, so `renderer` is a top-level const - a global lexical
+     * binding. A bare name reaches it; window.renderer is always undefined. This feature was
+     * written against window.renderer and therefore never installed: the layer short-circuit
+     * and the post-frame grade both silently did nothing while the picker still worked, which
+     * is the worst kind of half-working state because it looks fine.
+     */
+    var r = null;
+    try { if (typeof renderer !== 'undefined') r = renderer; } catch (e) {}
+    if (!r) { try { r = window.omsRenderer || null; } catch (e) {} }
+    if (!r || typeof r.drawLayer !== 'function') return false;
+    if (r.__amzAdjust) { installed = true; return true; }
 
-    var originalDrawLayer = renderer.drawLayer;
-    renderer.drawLayer = function (layer) {
+    var originalDrawLayer = r.drawLayer;
+    r.drawLayer = function (layer) {
       /* An adjustment layer has no content of its own; it is applied after the frame. */
       if (isAdjustment(layer)) return;
       return originalDrawLayer.call(this, layer);
@@ -173,9 +182,9 @@
 
     /* renderLayersToTarget is the path the exporter and thumbnails take. Wrapping it too means
        an exported frame is graded exactly like the preview. */
-    var originalRender = renderer.renderLayersToTarget;
+    var originalRender = r.renderLayersToTarget;
     if (typeof originalRender === 'function') {
-      renderer.renderLayersToTarget = function (canvas, layers, withBackground) {
+      r.renderLayersToTarget = function (canvas, layers, withBackground) {
         var result = originalRender.call(this, canvas, layers, withBackground);
         try {
           var ctx = canvas.getContext('2d');
@@ -185,7 +194,7 @@
       };
     }
 
-    renderer.__amzAdjust = true;
+    r.__amzAdjust = true;
     installed = true;
     log('installed');
     return true;
@@ -268,8 +277,8 @@
                 layer.effectStack = layer.effectStack || [];
                 layer.effectStack.push(window.omsEffectInstance(spec.id, {}));
                 changed();
-                try { window.renderer.render(); } catch (e) {}
-                try { window.timeline.rebuild(); } catch (e) {}
+                /* There is no window.renderer or window.timeline: those are module locals. */
+                changed();
                 if (hub.notify) hub.notify(spec.name + ' added to the adjustment');
               } catch (e) {
                 if (hub.notify) hub.notify('Could not add that effect');
@@ -297,9 +306,15 @@
     get installed() { return installed; },
   };
 
+  /*
+   * Try once immediately - the extension scripts are injected after the editor, so the renderer
+   * normally already exists - and retry on a timer only if it did not.
+   */
   var tries = 0;
-  var timer = setInterval(function () {
-    tries++;
-    if (install() || tries > 120) clearInterval(timer);
-  }, 500);
+  if (!install()) {
+    var timer = setInterval(function () {
+      tries++;
+      if (install() || tries > 120) clearInterval(timer);
+    }, 500);
+  }
 })();

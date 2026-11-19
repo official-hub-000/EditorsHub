@@ -263,6 +263,10 @@
     { id: 'convert', name: 'Convert Video', icon: 'convert', desc: 'Rewrites a file as MP4, WebM, WAV, PNG or JPEG.' },
     { id: 'doctor', name: 'Project Doctor', icon: 'stethoscope', desc: 'Checks the open project for missing media, empty layers and bad timings before an export.' },
     { id: 'labs3d', name: 'Depth 3D Photo', icon: 'cube', desc: 'Shades a still as a relief surface using its depth map, for a picture with depth.' },
+    { id: 'beatmaker', name: 'Beat Maker', icon: 'audio', desc: 'Finds the hits in a track by measuring the audio and keys a layer to them.' },
+    { id: 'audiokeys', name: 'Audio Keys', icon: 'wave', desc: 'Keys a layer from how loud each hit was, so the motion follows the music.' },
+    { id: 'vectorscope', name: 'Vectorscope', icon: 'scopes', desc: 'Chroma and luma of the current frame, measured from the preview.' },
+    { id: 'sequence', name: 'Image Sequence', icon: 'frames', desc: 'A folder of frames sorted by number and played back as one image layer.' },
   ];
 
   var ICONS = {
@@ -281,6 +285,7 @@
     convert: '<path d="M4 7h13l-3-3M20 17H7l3 3"/>',
     stethoscope: '<path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v3a4 4 0 0 0 8 0v-2"/><circle cx="19" cy="13" r="2"/>',
     cube: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/>',
+    scopes: '<circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/><circle cx="9" cy="9" r="1.4"/>',
   };
 
   function toolIcon(name) {
@@ -300,6 +305,11 @@
             '<div class="amzToolText"><b>' + esc(tool.name) + '</b><p>' + esc(tool.desc) + '</p></div>' +
             '<div class="chev">&#8250;</div>';
           row.onclick = function () {
+            /* Four of these are analysis or import panels with their own modules. */
+            if (tool.id === 'beatmaker' && window.omsAmzAnalysis) return window.omsAmzAnalysis.openBeatMaker();
+            if (tool.id === 'audiokeys' && window.omsAmzAnalysis) return window.omsAmzAnalysis.openAudioKeys();
+            if (tool.id === 'vectorscope' && window.omsAmzScopes) return window.omsAmzScopes.openScopes();
+            if (tool.id === 'sequence' && window.omsAmzSequence) return window.omsAmzSequence.openImport();
             if (!window.omsAmzTools || !window.omsAmzTools.open) {
               notify(tool.name + ' is still loading');
               return;
@@ -829,7 +839,12 @@
         'Twenty-four added shader effects across colour, detail, blur, distortion and style.',
         'Fifty-eight added shapes, in the shape picker and listed on their own.',
         'Collapsible folders and a category grid in the effect browser.',
-        'Adjustment layers that grade everything beneath them.',
+        'Adjustment layers that grade everything beneath them, in the preview and in exports.',
+        'Beat Maker: finds the hits in a track by measuring the audio and keys a layer to them.',
+        'Audio Keys: the same analysis, with each key scaled by how loud that hit was.',
+        'Vectorscope and a luma waveform, measured from the current preview frame.',
+        'Image Sequence: a folder of frames sorted by number, played as one ordinary image layer.',
+        'Stabiliser now writes its correction onto the selected layer as position keyframes.',
       ],
     },
     {

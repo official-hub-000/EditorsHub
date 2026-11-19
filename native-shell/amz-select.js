@@ -18,10 +18,10 @@
   }
   /** A recorded undo step, so Shift KF behaves like every other edit. */
   function checkpoint() {
-    try { if (window.history && window.history.push) window.history.push(); } catch (e) {}
+    try { if (window.omsAmzBridge) window.omsAmzBridge.checkpoint(); } catch (e) {}
   }
   function changed() {
-    try { if (window.bus && window.bus.emit) window.bus.emit('model:changed'); } catch (e) {}
+    try { if (window.omsAmzBridge) window.omsAmzBridge.refresh(); } catch (e) {}
   }
   function selectedLayer() {
     var m = window.model;

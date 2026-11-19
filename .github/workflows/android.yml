@@ -149,7 +149,11 @@ jobs:
           grep -q 'oms-nodevideo-pro' /tmp/apk-index.html
           # The extra tools are separate files; if the tags are missing the tools button
           # still appears but every entry behind it silently does nothing.
-          for tag in oms-amz-media oms-amz-settings oms-amz-hub oms-amz-layers oms-amz-shapes oms-amz-effects oms-amz-languages oms-amz-patch oms-amz-folders oms-amz-select oms-amz-adjust oms-amz-tools; do
+<<<<<<< Updated upstream
+          for tag in oms-amz-media oms-amz-settings oms-amz-hub oms-amz-layers oms-amz-shapes oms-amz-effects oms-amz-languages oms-amz-patch oms-amz-folders oms-amz-select oms-amz-adjust oms-amz-bridge oms-amz-analysis oms-amz-scopes oms-amz-sequence oms-amz-tools; do
+=======
+          for tag in oms-amz-media oms-amz-settings oms-amz-hub oms-amz-layers oms-amz-shapes oms-amz-effects oms-amz-languages oms-amz-patch oms-amz-folders oms-amz-select oms-amz-adjust oms-amz-bridge oms-amz-analysis oms-amz-scopes oms-amz-sequence oms-amz-tools; do
+>>>>>>> Stashed changes
             if ! grep -q "$tag" /tmp/apk-index.html; then
               echo "::error::missing $tag script tag in the packaged document"
               exit 1
