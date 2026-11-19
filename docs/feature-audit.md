@@ -180,22 +180,16 @@ for the edge panel. Add-border / add-shadow flows with a 8-slot border list, per
 (`●`/`○`) and Indonesian copy are all implemented. Keyframes are real (569 mentions, per-property
 rows with `data-kf-visual-prop`).
 
-<<<<<<< Updated upstream
-Missing: **Beat Maker**, **Audio Keys**, **Stabilizer** as a UI action, **Shift KF**, **Vectorscope**,
-**Split Text** (character/word/line), **Adj. Layer** quick-action, the **NEW** badges, the
-two-page pager, and the Icon+label tool row above the grid. "Amz" is the mod and has no
-counterpart (EditorsHub has no such tool tray).
-=======
 Built since this row was written: **Beat Maker** (real spectral-flux onset detection, keys a
 layer per hit), **Audio Keys** (same analysis, key value scaled by each hit's loudness),
 **Vectorscope** (BT.601 chroma histogram plus a luma waveform, measured from the preview),
-**Stabilizer** (block-matched shake measurement that now writes position keyframes onto the
-layer instead of printing numbers to retype), **Shift KF**, **Split Text** (character/word/line),
-**Adj. Layer** and its effect picker, and **Duplicate** in the extras menu.
+**Image Sequence** (natural-sorted frames on an ordinary image layer), **Stabilizer**
+(block-matched shake measurement that now writes position keyframes onto the layer instead of
+printing numbers to retype), **Shift KF**, **Split Text** (character/word/line), **Adj. Layer**
+and its effect picker, and **Duplicate** in the extras menu.
 
 Still missing: the **NEW** badges, the two-page pager, and the Icon+label tool row above the
 grid. "Amz" is the mod and has no counterpart (EditorsHub has no such tool tray).
->>>>>>> Stashed changes
 
 ### 1.6 Effect Browser
 
@@ -441,13 +435,10 @@ so they are at parity there.
 3. **Project search + XML upload + card metadata** — additive, touches one function
    (`loadProjectList`).
 4. **Effect folders + category tiles** — presentation over the existing 93-effect catalog.
-<<<<<<< Updated upstream
-5. **Missing selection panels** (Shift KF, Split Text, Vectorscope, Beat Maker) — additive.
-=======
 5. ~~Missing selection panels (Shift KF, Split Text, Vectorscope, Beat Maker)~~ — all four
    built. Beat Maker and Audio Keys live in `native-shell/amz-analysis.js`, Vectorscope in
-   `native-shell/amz-scopes.js`; Shift KF and Split Text in `native-shell/amz-select.js`.
->>>>>>> Stashed changes
+   `native-shell/amz-scopes.js`, Image Sequence in `native-shell/amz-sequence.js`; Shift KF
+   and Split Text in `native-shell/amz-select.js`.
 6. **Layer types** (Linked Camera/Null, Adjustment Layer, IMG Sequence) — additive to the model.
 7. **Effects and shapes** — the long tail, each one independent, and the mod's own list is the
    specification.
