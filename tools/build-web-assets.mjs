@@ -328,6 +328,10 @@ async function main() {
   }
 
   const digest = createHash('sha256').update(html).digest('hex').slice(0, 12);
+  // The native shell compares this marker against the copy it saw at the previous
+  // launch and purges the WebView cache when they differ, so an updated APK always
+  // serves the updated editor even when the app version string did not change.
+  await writeFile(path.join(outDir, 'bundle-id.txt'), `${digest} ${buildId}\n`, 'utf8');
   const sizeMb = (Buffer.byteLength(html) / (1024 * 1024)).toFixed(2);
   console.log(`Open Motion bundle ready in ${outDir}`);
   console.log(`  index.html   ${sizeMb} MB  sha256:${digest}`);

@@ -78,6 +78,14 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-
 
+      - name: Stamp the build version
+        # versionCode is hardcoded in app/build.gradle.kts; stamp a per-run version
+        # through the standard Gradle properties so the APK metadata changes with
+        # every build (updates, crash/ANR attribution, bug reports).
+        run: |
+          echo "VERSION_CODE=${GITHUB_RUN_NUMBER}" >> gradle.properties
+          echo "VERSION_NAME=1.0.${GITHUB_RUN_NUMBER}" >> gradle.properties
+
       - name: Build debug APK
         id: build
         continue-on-error: true

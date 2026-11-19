@@ -177,7 +177,15 @@ class EditorActivity : ComponentActivity() {
      */
     private fun purgeStaleBundle() {
         val prefs = getSharedPreferences("editorshub_shell", MODE_PRIVATE)
-        val installed = BuildConfig.VERSION_NAME
+        // Key the purge on the content fingerprint of the bundled editor, not on the
+        // app version: in-place updates can ship a rebuilt bundle without a version
+        // bump, and BuildConfig.VERSION_NAME alone never caught those.
+        val fingerprint = try {
+            assets.open("www/bundle-id.txt").bufferedReader().use { it.readText().trim() }
+        } catch (_: Exception) {
+            BuildConfig.VERSION_NAME
+        }
+        val installed = "${BuildConfig.VERSION_NAME}|$fingerprint"
         val seen = prefs.getString("bundle_version", null)
         if (seen == installed) return
         try {

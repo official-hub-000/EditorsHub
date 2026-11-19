@@ -643,7 +643,6 @@
 {"k": "script", "s": "Komposisi · tahap akhir", "en": "Composition · final stage"}
 {"k": "script", "s": "128 jari-jari tipis.", "en": "128 thin radii."}
 {"k": "script", "s": "Kontur amplitudo melingkar.", "en": "Circular amplitude contour."}
-{"k": "script", "s": "Preset kustom", "en": "Custom presets"}
 {"k": "script", "s": " · paket ", "en": " · package "}
 {"k": "script", "s": " preset kustom.", "en": " custom presets."}
 {"k": "script", "s": " preset kustom diimpor.", "en": " custom presets imported."}
@@ -666,3 +665,147 @@
 {"k": "html-attr:aria-label", "s": "Tambah", "en": "Increase"}
 {"k": "script", "s": "Z Position • Panjang Tali", "en": "Z Position • Rope Length"}
 {"k": "script", "s": "Dependensi expression parameter melingkar.", "en": "Circular expression parameter dependency."}
+{"k": "script", "s": "EKSPERIMENTAL · LOKAL", "en": "EXPERIMENTAL · LOCAL"}
+{"k": "script", "s": "Radius pencarian (px analysis)", "en": "Search radius (analysis px)"}
+{"k": "script", "s": "Bergerak (Mode Lama)", "en": "Moving (Legacy Mode)"}
+{"k": "script", "s": "Horizontal (Klasik)", "en": "Horizontal (Classic)"}
+{"k": "script", "s": "Penuh: 100%", "en": "Full: 100%"}
+{"k": "script", "s": "Tinggi: 75%", "en": "High: 75%"}
+{"k": "script", "s": "Rendah: 25%", "en": "Low: 25%"}
+{"k": "script", "s": "Uji 1080p", "en": "1080p test"}
+{"k": "script", "s": "WebGL • matriks 4×4 • XML interchange • satu file HTML", "en": "WebGL • 4×4 matrix • XML interchange • single HTML file"}
+{"k": "script", "s": "Semi Strong: Prioritas Cache", "en": "Semi Strong: Cache Priority"}
+{"k": "script", "s": "Lossless: Hemat RAM", "en": "Lossless: Saves RAM"}
+{"k": "script", "s": "Video HW: Hemat RAM & CPU", "en": "Video HW: Saves RAM & CPU"}
+{"k": "script", "s": "Awal–akhir (utuh)", "en": "Start–end (unbroken)"}
+{"k": "script", "s": "FOV diketahui", "en": "Known FOV"}
+{"k": "script", "s": "FOV horizontal (°)", "en": "Horizontal FOV (°)"}
+{"k": "script", "s": "sampel per analysis.", "en": "samples per analysis."}
+{"k": "script", "s": "Zoom crop independen", "en": "Zoom crop independent"}
+{"k": "script", "s": "ZOOM LENS • Zoom mengontrol Ortho Size", "en": "ZOOM LENS • Zoom controls Ortho Size"}
+{"k": "script", "s": "Move Along Path 3 mengabaikan sumber turunan/siklik.", "en": "Move Along Path 3 ignores derived/cyclic sources."}
+{"k": "script", "s": "XML paket AM rusak: ", "en": "AM package XML is corrupt: "}
+{"k": "script", "s": "Lebar outline (px)", "en": "Outline width (px)"}
+{"k": "script", "s": "Ketebalan (px)", "en": "Thickness (px)"}
+{"k": "script", "s": "Lengkung (px)", "en": "Bend (px)"}
+{"k": "script", "s": "Offset jalur (px)", "en": "Path offset (px)"}
+{"k": "script", "s": "Panjang (px)", "en": "Length (px)"}
+{"k": "script", "s": "Panjang Kepala", "en": "Head Length"}
+{"k": "script", "s": "Kelembutan (%)", "en": "Softness (%)"}
+{"k": "script", "s": "Perspective lokal (2D, px)", "en": "Local perspective (2D, px)"}
+{"k": "script", "s": "Mode transform", "en": "Transform mode"}
+{"k": "script", "s": "Transform / styling lanjutan", "en": "Advanced transform / styling"}
+{"k": "script", "s": "Pose langsung", "en": "Direct Pose"}
+{"k": "script", "s": "Kata", "en": "Word"}
+{"k": "script", "s": "Baris memantul sebagai satu unit.", "en": "Lines bounce as a single unit."}
+{"k": "script", "s": "Kata memantul sebagai satu unit.", "en": "Words bounce as a single unit."}
+{"k": "script", "s": "Flip vertikal sebagai kata utuh.", "en": "Vertical flip as whole words."}
+{"k": "script", "s": "Bezier biasa: panjang handle bebas", "en": "Standard Bézier: free handle length"}
+{"k": "script", "s": "Menyiapkan klip uji 1080p…", "en": "Preparing 1080p test clips…"}
+{"k": "script", "s": "Menyiapkan model lokal…", "en": "Preparing the local model…"}
+{"k": "script", "s": "Menyiapkan decoder video…", "en": "Preparing the video decoder…"}
+{"k": "script", "s": "Menyiapkan antarmuka...", "en": "Preparing the interface…"}
+{"k": "script", "s": "Memeriksa kesiapan engine...", "en": "Checking engine readiness…"}
+{"k": "script", "s": "• Mode Normal", "en": "• Normal Mode"}
+{"k": "script", "s": "• Mode Semi Strong", "en": "• Semi Strong Mode"}
+{"k": "script", "s": "• Mode Kuat", "en": "• Strong Mode"}
+{"k": "script", "s": "• Mode Real-time Mengejar", "en": "• Real-time Catch-up Mode"}
+{"k": "script", "s": "• Rekam (Kuat)", "en": "• Record (Strong)"}
+{"k": "script", "s": "Cache Klasik", "en": "Classic Cache"}
+{"k": "script", "s": "fallback Klasik", "en": "Classic fallback"}
+{"k": "script", "s": "Eksperimental", "en": "Experimental"}
+{"k": "script", "s": "Paket 3D", "en": "3D Package"}
+{"k": "script", "s": "3D Kontinu", "en": "Continuous 3D"}
+{"k": "script", "s": "Format MP4, WebM, PNG, JPG, GIF lokal.", "en": "Local MP4, WebM, PNG, JPG, GIF formats."}
+{"k": "script", "s": " font lokal…", "en": " local fonts…"}
+{"k": "script", "s": " varian • ", "en": " variants • "}
+{"k": "script", "s": " lokal • ", "en": " local • "}
+{"k": "script", "s": "Uji Kapasitas Preview 1080p", "en": "1080p Preview Capacity Test"}
+{"k": "script", "s": "Resolusi render: ", "en": "Render resolution: "}
+{"k": "script", "s": "Frame video dilewati ke jalur kanvas:", "en": "Video frame diverted to the canvas path:"}
+{"k": "script", "s": "Jalur tekstur video dimatikan (", "en": "Video texture path disabled ("}
+{"k": "script", "s": "<label>Alat<select", "en": "<label>Tool<select"}
+{"k": "script", "s": "<label>Arah<select", "en": "<label>Direction<select"}
+{"k": "script", "s": "Ruang 3D", "en": "3D Space"}
+{"k": "script", "s": "Transform 3D sungguhan", "en": "True 3D Transform"}
+{"k": "script", "s": "Enable Ruang 3D", "en": "Enable 3D Space"}
+{"k": "script", "s": "Volume Layer", "en": "Layer Volume"}
+{"k": "html-attr:title", "s": "Ganti ke Curve Editor", "en": "Switch to Curve Editor"}
+{"k": "html-attr:title", "s": "Ganti ke Easing biasa", "en": "Switch to standard Easing"}
+{"k": "html-attr:title", "s": "Uji kapasitas native 1080p", "en": "Native 1080p capacity test"}
+{"k": "script", "s": "Rekam Pre-render aktif • Mode Kuat", "en": "Pre-render recording on • Strong mode"}
+{"k": "script", "s": "Rekam Pre-render nonaktif", "en": "Pre-render recording off"}
+{"k": "script", "s": "Rekam Pre-render", "en": "Record Pre-render"}
+{"k": "script", "s": "Rekam • Kuat", "en": "Record • Strong"}
+{"k": "script", "s": "Pre-render timeline aktif", "en": "Timeline pre-render on"}
+{"k": "script", "s": "Pre-render timeline nonaktif", "en": "Timeline pre-render off"}
+{"k": "script", "s": "Encode frame cache video dilewati:", "en": "Video frame encode cache skipped:"}
+{"k": "script", "s": "Decode cache video dilewati:", "en": "Video decode cache skipped:"}
+{"k": "script", "s": "Kompresi lossless pre-render dilewati:", "en": "Lossless pre-render compression skipped:"}
+{"k": "script", "s": "Promosi cache lossless dilewati:", "en": "Lossless cache promotion skipped:"}
+{"k": "script", "s": "Timeline pre-render capture dilewati:", "en": "Timeline pre-render capture skipped:"}
+{"k": "script", "s": "Audio offline dilewati:", "en": "Offline audio skipped:"}
+{"k": "script", "s": "menunggu encoder flush", "en": "waiting for encoder flush"}
+{"k": "script", "s": "GPU Fast source decoder turun ke compatibility path:", "en": "GPU Fast source decoder dropped to the compatibility path:"}
+{"k": "script", "s": "Shared source decoder fallback ke HTMLVideo:", "en": "Shared source decoder fell back to HTMLVideo:"}
+{"k": "script", "s": " (baris ", "en": " (line "}
+{"k": "script", "s": " · hilang", "en": " · lost"}
+{"k": "script", "s": "; percobaan ", "en": "; attempt "}
+{"k": "script", "s": "Focus aktif • ketuk untuk memilih • tekan lama untuk menonaktifkan", "en": "Focus on • tap to select • long-press to turn off"}
+{"k": "script", "s": "Focus nonaktif • tekan lama untuk mengaktifkan Depth of Field", "en": "Focus off • long-press to enable Depth of Field"}
+{"k": "script", "s": "Focus nonaktif • tekan lama kartu FOCUS untuk mengaktifkan Depth of Field", "en": "Focus off • long-press the FOCUS card to enable Depth of Field"}
+{"k": "script", "s": "Typewriter per Kata", "en": "Typewriter per Word"}
+{"k": "script", "s": "Slide per Kata", "en": "Slide per Word"}
+{"k": "script", "s": "Spring per Kata", "en": "Spring per Word"}
+{"k": "script", "s": "Swing per Kata", "en": "Swing per Word"}
+{"k": "script", "s": "Flip per Kata", "en": "Flip per Word"}
+{"k": "script", "s": "Bounce per Kata", "en": "Bounce per Word"}
+{"k": "script", "s": "Float per Kata", "en": "Float per Word"}
+{"k": "script", "s": "Depth per Kata", "en": "Depth per Word"}
+{"k": "script", "s": "Naik lalu Turun", "en": "Rise then Fall"}
+{"k": "script", "s": "Spin Searah Jarum", "en": "Spin Clockwise"}
+{"k": "script", "s": "Spin Berlawanan", "en": "Spin Counter-Clockwise"}
+{"k": "script", "s": "Fade Acak", "en": "Random Fade"}
+{"k": "script", "s": "Typewriter Acak", "en": "Random Typewriter"}
+{"k": "script", "s": "Scale Acak", "en": "Random Scale"}
+{"k": "script", "s": "Bounce Acak", "en": "Random Bounce"}
+{"k": "script", "s": "Flip Acak 3D", "en": "Random 3D Flip"}
+{"k": "script", "s": "Wave Naik 3D", "en": "Rising Wave 3D"}
+{"k": "script", "s": "Carousel Kata", "en": "Word Carousel"}
+{"k": "script", "s": "Acak (seed)", "en": "Random (seed)"}
+{"k": "script", "s": "Huruf / grapheme", "en": "Letters / graphemes"}
+{"k": "script", "s": "Scale memantul lalu menetap.", "en": "Scale bounces, then settles."}
+{"k": "script", "s": "Kata memantul lalu jatuh.", "en": "Words bounce, then fall."}
+{"k": "script", "s": "Fade lembut per baris.", "en": "A soft fade per line."}
+{"k": "script", "s": "Kata mendekat sebagai shaped run.", "en": "Words approach as a shaped run."}
+{"k": "script", "s": "Ayunan bandul per huruf.", "en": "A pendulum swing per letter."}
+{"k": "script", "s": "Tilt X/Y fase seperempat putaran per kata.", "en": "Tilt X/Y phased a quarter-turn per word."}
+{"k": "script", "s": "Kata bergeser tanpa memisahkan glyph.", "en": "Words slide without splitting glyphs."}
+{"k": "script", "s": "Geser cepat dari kiri ke kanan.", "en": "A quick slide from left to right."}
+{"k": "script", "s": "Geser cepat dari kanan ke kiri.", "en": "A quick slide from right to left."}
+{"k": "script", "s": "Huruf muncul dalam urutan acak.", "en": "Letters appear in random order."}
+{"k": "script", "s": "\">Muat / Analisis Audio</button>", "en": "\">Load / Analyse Audio</button>"}
+{"k": "script", "s": "Mesh selalu berada di Ruang 3D.", "en": "The mesh always lives in 3D space."}
+{"k": "script", "s": "Putaran Hue (°)", "en": "Hue rotation (°)"}
+{"k": "script", "s": "Perspektif lokal (2D, px)", "en": "Local perspective (2D, px)"}
+{"k": "script", "s": "Semi Kuat: Prioritas Cache", "en": "Semi Strong: Cache Priority"}
+{"k": "script", "s": "Real-time Mengejar", "en": "Real-time Catch-up"}
+{"k": "script", "s": "Bergerak (Mod Lama)", "en": "Moving (Legacy Mode)"}
+{"k": "script", "s": "WORKSPACE LOKAL", "en": "LOCAL WORKSPACE"}
+{"k": "script", "s": " sampel · ", "en": " samples · "}
+{"k": "script", "s": "Mask siap · ", "en": "Mask ready · "}
+{"k": "script", "s": "Belum diproses · preview asli, ekspor menunggu", "en": "Not processed yet · original preview, export waits"}
+{"k": "script", "s": "Lebar meregang, tinggi terkompresi.", "en": "Width stretches, height compresses."}
+{"k": "script", "s": "Tinggi meregang, lebar terkompresi.", "en": "Height stretches, width compresses."}
+{"k": "script", "s": "Huruf mengayun bergantian.", "en": "Letters swing alternately."}
+{"k": "script", "s": "sampel per analisis.", "en": "samples per analysis."}
+{"k": "script", "s": "Gelombang Naik 3D", "en": "Rising Wave 3D"}
+{"k": "script", "s": "Paket ", "en": "Package "}
+{"k": "script", "s": "Pisah", "en": "Split"}
+{"k": "script", "s": "256 px · ringan", "en": "256 px · light"}
+{"k": "script", "s": "Huruf mendekat dan menjauh berulang.", "en": "Letters approach and recede repeatedly."}
+{"k": "script", "s": " efek tersimpan.", "en": " effects saved."}
+{"k": "script", "s": " efek: animator, styling, keyframe dan easing. Waktu relatif terhadap layer.", "en": " effects: animator, styling, keyframes and easing. Times are relative to the layer."}
+{"k": "script", "s": "Parameter, keyframe, easing dan ekspresi teks tersimpan. Waktu mengikuti durasi layer.", "en": "Parameters, keyframes, easing and text expressions saved. Times follow the layer duration."}
+{"k": "html-attr:aria-label", "s": "Preset kustom yang dikelola", "en": "Managed custom presets"}
+{"k": "script", "s": "Preset kustom · ", "en": "Custom presets · "}

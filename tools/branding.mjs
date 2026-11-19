@@ -231,6 +231,28 @@ export function finishEnglish(html) {
     // Camera-orbit distance label; sits inside a template `${...}` hole, which the
     // translation pipeline never scans, so it is rewritten here instead.
     ["'Z / Panjang Tali'", "'Z / Rope Length'"],
+    // `Panjang` must never become a dictionary row (it would leak into the
+    // last-resort fragment pass, which scans holes, and corrupt the line above
+    // into `Z / Length Tali`). The flare length label is therefore fixed here.
+    ["scalar('size','Panjang',", "scalar('size','Length',"],
+    // The same hole rule covers the rest of these: ternaries and string
+    // concatenation inside `${...}` of a template literal.
+    ["'sumber terdeteksi'", "'source detected'"],
+    ["trackedElements} sumber", "trackedElements} sources"],
+    ["'Analisis berjalan…'", "'Analysing…'"],
+    ["' frame valid · '", "' valid frames · '"],
+    ["'Ringan · 280'", "'Light · 280'"],
+    ["'Seimbang · 500'", "'Balanced · 500'"],
+    ["'Padat · 700'", "'Dense · 700'"],
+    ["' Paket '", "' Package '"],
+    ["'fallback offline terbatas'", "'limited offline fallback'"],
+    // The translation above renamed the freehand stroke-width control's
+    // aria-label; the HUD still queried the old Indonesian label, which made the
+    // lookup return null. Point the selector at the translated label.
+    ['[aria-label="Tebal goresan"]', '[aria-label="Stroke thickness"]'],
+    // Number/date formatting: the app is English-only, so the hard-coded
+    // Indonesian locale goes too (font library counter, splash, home dates).
+    ["'id-ID'", "'en-US'"],
   ];
   for (const [from, to] of pairs) {
     if (!out.includes(from)) {

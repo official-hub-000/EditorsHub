@@ -34,8 +34,11 @@ android {
         applicationId = "com.editorhub"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        // Overridable for CI: -PversionCode=N -PversionName=X.Y.N (see android.yml).
+        val ciCode = (project.findProperty("VERSION_CODE") as String?)?.toIntOrNull()
+        val ciName = project.findProperty("VERSION_NAME") as String?
+        versionCode = ciCode ?: 1
+        versionName = ciName ?: "1.0.0"
     }
 
     buildTypes {
