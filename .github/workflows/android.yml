@@ -79,7 +79,27 @@ jobs:
           restore-keys: gradle-${{ runner.os }}-
 
       - name: Build debug APK
-        run: ./gradlew --no-daemon --stacktrace :app:assembleDebug
+        id: build
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mkdir -p ci-logs
+          ./gradlew --no-daemon --stacktrace :app:assembleDebug 2>&1 | tee ci-logs/build.log
+
+      - name: Report compiler errors
+        if: steps.build.outcome == 'failure'
+        run: |
+          # Compiler errors otherwise live only in a log that has to be downloaded, and the
+          # download endpoint is not always reachable. Surface them as annotations instead.
+          if [ -s ci-logs/build.log ]; then
+            grep -aE '(^e: |error: |warning: )' ci-logs/build.log | head -40 | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            { echo '## Compiler errors'; echo '```'; grep -aE '(^e: |error: )' ci-logs/build.log | head -40; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::error::the build produced no log to read"
+          fi
+          exit 1
 
       - name: Build release APK (unsigned)
         run: ./gradlew --no-daemon :app:assembleRelease | tail -40
