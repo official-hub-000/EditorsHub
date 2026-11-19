@@ -217,6 +217,7 @@
   var tries = 0;
   var timer = setInterval(function () {
     tries++;
-    if (install() || tries > 60) clearInterval(timer);
+    if (install()) { clearInterval(timer); if (window.omsAmzBridge) window.omsAmzBridge.report('languages', true); }
+    else if (tries > 60) { clearInterval(timer); if (window.omsAmzBridge) window.omsAmzBridge.gaveUp('languages', 'HOME_LANGUAGES or HOME_I18N missing'); }
   }, 500);
 })();

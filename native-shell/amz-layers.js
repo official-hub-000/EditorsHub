@@ -209,7 +209,8 @@
     var tries = 0;
     var timer = setInterval(function () {
       tries++;
-      if (install() || tries > 120) clearInterval(timer);
+      if (install()) { clearInterval(timer); if (window.omsAmzBridge) window.omsAmzBridge.report('layers', true); }
+      else if (tries > 120) { clearInterval(timer); if (window.omsAmzBridge) window.omsAmzBridge.gaveUp('layers', '.amObjectsGrid never appeared'); }
     }, 500);
     document.addEventListener('click', function () { setTimeout(install, 60); }, true);
   }

@@ -399,7 +399,8 @@ outColor=vec4(clamp(col,0.,1.),c.a);`);
   var tries = 0;
   var timer = setInterval(function () {
     tries++;
-    if (install() || tries > 80) clearInterval(timer);
+    if (install()) { clearInterval(timer); if (window.omsAmzBridge) window.omsAmzBridge.report('effects', true); }
+    else if (tries > 80) { clearInterval(timer); if (window.omsAmzBridge) window.omsAmzBridge.gaveUp('effects', 'omsNativeEffects or OMS_EFFECT_CATALOG missing'); }
   }, 500);
 
   window.omsAmzEffects = {

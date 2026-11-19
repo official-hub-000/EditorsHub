@@ -314,7 +314,8 @@
   if (!install()) {
     var timer = setInterval(function () {
       tries++;
-      if (install() || tries > 120) clearInterval(timer);
+      if (install()) { clearInterval(timer); if (window.omsAmzBridge) window.omsAmzBridge.report('adjust', true); }
+      else if (tries > 120) { clearInterval(timer); if (window.omsAmzBridge) window.omsAmzBridge.gaveUp('adjust', 'renderer never became reachable'); }
     }, 500);
   }
 })();

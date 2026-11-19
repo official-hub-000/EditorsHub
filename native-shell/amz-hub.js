@@ -57,7 +57,7 @@
     '.amzBtn{flex:1;height:46px;border-radius:14px;border:0;font-size:14.5px;font-weight:700;letter-spacing:.3px;cursor:pointer;background:rgba(255,255,255,.08);color:var(--amz-text)}',
     '.amzBtn.primary{background:var(--amz-accent);color:var(--amz-accent-ink)}',
     '.amzBtn.danger{background:#5a1f21;color:#ffd9d9}',
-    '.amzGroup{margin:14px 4px 6px;font-size:11px;font-weight:800;letter-spacing:1.1px;color:var(--amz-accent);text-transform:uppercase}',
+    '.amzGroup{margin:14px 4px 6px;font-size:12px;font-weight:800;letter-spacing:1.1px;color:var(--amz-accent);text-transform:uppercase}',
     '.amzRow{display:flex;align-items:flex-start;gap:12px;padding:12px 12px;border-radius:14px;background:var(--amz-surface-2);margin-bottom:8px;}',
     '.amzRow .amzText{flex:1;min-width:0}',
     '.amzRow b{display:block;font-size:14px;font-weight:600;line-height:1.3}',
@@ -111,7 +111,7 @@
     '.amzResult .amz-btn.amz-primary,.amz-result .amz-btn.amz-primary{background:var(--amz-accent);color:var(--amz-accent-ink)}',
     '.amz-btn:disabled{opacity:.45}',
     '.amz-panel,.amzPanel{display:block}',
-    '.amzShapeHeading{grid-column:1/-1;margin:14px 2px 6px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#93a1b3;}',
+    '.amzShapeHeading{grid-column:1/-1;margin:14px 2px 6px;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#93a1b3;}',
     '.amzShapeHeading:first-child{margin-top:4px}',
     '.amzShapeChips{display:flex;flex-wrap:wrap;gap:7px;margin:0 2px 10px}',
     '.amzShapeChip{height:36px;padding:0 13px;border-radius:999px;border:1px solid var(--amz-line);background:var(--amz-surface-2);color:var(--amz-text);font-size:12.5px;cursor:pointer}',
@@ -137,7 +137,50 @@
     '.amzPreview{width:100%;border-radius:16px;background:#0a0d13;display:block;margin-bottom:12px;image-rendering:auto}',
     '.amzGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}',
     '.amzGrid figure{margin:0;background:var(--amz-surface-2);border-radius:12px;overflow:hidden}',
-    '.amzGrid figcaption{font-size:11px;color:var(--amz-muted);padding:6px 8px}',
+    '.amzGrid figcaption{font-size:12px;color:var(--amz-muted);padding:6px 8px}',
+    /*
+     * Legibility floor.
+     *
+     * Measured on a 406x904 viewport, several of these panels shipped 9px labels and 36px tap
+     * targets. Both fail on a real phone: 9px is unreadable at arm's length and 36px is below
+     * the 48px that a fingertip actually needs. These rules are !important because a number of
+     * the sizes below are set inline by the panel code.
+     *
+     * The floor is 12px for text and 44px for anything tappable, 48px for primary controls.
+     */
+    '@media (max-width:520px){',
+    '.amzTool{padding:16px 14px!important;margin-bottom:10px!important}',
+    '.amzToolText b{font-size:15px!important;line-height:1.3!important}',
+    '.amzToolText p{font-size:12.5px!important;line-height:1.45!important}',
+    '.amzBtn,.amz-btn{min-height:48px!important;font-size:14px!important}',
+    '.amzDiagList{display:flex;flex-direction:column;gap:6px;margin:10px 0}',
+    '.amzDiagRow{display:flex;align-items:center;gap:9px;padding:11px 12px;border-radius:12px;background:var(--amz-surface-2)}',
+    '.amzDiagRow b{flex:1;font-size:13px;font-weight:600;color:var(--amz-text)}',
+    '.amzDiagRow em{font-size:12px;font-style:normal;color:var(--amz-muted)}',
+    '.amzDiagRow.ok .amzDiagDot{background:#4ade9a}',
+    '.amzDiagRow.bad .amzDiagDot{background:#ff8f6b}',
+    '.amzDiagDot{width:9px;height:9px;border-radius:50%;flex:none}',
+    '.amzDiagWhy{padding:0 12px 8px 30px;font-size:12px;color:#ff9d80;line-height:1.4}',
+    '.amzGroup,.amzShapeHeading{font-size:12px!important;letter-spacing:.8px!important}',
+    '.amzGrid figcaption{font-size:12px!important;padding:7px 8px!important}',
+    '.amzNote,.amz-field .amz-label,.amz-label{font-size:12.5px!important;line-height:1.5!important}',
+    '.amzInsTile{font-size:12px!important;min-height:64px!important;padding:12px 4px!important}',
+    '.amzInsTile span.amzInsIco{font-size:22px!important;margin-bottom:6px!important}',
+    '.amzInsBadge{font-size:9px!important;padding:2px 5px!important}',
+    '.amzInsTool{height:46px!important;font-size:18px!important}',
+    '.amzInsDot{width:10px!important;height:10px!important}',
+    '.amzInsDot[aria-current="true"]{width:22px!important}',
+    '.amzHexChip{font-size:11px!important;padding:2px 6px!important}',
+    '.amzSeg button{min-height:44px!important;font-size:13px!important}',
+    '.amz-kv,.amzNote.small{font-size:12.5px!important}',
+    '.amzCardMark{width:18px!important;height:18px!important;font-size:11px!important}',
+    '.amzTileCount{font-size:12px!important}',
+    '}',
+    /* Landscape and tablets: a little more room, but never smaller than the floor. */
+    '@media (min-width:521px){',
+    '.amzInsTile{font-size:12px!important;min-height:60px!important}',
+    '.amzInsBadge{font-size:9px!important}',
+    '}',
     '.amzGrid canvas{width:100%;display:block}',
     '.amzToast{position:fixed;left:50%;bottom:calc(120px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#111;color:#fff;font-size:13px;padding:11px 20px;border-radius:999px;z-index:9800;box-shadow:0 8px 24px rgba(0,0,0,.4)}',
     /* Home screen additions, styled to sit inside the existing light home layout. */
@@ -258,7 +301,7 @@
     { id: 'stabilizer', name: 'Stabilizer', icon: 'wave', desc: 'Measures the shake between frames and writes a stabilised frame plus the offsets to key.' },
     { id: 'audioconv', name: 'Audio Converter', icon: 'audio', desc: 'Changes the sample rate or channel count and writes a WAV.' },
     { id: 'rife', name: 'AI Frame Interpolation', icon: 'frames', desc: 'Doubles the frame rate by generating the frames in between, from measured motion.' },
-    { id: 'denoise', name: 'Audio Denoise', icon: 'noise', desc: 'Removes sensor grain from a still by discarding high-frequency detail below a threshold.' },
+    { id: 'denoise', name: 'Denoise (image)', icon: 'noise', desc: 'Removes sensor grain from a still by discarding high-frequency detail below a threshold' },
     { id: 'reverse', name: 'Reverse Video', icon: 'reverse', desc: 'Plays a clip backwards, with the option to reverse its audio too.' },
     { id: 'convert', name: 'Convert Video', icon: 'convert', desc: 'Rewrites a file as MP4, WebM, WAV, PNG or JPEG.' },
     { id: 'doctor', name: 'Project Doctor', icon: 'stethoscope', desc: 'Checks the open project for missing media, empty layers and bad timings before an export.' },
@@ -267,6 +310,7 @@
     { id: 'audiokeys', name: 'Audio Keys', icon: 'wave', desc: 'Keys a layer from how loud each hit was, so the motion follows the music.' },
     { id: 'vectorscope', name: 'Vectorscope', icon: 'scopes', desc: 'Chroma and luma of the current frame, measured from the preview.' },
     { id: 'sequence', name: 'Image Sequence', icon: 'frames', desc: 'A folder of frames sorted by number and played back as one image layer.' },
+    { id: 'diagnostics', name: 'Diagnostics', icon: 'chip', desc: 'Which extra modules actually loaded on this phone, and which did not.' },
   ];
 
   var ICONS = {
@@ -310,6 +354,7 @@
             if (tool.id === 'audiokeys' && window.omsAmzAnalysis) return window.omsAmzAnalysis.openAudioKeys();
             if (tool.id === 'vectorscope' && window.omsAmzScopes) return window.omsAmzScopes.openScopes();
             if (tool.id === 'sequence' && window.omsAmzSequence) return window.omsAmzSequence.openImport();
+            if (tool.id === 'diagnostics') return openDiagnostics();
             if (!window.omsAmzTools || !window.omsAmzTools.open) {
               notify(tool.name + ' is still loading');
               return;
@@ -967,7 +1012,104 @@
     log('hub ready');
   }
 
+  /**
+   * Diagnostics.
+   *
+   * The point of this screen is to answer one question without guessing: of everything this
+   * build is supposed to add, what is actually running on this device? Each extension retries
+   * its install on a timer, so a module can silently fail and look like a missing feature.
+   * This lists the real state instead.
+   */
+  function openDiagnostics() {
+    var b = window.omsAmzBridge;
+    var rep = b && b.installReport ? b.installReport() : { total: 0, failed: [], all: {} };
+    var modules = [
+      ['bridge', 'Core bridge, undo and redraw'],
+      ['settings', 'Settings store'],
+      ['layers', 'Extra layer types'],
+      ['effects', 'Extra shader effects'],
+      ['languages', 'Extra languages'],
+      ['shapes', 'Extra shapes'],
+      ['folders', 'Effect folders'],
+      ['adjust', 'Adjustment layers'],
+      ['tools', 'Labs media tools'],
+      ['analysis', 'Beat Maker and Audio Keys'],
+      ['scopes', 'Vectorscope'],
+      ['sequence', 'Image sequences'],
+      ['inspector', 'Paged inspector'],
+      ['settingswire', 'Settings wiring'],
+    ];
+    var api = sheet({
+      title: 'Diagnostics',
+      subtitle: 'What loaded on this device',
+      build: function (body) {
+        var intro = el('p', 'amzNote',
+          'Every extra feature loads as a separate script and then waits for the part of the editor it needs. ' +
+          'If that part never appears the feature stays silent, which looks identical to it being missing. ' +
+          'This is the honest list.');
+        body.appendChild(intro);
+
+        var rows = el('div', 'amzDiagList');
+        var failed = 0;
+        modules.forEach(function (m) {
+          var known = rep.all[m[0]];
+          var present = !!window[{
+            bridge: 'omsAmzBridge', settings: 'omsAmzSettings', layers: 'omsAmzLayers',
+            effects: 'omsAmzEffects', languages: 'omsAmzLanguages', shapes: 'omsAmzShapes',
+            folders: 'omsAmzFolders', adjust: 'omsAmzAdjust', tools: 'omsAmzTools',
+            analysis: 'omsAmzAnalysis', scopes: 'omsAmzScopes', sequence: 'omsAmzSequence',
+            inspector: 'omsAmzInspector', settingswire: 'omsAmzSettingsWire',
+          }[m[0]]];
+          var okState = present && (!known || known.ok);
+          if (!okState) failed++;
+          var row = el('div', 'amzDiagRow' + (okState ? ' ok' : ' bad'));
+          row.innerHTML = '<span class="amzDiagDot"></span><b>' + esc(m[1]) + '</b>' +
+            '<em>' + (okState ? 'running' : (present ? 'loaded, waiting for the editor' : 'not loaded')) + '</em>';
+          rows.appendChild(row);
+          if (!okState && known && known.detail) {
+            var why = el('div', 'amzDiagWhy', esc(known.detail));
+            rows.appendChild(why);
+          }
+        });
+        body.appendChild(rows);
+
+        var summary = el('p', 'amzNote',
+          failed === 0
+            ? 'All ' + modules.length + ' modules are running.'
+            : failed + ' of ' + modules.length + ' modules are not fully running. The ones marked "waiting" need a part of the editor that has not been built yet in this session - open a project and try again.');
+        body.appendChild(summary);
+
+        var again = el('button', 'amzBtn', 'Check again');
+        again.onclick = function () {
+          try { api.close(); } catch (e) {}
+          openDiagnostics();
+        };
+        body.appendChild(again);
+
+        var copy = el('button', 'amzBtn', 'Copy report');
+        copy.onclick = function () {
+          var text = modules.map(function (m) {
+            var known = rep.all[m[0]];
+            return m[1] + ': ' + (known ? (known.ok ? 'running' : 'failed ' + known.detail) : 'not reported');
+          }).join('\n') + '\n\nBuild: ' + (window.__omsBuildStamp || 'unknown') +
+            '\nViewport: ' + innerWidth + 'x' + innerHeight + ' @' + (devicePixelRatio || 1) + 'x';
+          try {
+            if (navigator.clipboard) navigator.clipboard.writeText(text);
+            notify('Report copied');
+          } catch (e) {
+            notify('Could not copy');
+          }
+        };
+        body.appendChild(copy);
+      },
+      footer: [{ label: 'Done', primary: true }],
+    });
+  }
+
   window.omsAmzHub = {
+    /* Exported so a test can walk every row instead of trusting the markup. */
+    LABS: LABS,
+    CHANGELOG: CHANGELOG,
     sheet: sheet,
     notify: notify,
     openLabs: openLabs,
@@ -980,7 +1122,6 @@
     syncProjectSearch: syncProjectSearch,
     syncHome: syncHome,
     repaint: function () { try { window.omsAmzTools && window.omsAmzTools.repaint && window.omsAmzTools.repaint(); } catch (e) {} },
-    LABS: LABS,
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

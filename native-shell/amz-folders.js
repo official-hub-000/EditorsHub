@@ -338,13 +338,13 @@
       '.amzFolderBody{display:none;padding:0 6px 8px;flex-wrap:wrap;gap:8px}' +
       '.amzFolder.open .amzFolderBody{display:flex}' +
       '.amzFolderBody .effectLibraryCard{flex:0 0 auto}' +
-      '.amzCardMark{position:absolute;top:5px;right:6px;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:rgba(255,255,255,.16)}' +
+      '.amzCardMark{position:absolute;top:5px;right:6px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:rgba(255,255,255,.16)}' +
       '.amzTiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 12px}' +
       '.amzTile{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;min-height:74px;padding:11px 12px;border-radius:13px;border:1px solid rgba(255,255,255,.09);color:#f2f5f9;font:inherit;cursor:pointer;overflow:hidden;text-align:left}' +
       '.amzTile:active{transform:scale(.985)}' +
       '.amzTileGlyph{position:absolute;top:9px;right:11px;font-size:15px;opacity:.5}' +
       '.amzTileName{font-size:12.5px;font-weight:600;line-height:1.25}' +
-      '.amzTileCount{font-size:11px;opacity:.6;margin-top:2px;font-variant-numeric:tabular-nums}' +
+      '.amzTileCount{font-size:12px;opacity:.6;margin-top:2px;font-variant-numeric:tabular-nums}' +
       '.amzFolder.amzFlash{border-color:rgba(255,255,255,.4)}';
     document.head.appendChild(style);
   }

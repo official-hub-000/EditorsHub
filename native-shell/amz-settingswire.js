@@ -308,7 +308,7 @@
       el = document.createElement('style');
       el.id = 'amzHexStyle';
       el.textContent = '.amzHexChip{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;' +
-        'background:rgba(255,255,255,.08);color:#cbd5e6;font-size:8px;font-variant-numeric:tabular-nums}';
+        'background:rgba(255,255,255,.08);color:#cbd5e6;font-size:11px;font-variant-numeric:tabular-nums}';
       document.head.appendChild(el);
     }
     document.querySelectorAll('input[type="color"]').forEach(function (inp) {

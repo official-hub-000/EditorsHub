@@ -77,7 +77,90 @@
     return Math.max(0, projectTime - start);
   }
 
+  /*
+   * Defence in depth for the one crash the device actually produced.
+   *
+   * model.addLayer -> defaultLayer reads this.project.duration. With no project open,
+   * project is null and the whole editor throws "Cannot read properties of null (reading
+   * 'duration')". Guarding here means any caller - mine or the core's - gets null back
+   * instead of an uncaught error, and the user gets a sentence they can act on.
+   */
+  function guardAddLayer() {
+    var m = model();
+    if (!m || typeof m.addLayer !== 'function' || m.__amzAddGuarded) return false;
+    var original = m.addLayer.bind(m);
+    m.addLayer = function (type, opt) {
+      if (!m.project) {
+        try {
+          if (window.omsAmzHub && window.omsAmzHub.notify) {
+            window.omsAmzHub.notify('Open or create a project before adding layers');
+          }
+        } catch (e) {}
+        return null;
+      }
+      try {
+        return original(type, opt);
+      } catch (e) {
+        try {
+          if (window.omsAmzHub && window.omsAmzHub.notify) {
+            window.omsAmzHub.notify('Could not add that layer: ' + (e && e.message ? e.message : 'unknown error'));
+          }
+        } catch (e2) {}
+        return null;
+      }
+    };
+    m.__amzAddGuarded = true;
+    return true;
+  }
+
+  /* The model is created with the page, but guard lazily in case this runs first. */
+  var guardTries = 0;
+  if (!guardAddLayer()) {
+    var guardTimer = setInterval(function () {
+      guardTries++;
+      if (guardAddLayer() || guardTries > 100) clearInterval(guardTimer);
+    }, 100);
+  }
+
+  /*
+   * Installation reporting.
+   *
+   * Every module retries install() on a timer because the DOM it needs may not exist yet. The
+   * problem with that design is silence: if install() never succeeds, the feature simply never
+   * appears and the user concludes it is missing or broken. This records the outcome for each
+   * module and exposes it, so a single call can answer "what actually loaded on this phone".
+   */
+  var status = {};
+
+  function report(name, ok, detail) {
+    status[name] = { ok: !!ok, detail: detail || '', at: Date.now() };
+    try {
+      var n = window.EditorsHubNative || window.OpenMotionNative;
+      if (n && n.log) n.log(ok ? 'INFO' : 'WARN', 'amz-install: ' + name + ' ' + (ok ? 'ok' : 'FAILED ' + (detail || '')));
+    } catch (e) {}
+    return ok;
+  }
+
+  /** Called by modules when they give up retrying. */
+  function gaveUp(name, detail) {
+    status[name] = { ok: false, detail: detail || 'gave up waiting for the editor', at: Date.now() };
+    try {
+      var n = window.EditorsHubNative || window.OpenMotionNative;
+      if (n && n.log) n.log('WARN', 'amz-install: ' + name + ' gave up: ' + (detail || ''));
+    } catch (e) {}
+  }
+
+  function installReport() {
+    var names = Object.keys(status);
+    var failed = names.filter(function (k) { return !status[k].ok; });
+    return { total: names.length, failed: failed, all: status };
+  }
+
   window.omsAmzBridge = {
+    guardAddLayer: guardAddLayer,
+    report: report,
+    gaveUp: gaveUp,
+    installReport: installReport,
     setKey: setKey,
     refresh: refresh,
     checkpoint: checkpoint,
