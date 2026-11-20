@@ -246,9 +246,17 @@
     id: 'depth',
     name: 'Depth map',
     group: '3D & depth',
-    desc: 'Estimates a depth map from a still or the first frame of a clip, and can push it into the editor as a displacement layer.',
+    desc: 'Estimates a depth map from a still or a clip, and can push it into the editor as a displacement layer.',
     run: function (panel) {
       var picked = sourceBlock(panel, 'image/*,video/*');
+      var modeField = el('div', 'amz-field');
+      modeField.appendChild(el('div', 'amz-label', 'When the source is a video'));
+      var modeSel = el('select', 'amz-select');
+      [['clip', 'Process the whole clip (MP4)'], ['frame', 'First frame only (PNG)']].forEach(function (o) {
+        var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; modeSel.appendChild(op);
+      });
+      modeField.appendChild(modeSel);
+      panel.appendChild(modeField);
       var res = resultBlock(panel);
 
       buttonRow(panel, [{
@@ -256,6 +264,34 @@
         onClick: function () {
           var src = picked.get();
           if (!src) return notify('Choose a source first');
+          var isVideo = /video\//.test(src.type || '') || (M.isVideoName && M.isVideoName(src.name));
+
+          if (isVideo && modeSel.value === 'clip') {
+            runJob(panel, async function (rep) {
+              rep.at(0.02, 'Reading the clip…');
+              var made = await streamClip(src, {
+                fps: 24, maxSeconds: 20, audio: false,
+                process: function (inCanvas, outCtx) {
+                  var ictx = inCanvas.getContext('2d', { willReadFrequently: true });
+                  var img = ictx.getImageData(0, 0, inCanvas.width, inCanvas.height);
+                  M.depthInto(img, inCanvas.width, inCanvas.height);
+                  outCtx.putImageData(img, 0, 0);
+                },
+              }, rep);
+              rep.done('Done');
+              var vb = resultBlock(panel);
+              vb.heading('Depth clip');
+              vb.line('Frames', String(made.frames || 0));
+              if (made.blob) {
+                vb.actions([
+                  { label: 'Save MP4', primary: true, onClick: function () { M.save(made.blob, baseName(src.name) + '-depth.mp4', 'export').then(notify); } },
+                  { label: 'Add to project', onClick: function () { addToProject(made.blob, baseName(src.name) + '-depth.mp4', 'video').then(notify); } },
+                ]);
+              } else { vb.note(made.message); }
+            });
+            return;
+          }
+
           runJob(panel, async function (rep) {
             rep.at(0.05, 'Reading the file…');
             var media = await M.decodeMedia(src, { maxFrames: 1 });
@@ -318,6 +354,15 @@
       feather.appendChild(range);
       panel.appendChild(feather);
 
+      var modeField = el('div', 'amz-field');
+      modeField.appendChild(el('div', 'amz-label', 'When the source is a video'));
+      var modeSel = el('select', 'amz-select');
+      [['clip', 'Process the whole clip (MP4)'], ['frame', 'First frame only (PNG)']].forEach(function (o) {
+        var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; modeSel.appendChild(op);
+      });
+      modeField.appendChild(modeSel);
+      panel.appendChild(modeField);
+
       var res = resultBlock(panel);
       res.note('The result is premultiplied RGBA with a real alpha channel. If you need it composited over footage, add the PNG to the project and set the layer blend.');
 
@@ -326,6 +371,40 @@
         onClick: function () {
           var src = picked.get();
           if (!src) return notify('Choose a source first');
+          var isVideo = /video\//.test(src.type || '') || (M.isVideoName && M.isVideoName(src.name));
+
+          if (isVideo && modeSel.value === 'clip') {
+            runJob(panel, async function (rep) {
+              rep.at(0.02, 'Reading the clip…');
+              var mode = select.value;
+              var soft = parseInt(range.value, 10) || 0;
+              var made = await streamClip(src, {
+                fps: 24, maxSeconds: 20, audio: false,
+                process: function (inCanvas, outCtx) {
+                  var w = inCanvas.width, h = inCanvas.height;
+                  var ictx = inCanvas.getContext('2d', { willReadFrequently: true });
+                  var img = ictx.getImageData(0, 0, w, h);
+                  if (mode === 'auto' || mode === 'light' || mode === 'dark') matteByLuma(img, w, h, mode);
+                  else matteByChroma(img, w, h, mode);
+                  if (soft > 0) softMatte(img, w, h, soft);
+                  outCtx.putImageData(img, 0, 0);
+                },
+              }, rep);
+              rep.done('Done');
+              var vb = resultBlock(panel);
+              vb.heading('Cut-out clip');
+              vb.line('Frames', String(made.frames || 0));
+              if (made.blob) {
+                vb.actions([
+                  { label: 'Save MP4', primary: true, onClick: function () { M.save(made.blob, baseName(src.name) + '-cutout.mp4', 'export').then(notify); } },
+                  { label: 'Add to project', onClick: function () { addToProject(made.blob, baseName(src.name) + '-cutout.mp4', 'video').then(notify); } },
+                ]);
+              } else { vb.note(made.message); }
+              vb.note('MP4 cannot carry transparency: the removed background encodes as black. For a real alpha channel, use the frame mode and keep the PNG.');
+            });
+            return;
+          }
+
           runJob(panel, async function (rep) {
             rep.at(0.05, 'Reading the file…');
             var media = await M.decodeMedia(src, { maxFrames: 1 });
@@ -435,13 +514,35 @@
 
   /* 4. Upscale ------------------------------------------------------------------- */
 
+  /* Largest frame this pipeline may produce: stills may go big, encoded video may not. */
+  var STILL_AREA_LIMIT = 30e6, CLIP_AREA_LIMIT = 8.5e6;
+
+  function feasibleScale(srcW, srcH, wanted, limit) {
+    /* The area limit is the real guard: 4× on a small clip encodes fine, 2× on 4K never will. */
+    var best = 0;
+    [2, 3, 4].forEach(function (s) {
+      if (srcW * s * (srcH * s) <= limit) best = s;
+    });
+    return best;
+  }
+
   tool({
     id: 'upscale',
     name: 'Upscale',
     group: 'Enhance',
-    desc: 'Enlarges a still or a frame with edge-aware sharpening instead of a plain stretch.',
+    desc: 'Enlarges a still or a whole clip with edge-aware sharpening instead of a plain stretch.',
     run: function (panel) {
       var picked = sourceBlock(panel, 'image/*,video/*');
+
+      var modeField = el('div', 'amz-field');
+      modeField.appendChild(el('div', 'amz-label', 'When the source is a video'));
+      var modeSel = el('select', 'amz-select');
+      [['clip', 'Process the whole clip (MP4)'], ['frame', 'First frame only (PNG)']].forEach(function (o) {
+        var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; modeSel.appendChild(op);
+      });
+      modeField.appendChild(modeSel);
+      panel.appendChild(modeField);
+
       var f = el('div', 'amz-field');
       f.appendChild(el('div', 'amz-label', 'Scale'));
       var sel = el('select', 'amz-select');
@@ -464,14 +565,52 @@
         onClick: function () {
           var src = picked.get();
           if (!src) return notify('Choose a source first');
+          var isVideo = /video\//.test(src.type || '') || (M.isVideoName && M.isVideoName(src.name));
+
+          if (isVideo && modeSel.value === 'clip') {
+            runJob(panel, async function (rep) {
+              rep.at(0.02, 'Reading the clip…');
+              var meta = await M.decodeMedia(src, { maxFrames: 1 });
+              var wanted = parseInt(sel.value, 10);
+              var scale = feasibleScale(meta.width, meta.height, wanted, CLIP_AREA_LIMIT);
+              if (!scale) throw new Error('This clip is already ' + meta.width + ' × ' + meta.height + ' — even 2× would exceed what an on-device encode can hold');
+              if (scale < wanted) notify(wanted + '× would be ' + meta.width * wanted + ' × ' + meta.height * wanted + ' — using ' + scale + '× instead');
+              var amount = (parseInt(r.value, 10) / 100) * 1.4;
+              var outW = meta.width * scale, outH = meta.height * scale;
+              var made = await streamClip(src, {
+                outW: outW, outH: outH, fps: 24, maxSeconds: 20,
+                process: function (inCanvas, outCtx) {
+                  outCtx.imageSmoothingEnabled = true;
+                  outCtx.imageSmoothingQuality = 'high';
+                  outCtx.drawImage(inCanvas, 0, 0, outW, outH);
+                  if (amount > 0) M.sharpen(outCtx, outW, outH, amount, Math.max(1, Math.round(scale / 2)));
+                },
+              }, rep);
+              rep.done('Done');
+              var vb = resultBlock(panel);
+              vb.heading('Upscaled clip');
+              vb.line('To', outW + ' × ' + outH + ' · ' + (made.frames || 0) + ' frames');
+              vb.line('Audio', made.audio ? 'carried over' : 'not in the output');
+              if (made.blob) {
+                vb.actions([
+                  { label: 'Save MP4', primary: true, onClick: function () { M.save(made.blob, baseName(src.name) + '-' + scale + 'x.mp4', 'export').then(notify); } },
+                  { label: 'Add to project', onClick: function () { addToProject(made.blob, baseName(src.name) + '-' + scale + 'x.mp4', 'video').then(notify); } },
+                ]);
+              } else { vb.note(made.message); }
+            });
+            return;
+          }
+
           runJob(panel, async function (rep) {
             rep.at(0.05, 'Reading the file…');
             var media = await M.decodeMedia(src, { maxFrames: 1 });
             var frame = media.frames[0];
             var srcCanvas = canvasFor(frame);
-            var scale = parseInt(sel.value, 10);
+            var wanted = parseInt(sel.value, 10);
+            var scale = feasibleScale(srcCanvas.width, srcCanvas.height, wanted, STILL_AREA_LIMIT);
+            if (!scale) throw new Error('This frame is already ' + srcCanvas.width + ' × ' + srcCanvas.height + ' — no larger size fits in this device\'s memory');
+            if (scale < wanted) notify(wanted + '× would be ' + srcCanvas.width * wanted + ' × ' + srcCanvas.height * wanted + ' — using ' + scale + '× instead');
             var w = srcCanvas.width * scale, h = srcCanvas.height * scale;
-            if (w * h > 30e6) throw new Error('That would be ' + w + ' × ' + h + ' — too large for this device to hold');
             rep.at(0.25, 'Enlarging…');
             var out = document.createElement('canvas');
             out.width = w; out.height = h;
@@ -653,12 +792,133 @@
 
   function tick() { return new Promise(function (r) { setTimeout(r, 0); }); }
 
+  /** AudioBuffer out of whatever a tool carries: a real AudioBuffer or a raw channel list. */
+  function audioBufferOf(audio) {
+    if (!audio) return null;
+    if (typeof AudioBuffer !== 'undefined' && audio instanceof AudioBuffer) return audio;
+    if (audio.channels && audio.sampleRate && audio.channels.length) {
+      try {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        var actx = new AC();
+        var buf = actx.createBuffer(audio.channels.length, audio.channels[0].length, audio.sampleRate);
+        for (var i = 0; i < audio.channels.length; i++) buf.getChannelData(i).set(audio.channels[i]);
+        return buf;
+      } catch (e) { return null; }
+    }
+    return null;
+  }
+
+  /** Adds the audio track to a mediabunny output before output.start(). Best effort. */
+  function muxAudio(output, audio, enc) {
+    if (!audio || !enc || !enc.AudioBufferSource) return null;
+    var buf = audioBufferOf(audio);
+    if (!buf) return null;
+    try {
+      var asrc = new enc.AudioBufferSource({ codec: 'aac', bitrate: 128000 });
+      output.addAudioTrack(asrc);
+      return { source: asrc, buffer: buf };
+    } catch (e) {
+      M.log('audio track skipped: ' + (e && e.message));
+      return null;
+    }
+  }
+
+  /**
+   * Processes a whole clip frame by frame and writes an MP4, holding at most two frames
+   * in memory at once. decodeMedia() collects every frame before returning, which caps
+   * whole-clip work at about a second of video; this streams: seek, draw, process,
+   * encode, release. Audio is decoded once and muxed when the device offers AAC.
+   *
+   * opts: { process(inCanvas, outCtx), outW, outH, fps, maxSeconds, audio }
+   * process() draws the finished frame into outCtx; the encoder snapshots it.
+   */
+  async function streamClip(src, opts, rep) {
+    var enc = window.Mediabunny || window.mediabunny;
+    if (!enc || !enc.Output || !enc.CanvasSource) {
+      return { message: 'The MP4 encoder is not reachable from this screen. Export from the project instead.' };
+    }
+    var v = document.createElement('video');
+    v.src = src.url;
+    v.muted = true;
+    v.playsInline = true;
+    v.preload = 'auto';
+    try {
+      await new Promise(function (res, rej) {
+        var settled = false;
+        var done = function (fn, arg) { if (settled) return; settled = true; fn(arg); };
+        v.onloadedmetadata = function () { done(res); };
+        v.onerror = function () { done(rej, new Error('This device cannot decode that video')); };
+        setTimeout(function () { done(rej, new Error('Timed out reading the video')); }, 25000);
+      });
+
+      var srcW = v.videoWidth || 720, srcH = v.videoHeight || 1280;
+      var outW = opts.outW || srcW, outH = opts.outH || srcH;
+      var fps = opts.fps || 24;
+      var seconds = Math.min(isFinite(v.duration) ? v.duration : 0, opts.maxSeconds || 20);
+      var count = Math.max(2, Math.round(seconds * fps));
+
+      var inCanvas = document.createElement('canvas');
+      inCanvas.width = srcW; inCanvas.height = srcH;
+      var inCtx = inCanvas.getContext('2d', { willReadFrequently: true });
+      var outCanvas = document.createElement('canvas');
+      outCanvas.width = outW; outCanvas.height = outH;
+      var outCtx = outCanvas.getContext('2d', { willReadFrequently: true });
+
+      /* The audio decode runs while the video track is being set up; a failure here must
+         never cost the video. */
+      var audio = null;
+      if (opts.audio !== false) {
+        try { audio = (await M.decodeMedia(src, { maxFrames: 1 })).audio; } catch (e) { audio = null; }
+      }
+
+      var target = new enc.BufferTarget();
+      var output = new enc.Output({ format: new enc.Mp4OutputFormat(), target: target });
+      var codec = 'avc';
+      if (enc.canEncodeVideo) {
+        var candidates = [enc.VIDEO_CODECS && enc.VIDEO_CODECS.AVC, 'avc', 'vp9', 'av1'].filter(Boolean);
+        for (var c = 0; c < candidates.length; c++) {
+          var okc = await enc.canEncodeVideo(candidates[c]).catch(function () { return false; });
+          if (okc) { codec = candidates[c]; break; }
+        }
+      }
+      var source = new enc.CanvasSource(outCanvas, { codec: codec });
+      output.addVideoTrack(source, { frameRate: fps });
+      var pendingAudio = muxAudio(output, audio, enc);
+      await output.start();
+      if (pendingAudio) {
+        try { await pendingAudio.source.add(pendingAudio.buffer); } catch (e) { M.log('audio mux: ' + (e && e.message)); }
+      }
+
+      for (var i = 0; i < count; i++) {
+        if (rep && rep.cancelled) break;
+        var t = Math.min(i / fps, Math.max(0, seconds - 0.001));
+        await new Promise(function (res) {
+          var done = false;
+          var finish = function () { if (done) return; done = true; v.removeEventListener('seeked', finish); res(); };
+          v.addEventListener('seeked', finish);
+          try { v.currentTime = t; } catch (e) { finish(); }
+          setTimeout(finish, 1500);
+        });
+        try { inCtx.drawImage(v, 0, 0, srcW, srcH); } catch (e) { break; }
+        opts.process(inCanvas, outCtx);
+        await source.add(i / fps, 1 / fps);
+        if (rep && i % 2 === 0) rep.at(0.05 + 0.9 * (i / count), 'Frame ' + (i + 1) + ' of ' + count + '…');
+        if (i % 3 === 0) await tick();
+      }
+      await output.finalize();
+      var buf = await target.buffer;
+      return { blob: new Blob([buf], { type: 'video/mp4' }), frames: count, audio: !!pendingAudio };
+    } finally {
+      try { v.removeAttribute('src'); v.load(); } catch (e) { /* ignore */ }
+    }
+  }
+
   /**
    * Assembles frames into a file. The vendored encoder writes a real MP4 with the audio track;
    * if it cannot be reached, the frames are handed to the editor's own export path so the result
    * is still usable rather than lost.
    */
-  async function framesToVideo(frames, audio, factor, name, rep) {
+  async function framesToVideo(frames, audio, factor, name, rep, suffix) {
     var w = frames[0].width, h = frames[0].height;
     var fps = 30;
     var enc = window.Mediabunny || window.mediabunny;
@@ -684,7 +944,13 @@
         }
         var source = new enc.CanvasSource(canvas, { codec: codec });
         output.addVideoTrack(source, { frameRate: fps });
+        /* The audio track used to be silently dropped while the result card still said
+           "carried over". It is muxed for real now. */
+        var pendingAudio = muxAudio(output, audio, enc);
         await output.start();
+        if (pendingAudio) {
+          try { await pendingAudio.source.add(pendingAudio.buffer); } catch (e) { M.log('audio mux: ' + (e && e.message)); }
+        }
         for (var i = 0; i < frames.length; i++) {
           if (rep && rep.cancelled) break;
           ctx.putImageData(new ImageData(new Uint8ClampedArray(frames[i].data), w, h), 0, 0);
@@ -694,7 +960,7 @@
         await output.finalize();
         var buf = await target.buffer;
         var blob = new Blob([buf], { type: 'video/mp4' });
-        return { blob: blob, name: baseName(name) + '-retimed.mp4' };
+        return { blob: blob, name: baseName(name) + '-' + (suffix || 'retimed') + '.mp4', audio: !!pendingAudio };
       } catch (e) {
         M.log('vendored encode failed: ' + (e && e.message));
       }
@@ -1122,7 +1388,7 @@
             rep.at(0.5, 'Reversing…');
             if (media.kind === 'video') {
               var frames = media.frames.slice().reverse();
-              var made = await framesToVideo(frames, media.audio, 1, src.name, rep);
+              var made = await framesToVideo(frames, reversedAudio || media.audio, 1, src.name, rep, 'reversed');
               rep.done('Done');
               var box = resultBlock(panel);
               box.heading('Reversed clip');

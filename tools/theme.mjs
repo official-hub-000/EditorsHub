@@ -168,6 +168,27 @@ export function afterMotionSkin(html) {
   return html.replace('</head>', `<style id="editorshub-amz-skin">${css}</style>\n</head>`);
 }
 
+/**
+ * Removes the backdrop-filter blurs that make the app feel like a web page on a phone.
+ *
+ * `backdrop-filter: blur()` is the single most expensive paint feature in Chromium: it
+ * forces the compositor to snapshot and re-filter everything behind the element on
+ * every frame it moves, so a blurred sheet header costs GPU for as long as the sheet
+ * scrolls. The bundle declares 36 of them, most on surfaces that already paint over an
+ * opaque or near-opaque background where the blur is invisible in practice - it is
+ * decoration the user pays for as lag.
+ *
+ * Every surface that has one also carries its own rgba() background, so removing the
+ * filter leaves a solid panel: nothing becomes transparent, nothing loses its shape.
+ * What the user notices is that sheets stop dragging the frame rate down.
+ */
+export function perfPass(html) {
+  let removed = 0;
+  const out = html.replace(/backdrop-filter\s*:[^;}]+;?/g, () => { removed++; return ''; });
+  console.log(`  perf        ${removed} backdrop-filter blurs removed`);
+  return out;
+}
+
 /** Appends the theme stylesheet once, immediately before `</head>`. */
 export function applyTheme(html) {
   return html.replace('</head>', `<style id="editorshub-theme">${AMOLED}${MOTION}</style>\n</head>`);

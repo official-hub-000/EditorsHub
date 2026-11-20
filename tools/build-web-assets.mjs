@@ -40,6 +40,7 @@ import {
   removeTapDelay,
   nativeFeel,
   afterMotionSkin,
+  perfPass,
   externaliseGraphTextures,
   stampBuildId,
   exposeBuildId,
@@ -275,6 +276,7 @@ async function main() {
   html = enlargeTinyText(html);
   html = removeTapDelay(html);
   html = nativeFeel(html);
+  html = perfPass(html);
   html = applyTheme(html);
   html = afterMotionSkin(html);
   // A build id so an installed build can be identified from a screenshot alone.
