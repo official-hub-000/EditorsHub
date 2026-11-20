@@ -152,6 +152,7 @@
     '.amzTool{padding:16px 14px!important;margin-bottom:10px!important}',
     '.amzToolText b{font-size:15px!important;line-height:1.3!important}',
     '.amzToolText p{font-size:12.5px!important;line-height:1.45!important}',
+    '.amzToolSerial{font:800 11px/1 ui-monospace,monospace;color:#3fe0b0;margin-right:2px}',
     '.amzBtn,.amz-btn{min-height:48px!important;font-size:14px!important}',
     '.amzDiagList{display:flex;flex-direction:column;gap:6px;margin:10px 0}',
     '.amzDiagRow{display:flex;align-items:center;gap:9px;padding:11px 12px;border-radius:12px;background:var(--amz-surface-2)}',
@@ -344,11 +345,24 @@
       title: 'EditorsHub Labs',
       subtitle: 'Extra tools',
       build: function (body) {
+        /* The manual sits first: its serial numbers are how a user names a tool
+           when asking for a change. */
+        var manualRow = el('div', 'amzTool');
+        manualRow.innerHTML =
+          '<div class="amzToolIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17.5a2.5 2.5 0 0 1-2.5 2.5H6.5A2.5 2.5 0 0 1 4 19.5z"/><path d="M8 7h8M8 11h5"/></svg></div>' +
+          '<div class="amzToolText"><b>User manual</b><p>Every feature in the app, numbered. Quote a number to ask for a change.</p></div>' +
+          '<div class="chev">&#8250;</div>';
+        manualRow.onclick = function () {
+          if (window.omsAmzManual) window.omsAmzManual.open();
+          else notify('The manual is still loading');
+        };
+        body.appendChild(manualRow);
         LABS.forEach(function (tool) {
           var row = el('div', 'amzTool');
+          var serial = window.omsAmzManual && window.omsAmzManual.SERIALS[tool.id];
           row.innerHTML =
             '<div class="amzToolIcon">' + toolIcon(tool.icon) + '</div>' +
-            '<div class="amzToolText"><b>' + esc(tool.name) + '</b><p>' + esc(tool.desc) + '</p></div>' +
+            '<div class="amzToolText"><b>' + (serial ? '<span class="amzToolSerial">' + serial + '</span> ' : '') + esc(tool.name) + '</b><p>' + esc(tool.desc) + '</p></div>' +
             '<div class="chev">&#8250;</div>';
           row.onclick = function () {
             /* Four of these are analysis or import panels with their own modules. */

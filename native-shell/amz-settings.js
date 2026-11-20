@@ -96,6 +96,15 @@
       help: 'Shows the floating button that opens the extra tools on every screen.' },
     { id: 'labsButtonOpacity', group: 'Labs', type: 'number', label: 'Labs Button Opacity (%)', min: 30, max: 100, default: 88,
       help: 'Opacity of the floating labs button.' },
+    { id: 'labsFps', group: 'Labs', type: 'choice', label: 'Labs Video FPS',
+      options: [['12', '12'], ['15', '15'], ['24', '24'], ['30', '30'], ['60', '60']], default: '24',
+      help: 'Frame rate of the MP4s the Labs tools write in whole-clip mode. Lower values encode faster; higher keeps fast motion smoother.' },
+    { id: 'labsMaxSeconds', group: 'Labs', type: 'number', label: 'Labs Clip Length Limit (s)', min: 5, max: 120, default: 20,
+      help: 'The most seconds of a clip a Labs tool processes in one run. Longer clips are processed up to this length only. Raise it if your phone copes; lower it if runs stall.' },
+    { id: 'labsClipAudio', group: 'Labs', type: 'bool', label: 'Keep Audio in Labs Videos', default: true,
+      help: 'Carries the source audio into processed clips. Turn off for silent output, or if a run fails during the audio step.' },
+    { id: 'labsUnsafeSize', group: 'Labs', type: 'bool', label: 'Ignore Safe Size Limits', default: false,
+      help: 'Lets Upscale attempt sizes the tool would otherwise refuse (for example 4× on a 1080p clip). If a run stops or the app closes, turn this back off.' },
   ];
 
   var state = {};

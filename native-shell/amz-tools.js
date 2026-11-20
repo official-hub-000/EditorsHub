@@ -270,7 +270,7 @@
             runJob(panel, async function (rep) {
               rep.at(0.02, 'Reading the clip…');
               var made = await streamClip(src, {
-                fps: 24, maxSeconds: 20, audio: false,
+                fps: labPrefs().fps, maxSeconds: labPrefs().maxSeconds, audio: false,
                 process: function (inCanvas, outCtx) {
                   var ictx = inCanvas.getContext('2d', { willReadFrequently: true });
                   var img = ictx.getImageData(0, 0, inCanvas.width, inCanvas.height);
@@ -379,7 +379,7 @@
               var mode = select.value;
               var soft = parseInt(range.value, 10) || 0;
               var made = await streamClip(src, {
-                fps: 24, maxSeconds: 20, audio: false,
+                fps: labPrefs().fps, maxSeconds: labPrefs().maxSeconds, audio: false,
                 process: function (inCanvas, outCtx) {
                   var w = inCanvas.width, h = inCanvas.height;
                   var ictx = inCanvas.getContext('2d', { willReadFrequently: true });
@@ -571,14 +571,15 @@
             runJob(panel, async function (rep) {
               rep.at(0.02, 'Reading the clip…');
               var meta = await M.decodeMedia(src, { maxFrames: 1 });
+              var prefs = labPrefs();
               var wanted = parseInt(sel.value, 10);
-              var scale = feasibleScale(meta.width, meta.height, wanted, CLIP_AREA_LIMIT);
-              if (!scale) throw new Error('This clip is already ' + meta.width + ' × ' + meta.height + ' — even 2× would exceed what an on-device encode can hold');
+              var scale = prefs.unsafe ? wanted : feasibleScale(meta.width, meta.height, wanted, CLIP_AREA_LIMIT);
+              if (!scale) throw new Error('This clip is already ' + meta.width + ' × ' + meta.height + ' — even 2× would exceed what an on-device encode can hold. Turn on “Ignore Safe Size Limits” in Settings → Labs to try anyway.');
               if (scale < wanted) notify(wanted + '× would be ' + meta.width * wanted + ' × ' + meta.height * wanted + ' — using ' + scale + '× instead');
               var amount = (parseInt(r.value, 10) / 100) * 1.4;
               var outW = meta.width * scale, outH = meta.height * scale;
               var made = await streamClip(src, {
-                outW: outW, outH: outH, fps: 24, maxSeconds: 20,
+                outW: outW, outH: outH, fps: prefs.fps, maxSeconds: prefs.maxSeconds, audio: prefs.audio,
                 process: function (inCanvas, outCtx) {
                   outCtx.imageSmoothingEnabled = true;
                   outCtx.imageSmoothingQuality = 'high';
@@ -607,8 +608,8 @@
             var frame = media.frames[0];
             var srcCanvas = canvasFor(frame);
             var wanted = parseInt(sel.value, 10);
-            var scale = feasibleScale(srcCanvas.width, srcCanvas.height, wanted, STILL_AREA_LIMIT);
-            if (!scale) throw new Error('This frame is already ' + srcCanvas.width + ' × ' + srcCanvas.height + ' — no larger size fits in this device\'s memory');
+            var scale = labPrefs().unsafe ? wanted : feasibleScale(srcCanvas.width, srcCanvas.height, wanted, STILL_AREA_LIMIT);
+            if (!scale) throw new Error('This frame is already ' + srcCanvas.width + ' × ' + srcCanvas.height + ' — no larger size fits in this device\'s memory. Turn on “Ignore Safe Size Limits” in Settings → Labs to try anyway.');
             if (scale < wanted) notify(wanted + '× would be ' + srcCanvas.width * wanted + ' × ' + srcCanvas.height * wanted + ' — using ' + scale + '× instead');
             var w = srcCanvas.width * scale, h = srcCanvas.height * scale;
             rep.at(0.25, 'Enlarging…');
@@ -821,6 +822,26 @@
       M.log('audio track skipped: ' + (e && e.message));
       return null;
     }
+  }
+
+  /**
+   * The user's own choices for Labs video work, from the settings sheet (Labs group).
+   * Defaults match what the tools did before the switches existed.
+   */
+  function labPrefs() {
+    var S = window.omsAmzSettings;
+    var g = function (id, d) {
+      try {
+        var v = S && S.get(id);
+        return (v === null || v === undefined) ? d : v;
+      } catch (e) { return d; }
+    };
+    return {
+      fps: parseInt(g('labsFps', '24'), 10) || 24,
+      maxSeconds: Math.max(5, Math.min(120, parseInt(g('labsMaxSeconds', 20), 10) || 20)),
+      audio: g('labsClipAudio', true) !== false,
+      unsafe: g('labsUnsafeSize', false) === true,
+    };
   }
 
   /**
