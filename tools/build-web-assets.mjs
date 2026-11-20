@@ -280,7 +280,7 @@ async function main() {
   } catch {
     /* not a git checkout */
   }
-  const buildId = `${new Date().toISOString().slice(0, 10)}-${commit}`;
+  const buildId = process.env.OMS_BUILD_ID || `${new Date().toISOString().slice(0, 10)}-${commit}`;
   html = stampBuildId(buildId)(html);
   html = exposeBuildId(buildId)(html);
 

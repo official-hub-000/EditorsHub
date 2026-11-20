@@ -283,12 +283,55 @@ export function fixTutorialCards(html) {
   return html.replace(from, to);
 }
 
+/**
+ * Wires the adjustment-layer hooks into the renderers and publishes the 2D fallback.
+ *
+ * `renderer`, `timeline` and `bus` are already published by fixDetachedGlobals (as
+ * window.__omsRenderer / __omsTimeline / __omsBus) for the detached `<script>` blocks and
+ * the native-shell modules that poll for them. What was still missing:
+ *
+ *   - the WebGL renderer's 2D fallback instance (the object that actually has drawLayer
+ *     and renderLayersToTarget) is published as window.__omsRenderer2D
+ *   - 'adjustment' layers are excluded from the GL drawable list (they have no content;
+ *     without this the GL pass drew a missing-media placeholder for them)
+ *   - `window.omsPostFrame(renderer)` is called at the end of every GL frame, which lets
+ *     the adjustment module composite its grade as a 2D overlay on top of the GL canvas
+ *   - both hit tests skip adjustment layers: they cover the whole frame and would
+ *     otherwise swallow every tap meant for the content beneath them
+ */
+export function publishCoreGlobals(html) {
+  let out = html;
+  const pairs = [
+    [`if(!this.gl){this.fallback=new Renderer(projectModel,canvas);return}`,
+     `if(!this.gl){this.fallback=new Renderer(projectModel,canvas);window.__omsRenderer2D=this.fallback;return}`],
+    [`this.gl=null;this.fallback=new Renderer(projectModel,replacement);`,
+     `this.gl=null;this.fallback=new Renderer(projectModel,replacement);window.__omsRenderer2D=this.fallback;`],
+    [`this.grid3D();\n    const drawable=this.activeLayers().filter(l=>!['audio','camera','null','group'].includes(l.type));`,
+     `this.grid3D();\n    const drawable=this.activeLayers().filter(l=>!['audio','camera','null','group','adjustment'].includes(l.type));`],
+    [`if(!this.fastExportRenderer){\n      this.drawOverlay();\n      this.finishFrameUI()\n    }`,
+     `if(!this.fastExportRenderer){\n      this.drawOverlay();\n      this.finishFrameUI()\n    }\n    if(window.omsPostFrame)try{window.omsPostFrame(this)}catch(e){}`],
+    [`hitTest(x,y){if(this.fallback)return this.fallback.hitTest(x,y);this.updateMatrices();for(const l of model.layers){if(l.hidden||l.locked||['audio','camera'].includes(l.type)`,
+     `hitTest(x,y){if(this.fallback)return this.fallback.hitTest(x,y);this.updateMatrices();for(const l of model.layers){if(l.hidden||l.locked||['audio','camera','adjustment'].includes(l.type)`],
+    [`hitTest(x,y){for(const l of model.layers){if(l.hidden||l.locked||['audio','camera'].includes(l.type)`,
+     `hitTest(x,y){for(const l of model.layers){if(l.hidden||l.locked||['audio','camera','adjustment'].includes(l.type)`],
+  ];
+  for (const [from, to] of pairs) {
+    if (!out.includes(from)) {
+      console.warn('! publishCoreGlobals: anchor not found: ' + from.slice(0, 60));
+      continue;
+    }
+    out = out.replace(from, to);
+  }
+  return out;
+}
+
 export async function patchBranding(indexPath) {
   const html = await readFile(indexPath, 'utf8');
   const { html: renamed, renamed: count } = rebrand(html);
   const out = addMoreTools(
+    publishCoreGlobals(
     addEaseAccess(
-    addQualityAndTapFixes(
+      addQualityAndTapFixes(
       addResizeGuard(
       addGpuContextTuning(
       addPreviewScale(
@@ -321,6 +364,7 @@ export async function patchBranding(indexPath) {
       )
       )
       )
+    )
     )
   );
   await writeFile(indexPath, out, 'utf8');

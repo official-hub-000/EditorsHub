@@ -867,7 +867,6 @@
       title: 'Home and projects',
       items: [
         'Theme switcher with nine palettes, both light and dark, applied across the chrome.',
-        'Language picker with nineteen languages, applied immediately; Arabic reads right to left.',
         'Project search bar above the project list.',
         'Project cards show resolution, frame rate and a relative date.',
       ],
@@ -1036,7 +1035,6 @@
       media: 'Media decode and encode',
       layers: 'Extra layer types',
       effects: 'Extra shader effects',
-      languages: 'Extra languages',
       shapes: 'Extra shapes',
       folders: 'Effect folders',
       patch: 'Text and style patches',

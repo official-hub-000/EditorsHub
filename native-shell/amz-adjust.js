@@ -118,10 +118,13 @@
     if (filter === 'none' && opacity >= 1) return false;
 
     try {
-      var buffer = document.createElement('canvas');
-      buffer.width = rw;
-      buffer.height = rh;
+      /* One shared scratch buffer: compositing runs per adjustment per frame, so a fresh
+         element every call was pure garbage-collection pressure. */
+      if (!scratch) scratch = document.createElement('canvas');
+      var buffer = scratch;
+      if (buffer.width !== rw || buffer.height !== rh) { buffer.width = rw; buffer.height = rh; }
       var bctx = buffer.getContext('2d');
+      bctx.clearRect(0, 0, rw, rh);
       bctx.drawImage(canvas, x, y, rw, rh, 0, 0, rw, rh);
 
       ctx.save();
@@ -138,6 +141,9 @@
     }
   }
 
+  /* One scratch canvas is shared by every composite() call in a frame. */
+  var scratch = null;
+
   /** Draws every active adjustment for the current frame. */
   function applyAdjustments(ctx, canvas) {
     var list = activeAdjustments();
@@ -152,31 +158,39 @@
   }
 
   /**
-   * Wraps the renderer's frame and layer paths.
+   * Hooks the render path, whichever one the device ended up with.
    *
-   * drawLayer is short-circuited so adjustment layers never draw content, and the composite
-   * runs once the frame's layers are complete. Both the live preview and the exporter reach
-   * the canvas through these, so neither needs a special case.
+   * The core is one IIFE, so `renderer` is private; the build publishes it as
+   * window.__omsRenderer (the WebGL renderer) and, when WebGL is unavailable, its 2D
+   * fallback as window.__omsRenderer2D. Earlier revisions looked for window.renderer and
+   * then for a bare `renderer` - neither exists from a separate script - so this module
+   * never installed and the self-check reported "renderer never became reachable".
+   *
+   * 2D fallback renderer: the stage is a plain 2D canvas and frames go through
+   * drawLayer()/render(). drawLayer is short-circuited so adjustment layers never draw
+   * content, and render()/renderLayersToTarget() composite the grade afterwards, so
+   * preview, thumbnails and exports all agree.
+   *
+   * WebGL renderer: the stage is a GL canvas a 2D filter cannot draw back into. The core
+   * calls window.omsPostFrame(this) at the end of every frame (build-time patch); the
+   * hook copies the GL canvas into a borderless 2D overlay laid exactly over the stage
+   * and grades the copy there. The copy is synchronous with the GL render, so the
+   * drawing buffer is still valid. GL exports bypass the overlay and stay ungraded.
    */
   function install() {
     if (installed) return true;
-    /*
-     * The editor core is classic scripts, so `renderer` is a top-level const - a global lexical
-     * binding. A bare name reaches it; window.renderer is always undefined. This feature was
-     * written against window.renderer and therefore never installed: the layer short-circuit
-     * and the post-frame grade both silently did nothing while the picker still worked, which
-     * is the worst kind of half-working state because it looks fine.
-     */
-    /*
-     * The core is one IIFE, so `renderer` is private. It is published as window.__omsRenderer.
-     * The previous attempt looked for window.renderer - which never exists - and then for a
-     * bare `renderer`, which is unreachable from a different script because the whole core
-     * lives inside a closure. That is why the device reported "renderer never became reachable".
-     */
-    var r = null;
-    try { r = window.__omsRenderer || window.omsRenderer || null; } catch (e) {}
-    if (!r || typeof r.drawLayer !== 'function') return false;
-    if (r.__amzAdjust) { installed = true; return true; }
+    var ok = false;
+    var r2 = null, rgl = null;
+    try { r2 = window.__omsRenderer2D || null; } catch (e) {}
+    try { rgl = window.__omsRenderer || null; } catch (e) {}
+    if (r2 && typeof r2.drawLayer === 'function') ok = install2D(r2) || ok;
+    if (rgl) ok = installGL(rgl) || ok;
+    if (ok) { installed = true; log('installed'); }
+    return ok;
+  }
+
+  function install2D(r) {
+    if (r.__amzAdjust) return true;
 
     var originalDrawLayer = r.drawLayer;
     r.drawLayer = function (layer) {
@@ -185,8 +199,8 @@
       return originalDrawLayer.call(this, layer);
     };
 
-    /* renderLayersToTarget is the path the exporter and thumbnails take. Wrapping it too means
-       an exported frame is graded exactly like the preview. */
+    /* renderLayersToTarget is the path the exporter and thumbnails take. Wrapping it too
+       means an exported frame is graded exactly like the preview. */
     var originalRender = r.renderLayersToTarget;
     if (typeof originalRender === 'function') {
       r.renderLayersToTarget = function (canvas, layers, withBackground) {
@@ -199,10 +213,89 @@
       };
     }
 
+    /* The live 2D preview paints through render(), not renderLayersToTarget - grade it. */
+    var originalFrame = r.render;
+    if (typeof originalFrame === 'function') {
+      r.render = function () {
+        var out = originalFrame.apply(this, arguments);
+        try {
+          if (this.canvas && activeAdjustments().length) {
+            applyAdjustments(this.canvas.getContext('2d'), this.canvas);
+          }
+        } catch (e) {}
+        return out;
+      };
+    }
+
     r.__amzAdjust = true;
-    installed = true;
-    log('installed');
+    log('installed on the 2D renderer');
     return true;
+  }
+
+  /* ------------------------------------------------- WebGL preview: the graded overlay */
+
+  var glOverlay = null;
+
+  function installGL(r) {
+    if (r.__amzAdjustGL) return true;
+    r.__amzAdjustGL = true;
+    /* One hook serves whichever renderer is live; the frame's canvas comes in as the
+       argument, so a renderer swap cannot strand the overlay. */
+    window.omsPostFrame = glPostFrame;
+    log('installed on the WebGL renderer (overlay grade)');
+    return true;
+  }
+
+  function ensureGlOverlay() {
+    if (glOverlay && glOverlay.isConnected) return glOverlay;
+    glOverlay = document.createElement('canvas');
+    glOverlay.className = 'amzAdjustOverlay';
+    glOverlay.setAttribute('aria-hidden', 'true');
+    glOverlay.style.display = 'none';
+    glOverlay.__amzStyle = '';
+    document.body.appendChild(glOverlay);
+    return glOverlay;
+  }
+
+  function hideGlOverlay() {
+    if (glOverlay && glOverlay.style.display !== 'none') {
+      glOverlay.style.display = 'none';
+      glOverlay.__amzStyle = '';
+    }
+  }
+
+  function glPostFrame(renderer) {
+    try {
+      var canvas = renderer && renderer.canvas;
+      if (!canvas || !canvas.width || !canvas.height) { hideGlOverlay(); return; }
+      /* Zero active adjustments costs nothing: the overlay stays hidden. */
+      if (!activeAdjustments().length) { hideGlOverlay(); return; }
+      var rect = canvas.getBoundingClientRect();
+      if (!rect || rect.width < 2 || rect.height < 2) { hideGlOverlay(); return; }
+
+      var o = ensureGlOverlay();
+      if (o.width !== canvas.width || o.height !== canvas.height) {
+        o.width = canvas.width;
+        o.height = canvas.height;
+      }
+      /* position:fixed tracks the stage wherever the layout puts it (zoom, rotation,
+         scrolling) because the rect is re-read every frame. */
+      var style = 'position:fixed;left:' + rect.left + 'px;top:' + rect.top + 'px;width:' +
+        rect.width + 'px;height:' + rect.height + 'px;pointer-events:none;z-index:5;display:block;';
+      if (o.__amzStyle !== style) { o.style.cssText = style; o.__amzStyle = style; }
+
+      var ctx = o.getContext('2d');
+      ctx.save();
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.filter = 'none';
+      ctx.drawImage(canvas, 0, 0, o.width, o.height);
+      ctx.restore();
+      applyAdjustments(ctx, o);
+    } catch (e) {
+      failures.push(String(e && e.message));
+      hideGlOverlay();
+    }
   }
 
   /* ------------------------------------------------------------------- adding one */
