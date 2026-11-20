@@ -18,6 +18,27 @@
   var Native = window.EditorsHubNative || window.OpenMotionNative;
   var isNative = !!Native;
 
+  /*
+   * The Android shell must never be governed by a service worker: every asset comes from
+   * the APK through WebViewAssetLoader, so a stale SW can only pin the app to an old
+   * bundle. Older builds did register one; unregister anything that survived and clear
+   * its caches. Registration itself is disabled by a build-time patch.
+   */
+  if (isNative && navigator.serviceWorker) {
+    try {
+      navigator.serviceWorker.getRegistrations().then(function (rs) {
+        rs.forEach(function (r) { r.unregister(); });
+      }).catch(function () {});
+      if (window.caches && caches.keys) {
+        caches.keys().then(function (ks) {
+          ks.forEach(function (k) { caches.delete(k); });
+        }).catch(function () {});
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
   function log() {
     try {
       if (Native && Native.log) Native.log('INFO', Array.prototype.join.call(arguments, ' '));

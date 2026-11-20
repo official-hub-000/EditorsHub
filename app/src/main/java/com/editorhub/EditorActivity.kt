@@ -198,6 +198,16 @@ class EditorActivity : ComponentActivity() {
             cacheDir.deleteRecursively()
         } catch (_: Exception) {
         }
+        // The service worker database and CacheStorage live under the app data dir, not
+        // in WebStorage: WebStorage.deleteAllData() alone leaves a stale registered SW
+        // that can keep serving the previous bundle's pages.
+        try {
+            val webViewData = File(applicationInfo.dataDir, "app_webview")
+            listOf("Default/Service Worker", "Default/Cache", "Default/Code Cache").forEach {
+                File(webViewData, it).deleteRecursively()
+            }
+        } catch (_: Exception) {
+        }
         prefs.edit().putString("bundle_version", installed).apply()
     }
 

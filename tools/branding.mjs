@@ -314,6 +314,11 @@ export function publishCoreGlobals(html) {
      `hitTest(x,y){if(this.fallback)return this.fallback.hitTest(x,y);this.updateMatrices();for(const l of model.layers){if(l.hidden||l.locked||['audio','camera','adjustment'].includes(l.type)`],
     [`hitTest(x,y){for(const l of model.layers){if(l.hidden||l.locked||['audio','camera'].includes(l.type)`,
      `hitTest(x,y){for(const l of model.layers){if(l.hidden||l.locked||['audio','camera','adjustment'].includes(l.type)`],
+    /* The PWA service worker must never run inside the Android shell: WebViewAssetLoader
+       serves every asset straight from the APK, so a cached SW can only outlive its
+       bundle and pin the app to an ancient build. Registration stays for real browsers. */
+    [`if('serviceWorker' in navigator && (location.protocol==='https:' ||`,
+     `if(!window.EditorsHubNative&&!window.OpenMotionNative&&'serviceWorker' in navigator && (location.protocol==='https:' ||`],
   ];
   for (const [from, to] of pairs) {
     if (!out.includes(from)) {
