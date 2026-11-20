@@ -247,7 +247,9 @@
       var foot = el('div', 'amzFoot');
       opts.footer.forEach(function (f) {
         var b = el('button', 'amzBtn' + (f.primary ? ' primary' : '') + (f.danger ? ' danger' : ''), esc(f.label));
-        b.onclick = function () { if (f.onClick) f.onClick(close, body); };
+        /* A footer button without its own onClick is a plain "dismiss" - otherwise
+           sheets declaring `footer: [{label:'Close'}]` got a button that did nothing. */
+        b.onclick = function () { if (f.onClick) f.onClick(close, body); else close(); };
         foot.appendChild(b);
       });
       card.appendChild(foot);

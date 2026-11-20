@@ -501,7 +501,8 @@
         }
         if (n.saveBase64) {
           var path = n.saveBase64(encoded, name);
-          if (path) return 'Saved ' + name;
+          /* A relative path is the public media folder; an absolute one is app-private. */
+          if (path) return path.charAt(0) === '/' ? 'Saved ' + name : 'Saved to ' + path;
         }
       }
     } catch (e) { log('native save failed: ' + (e && e.message)); }

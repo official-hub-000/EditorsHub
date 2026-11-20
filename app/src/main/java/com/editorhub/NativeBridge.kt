@@ -1,10 +1,12 @@
 package com.editorhub
 
+import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import android.util.Base64
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
@@ -117,17 +119,66 @@ class NativeBridge(
         }
     }
 
-    /** Saves an exported artefact into the app's export folder without sharing it. */
+    /**
+     * Saves an exported artefact. The copy lands in two places: the app-private export
+     * folder (which the in-app gallery and the MP3 re-encoder read from) and, on Android
+     * 10+, the public media collection, so the user can actually find the file in the
+     * gallery or a file manager. Returns the public relative path when published, else
+     * the private absolute path.
+     */
     @JavascriptInterface
     fun saveBase64(base64: String, filename: String): String {
         return try {
             val bytes = Base64.decode(base64, Base64.DEFAULT)
             val target = File(exportsDir, NativeFiles.sanitiseFileName(filename))
             FileOutputStream(target).use { it.write(bytes) }
-            target.absolutePath
+            publishToMediaStore(target) ?: target.absolutePath
         } catch (t: Throwable) {
             NativeLog.log("ERROR", "saveBase64 failed: ${t.message}", tag, 0)
             ""
+        }
+    }
+
+    /**
+     * Copies a finished export into the public media collection (Pictures/Movies/Music/
+     * Downloads under an EditorsHub folder). Needs no permission from Android 10 (API 29)
+     * up; older versions keep only the private copy. Returns the public relative path.
+     */
+    private fun publishToMediaStore(file: File): String? {
+        if (Build.VERSION.SDK_INT < 29) return null
+        val ext = file.extension.lowercase()
+        val (collection, folder) = when (ext) {
+            "png", "jpg", "jpeg", "webp", "gif" ->
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI to "Pictures/EditorsHub"
+            "mp4", "webm", "mkv", "mov" ->
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI to "Movies/EditorsHub"
+            "wav", "mp3", "m4a", "ogg", "aac", "flac" ->
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI to "Music/EditorsHub"
+            else ->
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI to "Download/EditorsHub"
+        }
+        return try {
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
+                put(
+                    MediaStore.MediaColumns.MIME_TYPE,
+                    NativeFiles.mimeFor(file.name)
+                )
+                put(MediaStore.MediaColumns.RELATIVE_PATH, folder)
+            }
+            val resolver = activity.contentResolver
+            val uri = resolver.insert(collection, values) ?: return null
+            val written = resolver.openOutputStream(uri)?.use { out ->
+                file.inputStream().use { it.copyTo(out) }
+            } != null
+            if (!written) {
+                resolver.delete(uri, null, null)
+                return null
+            }
+            "$folder/${file.name}"
+        } catch (t: Throwable) {
+            NativeLog.log("WARN", "MediaStore publish failed: ${t.message}", tag, 0)
+            null
         }
     }
 
@@ -331,7 +382,9 @@ class NativeBridge(
                     val target = File(exportsDir, session.file.name)
                     session.file.copyTo(target, overwrite = true)
                     session.file.delete()
-                    target.absolutePath
+                    // The export must be visible outside the app, not only in the
+                    // private folder the in-app gallery lists.
+                    publishToMediaStore(target) ?: target.absolutePath
                 }
             }
         } catch (t: Throwable) {
