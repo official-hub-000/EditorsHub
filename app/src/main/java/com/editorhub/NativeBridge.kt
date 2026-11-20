@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.util.Base64
+import android.view.HapticFeedbackConstants
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.widget.Toast
@@ -42,6 +43,21 @@ class NativeBridge(
     private val uploads = ConcurrentHashMap<String, UploadSession>()
 
     // ---------------------------------------------------------------- lifecycle
+
+    /**
+     * A light tap vibration for button presses. Native controls vibrate on press; web
+     * pages never do, which is one of the reasons a WebView feels like a web page.
+     * Posted to the main thread: JavascriptInterface methods arrive on a worker thread.
+     */
+    @JavascriptInterface
+    fun hapticTap() {
+        main.post {
+            try {
+                webView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            } catch (_: Throwable) {
+            }
+        }
+    }
 
     @JavascriptInterface
     fun ping(): String = JSONObject(
@@ -119,8 +135,7 @@ class NativeBridge(
         }
     }
 
-    /**
-     * Saves an exported artefact. The copy lands in two places: the app-private export
+    /** Saves an exported artefact. The copy lands in two places: the app-private export
      * folder (which the in-app gallery and the MP3 re-encoder read from) and, on Android
      * 10+, the public media collection, so the user can actually find the file in the
      * gallery or a file manager. Returns the public relative path when published, else

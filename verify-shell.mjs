@@ -64,5 +64,16 @@ if (hub && hub.sheet) {
 ok('SW registration guarded', !/if\('serviceWorker' in navigator/.test(
   fs.readFileSync(PAGE, 'utf8').replace(/!window\.EditorsHubNative&&!window\.OpenMotionNative&&'serviceWorker' in navigator/g, '')));
 
+// 6. native-feel pack landed in the bundle
+const page = fs.readFileSync(PAGE, 'utf8');
+ok('native-feel stylesheet present', page.includes('id="editorshub-native"'));
+ok('press feedback rule present', page.includes('.amzTool:active'));
+ok('selection locked to editable fields', page.includes('body{-webkit-user-select:none;user-select:none}'));
+
+// 7. haptics wired (page side and bridge side)
+const shell = fs.readFileSync('native-shell/native-shell.js', 'utf8');
+ok('haptic listener installed', shell.includes('hapticTap') && shell.includes('HAPTIC_TARGETS'));
+ok('bridge exposes hapticTap', fs.readFileSync('app/src/main/java/com/editorhub/NativeBridge.kt', 'utf8').includes('fun hapticTap'));
+
 console.log(fail ? `\n  ${fail} FAILURES` : '\n  all checks passed');
 process.exit(fail ? 1 : 0);

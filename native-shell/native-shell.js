@@ -39,6 +39,30 @@
     }
   }
 
+  /*
+   * Haptic answer for taps. Native buttons vibrate on press; web controls never do, and
+   * that silence is part of why a WebView feels like a page. A capture-phase pointerdown
+   * listener sees the touch before any handler can swallow it; the throttle keeps a fast
+   * multi-tap from buzzing. Canvas, timeline and slider gestures are not in the selector,
+   * so drawing and scrubbing stay silent.
+   */
+  if (isNative) {
+    var HAPTIC_TARGETS = 'button,[role="button"],[role="tab"],[role="menuitem"],summary,select,' +
+      '.amzBtn,.amz-btn,.amzTool,.amzRow,.amzShapeChip,.amzChips button,' +
+      '.homeTab,.mNavTab,.amMenuRow,.insBtn,.addHubItem,.projectCard,.templateCard,.libraryItem';
+    var lastHapticAt = 0;
+    document.addEventListener('pointerdown', function (e) {
+      if (!Native.hapticTap) return;
+      var now = Date.now();
+      if (now - lastHapticAt < 90) return;
+      var t = e.target;
+      if (t && t.closest && t.closest(HAPTIC_TARGETS)) {
+        lastHapticAt = now;
+        try { Native.hapticTap(); } catch (err) { /* ignore */ }
+      }
+    }, true);
+  }
+
   function log() {
     try {
       if (Native && Native.log) Native.log('INFO', Array.prototype.join.call(arguments, ' '));

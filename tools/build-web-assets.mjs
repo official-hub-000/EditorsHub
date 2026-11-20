@@ -38,6 +38,7 @@ import {
   replaceHeaderMark,
   enlargeTinyText,
   removeTapDelay,
+  nativeFeel,
   externaliseGraphTextures,
   stampBuildId,
   exposeBuildId,
@@ -272,6 +273,7 @@ async function main() {
   html = replaceSplash(splashMarkup())(html);
   html = enlargeTinyText(html);
   html = removeTapDelay(html);
+  html = nativeFeel(html);
   html = applyTheme(html);
   // A build id so an installed build can be identified from a screenshot alone.
   let commit = 'dev';

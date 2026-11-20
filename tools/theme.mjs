@@ -109,6 +109,54 @@ export function applyTheme(html) {
 }
 
 /**
+ * Removes the remaining tells that make the app read as "a web page in a frame".
+ *
+ * What a native app never does and a WebView does by default:
+ *
+ *   - long-pressing a label starts a text selection with blue handles and a
+ *     copy/paste callout   -> user-select is off everywhere except editable fields
+ *   - tapping a control gives no tactile answer   -> every tappable dims under the
+ *     finger (opacity only: transforms and filters would disturb positioned children)
+ *   - text carets and selections render in the platform teal   -> recoloured to the
+ *     app accent
+ *   - scroll views glow when dragged past the edge   -> overscroll is pinned
+ *
+ * Everything keys off the editor's own CSS variables, so the pack follows whatever
+ * palette the active theme sets.
+ */
+export function nativeFeel(html) {
+  const css = `
+/* --- Native behaviour -------------------------------------------------- */
+/* Apps do not let you select their labels; only editable text stays selectable. */
+html{-webkit-touch-callout:none}
+body{-webkit-user-select:none;user-select:none}
+input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
+::selection{background:rgba(0,215,167,.35)}
+
+/* The finger must get an answer. Instant (no transition) so the press reads as
+   direct manipulation; opacity only, so no layout, transform or containing-block
+   side effects on positioned children. */
+button:active,[role="button"]:active,[role="tab"]:active,[role="menuitem"]:active,
+summary:active,select:active,label:active,
+.amzBtn:active,.amz-btn:active,.amzTool:active,.amzRow:active,.amzShapeChip:active,
+.amzChips button:active,.homeTab:active,.mNavTab:active,.amMenuRow:active,.insBtn:active,
+.addHubItem:active,.projectCard:active,.templateCard:active,.libraryItem:active{
+  opacity:.62;
+}
+
+/* Focus and caret in the app accent instead of the platform default. */
+input,textarea,select{caret-color:var(--accent,#00d7a7)}
+input:focus-visible,textarea:focus-visible,select:focus-visible{
+  outline:2px solid var(--accent,#00d7a7);outline-offset:1px;
+}
+
+/* Scrolling stops dead at the edge instead of glowing past it. */
+html,body{overscroll-behavior:none}
+`;
+  return html.replace('</head>', `<style id="editorshub-native">${css}</style>\n</head>`);
+}
+
+/**
  * Replaces the borrowed splash artwork with the EditorsHub lockup and the
  * opening animation that goes with it.
  *
