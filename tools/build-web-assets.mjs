@@ -39,6 +39,7 @@ import {
   enlargeTinyText,
   removeTapDelay,
   nativeFeel,
+  afterMotionSkin,
   externaliseGraphTextures,
   stampBuildId,
   exposeBuildId,
@@ -275,6 +276,7 @@ async function main() {
   html = removeTapDelay(html);
   html = nativeFeel(html);
   html = applyTheme(html);
+  html = afterMotionSkin(html);
   // A build id so an installed build can be identified from a screenshot alone.
   let commit = 'dev';
   try {

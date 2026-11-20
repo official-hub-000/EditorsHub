@@ -103,6 +103,71 @@ button:active{filter:brightness(1.28)}
 }
 `;
 
+/**
+ * The After Motion Z skin.
+ *
+ * The editor half of the app already ships a dark navy/teal skin; the home screen did
+ * not - it was a light web-style page (#f5f6f8 background, white cards) that clashed
+ * with everything around it and read as "a website inside the app". After Motion Z is
+ * dark everywhere, so this skin converts the home to the same deep-navy + teal-green
+ * language and tightens the editor palette to match:
+ *
+ *   #0c1322  app background        #3fe0b0  accent (AM green)
+ *   #121c2c  cards and panels      #8b99ad  secondary text
+ *   #080d17  bottom navigation
+ *
+ * Everything is `!important` because the home styles were written as a light theme with
+ * high-specificity rules; this sheet is the deliberate, single place that re-themes it.
+ * The user's own theme-switcher choice is applied inline afterwards and still wins.
+ */
+export function afterMotionSkin(html) {
+  const css = `
+/* --- After Motion skin -------------------------------------------------- */
+:root{
+  --bg:#0b1220;--bg2:#0e1624;--panel:#121c2c;--panel2:#172334;--line:#223148;
+  --text:#eef2f9;--muted:#8b99ad;--accent:#3fe0b0;--accent2:#59e8c1;
+}
+
+/* Home: the same dark navy the editor wears, not a light web page. */
+.home{background:#0c1322!important;color:#e9eef7!important;box-shadow:none!important}
+.homeTop{background:#0c1322!important;border-bottom:1px solid #1c2839!important;color:#fff!important}
+.homeWordmark,.homeWordmark b,.homeWordmark span{color:#fff!important}
+.homeTop button{background:#162334!important;color:#dbe4f0!important;border:1px solid #223148!important;border-radius:10px!important}
+.homeTabs{background:#0c1322!important}
+.homeTab{background:#141f31!important;color:#8b99ad!important;border-radius:999px!important}
+.homeTab.active{background:#3fe0b0!important;color:#06251d!important}
+
+/* Section copy: titles read as white, secondary text as slate. */
+.home h1,.home h2,.home h3,.home h4{color:#eef2f9!important}
+.home p,.home small,.homeActionKey{color:#8b99ad!important}
+
+/* Project cards become dark panels. */
+.projectCard{background:#121c2c!important;border:1px solid #1e2c42!important;border-radius:16px!important;box-shadow:none!important;color:#e9eef7!important}
+.projectCard p,.projectCard small,.projectCard span{color:#8b99ad!important}
+.projectCard b{color:#eef2f9!important}
+
+/* Hero keeps its accent line, on navy instead of white. */
+.homeHero{background:linear-gradient(165deg,#101d31 0%,#0c1322 70%)!important;border:1px solid #1e2c42!important;border-radius:20px!important;color:#e9eef7!important}
+.heroTitle{color:#eef2f9!important}
+.heroTitle em{color:#3fe0b0!important}
+.homeHero p,.homeHero small{color:#8b99ad!important}
+
+/* Action rows and the import tile. */
+.homeActionIcon{border-color:#223148!important;background:#141f31!important;color:#3fe0b0!important}
+.homeActionCopy b{color:#eef2f9!important}
+
+/* Bottom navigation: dark bar, teal for the active destination. */
+.homeBottom{background:#080d17!important;border-top:1px solid #1c2839!important}
+.homeBottom button{color:#77859a!important}
+.homeBottom button.active{color:#3fe0b0!important}
+.homeBottom button svg{stroke:currentColor}
+
+/* Install pill on the home top bar. */
+.homeInstallBtn{background:#3fe0b0!important;color:#06251d!important;border:0!important}
+`;
+  return html.replace('</head>', `<style id="editorshub-amz-skin">${css}</style>\n</head>`);
+}
+
 /** Appends the theme stylesheet once, immediately before `</head>`. */
 export function applyTheme(html) {
   return html.replace('</head>', `<style id="editorshub-theme">${AMOLED}${MOTION}</style>\n</head>`);
