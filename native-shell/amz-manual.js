@@ -228,7 +228,14 @@
     btn.type = 'button';
     btn.className = 'omsManualBtn';
     btn.innerHTML = '<span>User manual — every feature, numbered</span><span aria-hidden="true">&#8250;</span>';
-    btn.addEventListener('click', function () { openManual(); });
+    btn.addEventListener('click', function () {
+      /* The About dialog is a MODAL <dialog>: it sits in the browser's top layer,
+         above anything appended to document.body — including the manual sheet, which
+         would open behind it and look like nothing happened. Close About first. */
+      if (window.omsCredits && window.omsCredits.close) window.omsCredits.close();
+      else if (dialog.close) dialog.close();
+      openManual();
+    });
     tools.insertBefore(btn, tools.firstChild);
   }
 
