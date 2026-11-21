@@ -1704,7 +1704,7 @@
           body.appendChild(inner);
           t.run(inner);
         },
-        footer: [{ label: 'Close' }],
+        footer: [{ label: 'Cancel' }],
       });
       if (!opened) return;
       return opened.body.firstChild;

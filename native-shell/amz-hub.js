@@ -54,47 +54,57 @@
     '.amzSheet.drawer.closing .amzCard{animation:amzDrawerOut .16s ease-in forwards}',
     '@keyframes amzDrawerIn{from{transform:translateX(-104%)}to{transform:none}}',
     '@keyframes amzDrawerOut{from{transform:none}to{transform:translateX(-104%)}}',
-    /* AMZ Settings skin: near-white drawer, light-grey cards, dark ink text, and the
-       segmented control whose selected segment is a dark navy pill with teal type —
-       matching the reference screenshots exactly. Scoped to the settings card only. */
-    '.amzCard.amzSettingsLight{background:#f4f4f6;color:#15161a}',
-    '.amzSettingsLight .amzHead{padding:20px 18px 8px}',
-    '.amzSettingsLight .amzHead h2{color:#0b0b0d;font-size:24px;font-weight:800;text-align:left}',
-    '.amzSettingsLight .amzHead .amzSub{color:#6b6e76}',
-    '.amzSettingsLight .amzX{background:rgba(0,0,0,.07);color:#15161a}',
-    '.amzSettingsLight .amzGroup{color:#7c7f89;font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:none;margin:18px 6px 7px}',
-    '.amzSettingsLight .amzRow{background:#e9eaee;border-radius:16px;padding:16px 16px;margin-bottom:11px;align-items:center}',
-    '.amzSettingsLight .amzRow b{color:#15161a;font-size:15.5px;font-weight:600}',
-    '.amzSettingsLight .amzRow p{color:#6d7078;font-size:11.5px;margin-top:3px}',
-    '.amzSettingsLight .amzSearch{background:#e9eaee;border-radius:14px;height:46px}',
-    '.amzSettingsLight .amzSearch input{color:#15161a}',
-    '.amzSettingsLight .amzSearch input::placeholder{color:#8a8d95}',
-    '.amzSettingsLight .amzSearch svg{color:#6b6e76}',
-    /* Material switch, light track. */
-    '.amzSettingsLight .amzSw{background:rgba(0,0,0,.18)}',
-    '.amzSettingsLight .amzSw[aria-checked="true"]{background:#23242e}',
-    '.amzSettingsLight .amzSw[aria-checked="true"]::after{background:#3ee6b0}',
-    /* Segmented control: grey track, dark navy selected segment, teal selected text. */
-    '.amzSettingsLight .amzSeg{background:#e9eaee;border-radius:16px;padding:6px;gap:6px;flex-wrap:nowrap}',
-    '.amzSettingsLight .amzSeg button{border:0;background:transparent;color:#6d7078;height:44px;border-radius:12px;font-size:14px;font-weight:600}',
-    '.amzSettingsLight .amzSeg button[aria-pressed="true"]{background:#23242e;color:#3ee6b0;font-weight:800}',
-    '.amzSettingsLight .amzNum{background:#e9eaee;border:0;color:#15161a;border-radius:12px;height:44px}',
-    '.amzSettingsLight input[type="color"]{background:#e9eaee;border-radius:12px;border:0}',
-    '.amzSettingsLight .amzFoot{background:#f4f4f6;border-top:1px solid rgba(0,0,0,.08)}',
-    '.amzSettingsLight .amzBtn{background:#e9eaee;color:#15161a}',
-    '.amzSettingsLight .amzBtn.primary{background:#23242e;color:#3ee6b0}',
-    '.amzSettingsLight .amzBtn.danger{background:#f3e1e1;color:#a03232}',
-    '.amzSettingsLight .amzEmpty{color:#6b6e76}',
+    /* AMZ Patcher Menu skin (07:34–07:35 walkthrough): dark navy centred card, teal
+       centred title, dark search pill, teal centred group headers, navy setting cards,
+       teal toggles, teal-bordered number fields, outlined 2×2 choice grids whose
+       selected button is solid teal, and a plain-text RESET / SAVE footer. */
+    '.amzCard.amzPatcher{background:#20243f;color:#e8edf4}',
+    '.amzPatcher .amzHead{padding:20px 18px 8px}',
+    '.amzPatcher .amzHead h2{color:#3ee6b0;font-size:21px;font-weight:700;text-align:center}',
+    '.amzPatcher .amzHead .amzSub{color:#93a1b3;text-align:center}',
+    '.amzPatcher .amzX{background:rgba(255,255,255,.07);color:#fff}',
+    '.amzPatcher .amzGroup{color:var(--amz-accent);font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;text-align:center;margin:20px 6px 8px}',
+    '.amzPatcher .amzRow{background:#2a2f4d;border-radius:16px;padding:14px 14px;margin-bottom:10px;align-items:center}',
+    '.amzPatcher .amzRow b{color:#ffffff;font-size:15px;font-weight:600}',
+    '.amzPatcher .amzRow p{color:#9aa3b8;font-size:12px;margin-top:4px;line-height:1.5}',
+    '.amzPatcher input.amzSearch{background:#2a2f4d;border:0;border-radius:999px;height:46px;color:#e8edf4;padding:0 18px}',
+    '.amzPatcher input.amzSearch::placeholder{color:#7c8698;opacity:1}',
+    /* iOS switch, dark track. */
+    '.amzPatcher .amzSw{background:rgba(255,255,255,.15)}',
+    '.amzPatcher .amzSw[aria-checked="true"]{background:var(--amz-accent)}',
+    '.amzPatcher .amzSw[aria-checked="true"]::after{background:#fff}',
+    /* Choice grids: separate outlined buttons, selected one solid teal (no track). */
+    '.amzPatcher .amzSeg{background:transparent;padding:0;gap:10px;margin-top:10px}',
+    '.amzPatcher .amzSeg button{border:1.5px solid rgba(255,255,255,.22);background:transparent;color:#e8edf4;height:46px;border-radius:13px;font-size:14px;font-weight:600}',
+    '.amzPatcher .amzSeg button[aria-pressed="true"]{background:var(--amz-accent);border-color:var(--amz-accent);color:var(--amz-accent-ink);font-weight:700}',
+    /* Number fields: dark pill with the AMZ teal border. */
+    '.amzPatcher .amzNum{background:rgba(0,0,0,.3);border:1.5px solid var(--amz-accent);color:#ffffff;border-radius:12px;height:44px;font-weight:600}',
+    '.amzPatcher input.amzNum[type="color"]{background:#2a2f4d;border-radius:12px;border:0}',
+    /* Plain-text footer: grey RESET left, teal SAVE right. */
+    '.amzPatcher .amzFoot{background:transparent;border-top:1px solid var(--amz-line)}',
+    '.amzPatcher .amzBtn{background:transparent;color:#9aa3b8;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;font-size:13px}',
+    '.amzPatcher .amzBtn.primary{background:transparent;color:var(--amz-accent)}',
+    '.amzPatcher .amzBtn.danger{background:transparent;color:#9aa3b8}',
+    '.amzPatcher .amzEmpty{color:#7c8698}',
     '.amzCard{width:100%;max-width:520px;max-height:min(88vh,860px);display:flex;flex-direction:column;background:var(--amz-surface);color:var(--amz-text);border-radius:22px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.6);}',
     '.amzHead{display:flex;align-items:center;gap:10px;padding:18px 18px 10px;}',
     '.amzHead h2{margin:0;font-size:19px;font-weight:700;letter-spacing:.2px;flex:1;color:#3ee6b0;text-align:center}',
     '.amzHead .amzSub{display:block;font-size:11.5px;font-weight:500;color:var(--amz-muted);letter-spacing:.3px;margin-top:3px}',
-    '.amzX{width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.07);color:#fff;font-size:18px;line-height:1;cursor:pointer;flex:none}',
+    /* AMZ dialogs have no top-right close — every sheet closes from its bottom
+       action row or a backdrop tap, so the X is hidden and titles centre exactly. */
+    '.amzX{display:none}',
     '.amzBody{overflow:auto;padding:4px 14px 14px;-webkit-overflow-scrolling:touch}',
     '.amzFoot{display:flex;gap:10px;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--amz-line)}',
     '.amzBtn{flex:1;height:46px;border-radius:14px;border:0;font-size:14.5px;font-weight:700;letter-spacing:.3px;cursor:pointer;background:#2e3352;color:var(--amz-text)}',
     '.amzBtn.primary{background:var(--amz-accent);color:var(--amz-accent-ink)}',
     '.amzBtn.danger{background:#5a1f21;color:#ffd9d9}',
+    /* Plain text button (AMZ Labs "CLOSE" and the patcher RESET / SAVE). */
+    '.amzBtn.link{background:transparent;color:var(--amz-accent);font-weight:800;letter-spacing:1.5px;text-transform:uppercase;font-size:13px}',
+    /* AMZ Labs list (07:36 walkthrough): text-only cards, no icon tiles. */
+    '.amzLabs .amzToolIcon{display:none}',
+    '.amzLabs .amzTool{padding:16px 18px}',
+    '.amzLabs .amzTool b{font-size:15px;font-weight:700;color:#fff}',
+    '.amzLabs .amzTool p{font-size:12px;line-height:1.5}',
     '.amzGroup{margin:14px 4px 6px;font-size:12px;font-weight:800;letter-spacing:1.1px;color:var(--amz-accent);text-transform:uppercase}',
     /* AMZ tool dialogs (07:37–07:42 walkthrough): toggle rows sit flat on the card —
        no tile box. The settings drawer keeps its own light cards via the scoped override. */
@@ -330,7 +340,7 @@
     if (opts.footer && opts.footer.length) {
       var foot = el('div', 'amzFoot');
       opts.footer.forEach(function (f) {
-        var b = el('button', 'amzBtn' + (f.primary ? ' primary' : '') + (f.danger ? ' danger' : ''), esc(f.label));
+        var b = el('button', 'amzBtn' + (f.primary ? ' primary' : '') + (f.danger ? ' danger' : '') + (f.link ? ' link' : ''), esc(f.label));
         /* A footer button without its own onClick is a plain "dismiss" - otherwise
            sheets declaring `footer: [{label:'Close'}]` got a button that did nothing. */
         b.onclick = function () { if (f.onClick) f.onClick(close, body); else close(); };
@@ -378,7 +388,8 @@
   /* ----------------------------------------------------------------------- labs menu */
 
   var LABS = [
-    { id: 'codec', name: 'Codec Evaluation', icon: 'chip', desc: 'What this phone can decode, what the renderer is, and whether the encoder is loaded.' },
+    /* Order mirrors the AMZ Labs list (07:36 walkthrough): the media tools first,
+       then the editor extras. */
     { id: 'depth', name: 'Depth Map Generator', icon: 'layers', desc: 'A depth map from a picture or the first frame of a video, plus an optional displacement layer.' },
     { id: 'matt', name: 'Background Remover', icon: 'scissors', desc: 'Cuts a subject out to a transparent PNG. Uses the editor matte when loaded, colour and edge analysis when not.' },
     { id: 'upscale', name: 'AI Upscale', icon: 'expand', desc: '2×, 3× or 4× enlargement with edge-aware sharpening instead of a plain stretch.' },
@@ -391,6 +402,7 @@
     { id: 'denoise', name: 'Denoise (image)', icon: 'noise', desc: 'Removes sensor grain from a still by discarding high-frequency detail below a threshold' },
     { id: 'reverse', name: 'Reverse Video', icon: 'reverse', desc: 'Plays a clip backwards, with the option to reverse its audio too.' },
     { id: 'convert', name: 'Convert Video', icon: 'convert', desc: 'Rewrites a file as MP4, WebM, WAV, PNG or JPEG.' },
+    { id: 'codec', name: 'Codec Evaluation', icon: 'chip', desc: 'What this phone can decode, what the renderer is, and whether the encoder is loaded.' },
     { id: 'doctor', name: 'Project Doctor', icon: 'stethoscope', desc: 'Checks the open project for missing media, empty layers and bad timings before an export.' },
     { id: 'labs3d', name: 'Depth 3D Photo', icon: 'cube', desc: 'Shades a still as a relief surface using its depth map, for a picture with depth.' },
     { id: 'beatmaker', name: 'Beat Maker', icon: 'audio', desc: 'Finds the hits in a track by measuring the audio and keys a layer to them.' },
@@ -428,6 +440,7 @@
     sheet({
       title: 'EditorsHub Labs',
       subtitle: 'Extra tools',
+      cardClass: 'amzLabs',
       build: function (body) {
         /* The manual sits first: its serial numbers are how a user names a tool
            when asking for a change. */
@@ -483,7 +496,7 @@
         body.appendChild(el('div', 'amzGroup', 'Storage'));
         body.appendChild(menuRow('clearCache'));
       },
-      footer: [{ label: 'Close' }],
+      footer: [{ label: 'Close', link: true }],
     });
   }
 
@@ -737,8 +750,7 @@
     sheet({
       title: 'Settings',
       subtitle: 'Every switch takes effect immediately unless it says otherwise',
-      drawer: true,
-      cardClass: 'amzSettingsLight',
+      cardClass: 'amzPatcher',
       build: function (body) {
         /* The manual belongs anywhere a user goes looking for answers. */
         var manualRow = el('div', 'amzTool');
