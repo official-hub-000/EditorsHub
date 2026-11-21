@@ -9,6 +9,13 @@
  * ratio pills, taller white dropdown rows, the text-style CREATE PROJECT action,
  * and the circled close button moved to the bottom centre.
  *
+ * Pass 2 (from the user's 07:43–07:50 walkthrough screenshots): filled teal
+ * export button and underlined title in the top bar, teal selected layer bar,
+ * rounded bottom drawers, AMZ tile-style inspector grid, borderless shape
+ * picker glyphs, teal add-menu tabs without the underline, the blue-navy
+ * Effect Browser, and the light Export & Share sheet (white cards, teal
+ * radios, navy Export button with teal text).
+ *
  * Layout and markup are otherwise untouched — editor rules are scoped under
  * #editor and sheet rules under #newModal, and everything still works if the
  * small DOM move at the bottom fails to run (the close button just stays put).
@@ -79,6 +86,56 @@
     /* Mode badge — blend into the navy instead of the old grey chip. */
     '#editor .axisBadge{background:rgba(13,16,32,.82);border:1px solid #2a3048;color:#8b94ab}',
     '#editor .axisBadge b{color:#4bffb3}',
+
+    /* ------------------------------------------------------------------
+       Pass 2 — verified against the user's 07:43–07:50 AMZ walkthrough. */
+
+    /* Top bar: AMZ underlines the project title (rename affordance) and renders
+       export as a filled teal-green rounded square with a white glyph. */
+    '#editor .editorTitle{text-decoration:underline;text-underline-offset:4px;text-decoration-color:#3f465f}',
+    '#editor #openExport{background:#2fd6a4;color:#ffffff;border-radius:10px}',
+
+    /* Selected layer bar: solid AMZ teal with white text, no white outline. */
+    '#editor .clip.sel{background:#3fd9c1;color:#ffffff;outline:none}',
+
+    /* Bottom sheets: AMZ rounds the top corners and uses a touch of blue. */
+    '#editor .drawer{background:#1e2233;border-top:1px solid #2a3048;border-radius:20px 20px 0 0}',
+    '#editor .drawerHead{height:46px;border-bottom:1px solid #262c40}',
+    '#editor .drawerHead b{color:#eef1f8;font-size:13px}',
+    '#editor .drawerHead button{color:#9aa3b8}',
+
+    /* Inspector grid: AMZ layer-tool tiles — tall, rounded, grey on navy. */
+    '#editor .inspectorGrid{gap:8px}',
+    '#editor .insBtn{background:#252a41;border-radius:14px;padding:14px 6px;color:#9aa3b8;font-size:10px}',
+    '#editor .insBtn span{font-size:22px;color:#c9cfdd}',
+
+    /* Shape picker: AMZ draws bare light-grey glyphs, no tile boxes. */
+    '#editor .shapeItem{background:transparent;border:0;border-radius:0;color:#c8cede;font-size:26px}',
+    '#editor .shapeItem:hover{border:0;color:#4bffb3}',
+
+    /* Add-menu tabs: teal active label, no underline bar (that pattern lives
+       in the Effect Browser instead). */
+    '#editor .assetTabs{border-bottom:1px solid #262c40}',
+    '#editor .assetTabs button{color:#8d97ae;font-size:10px}',
+    '#editor .assetTabs button.active{color:#3ee6b0;border-bottom-color:transparent}',
+
+    /* Effect Browser: AMZ runs it in a lighter blue-navy than the editor. */
+    '#editor .effectsBrowserDrawer{background:#242845}',
+    '#editor .effectsBrowserDrawer .drawerHead{border-bottom-color:#2e3352}',
+    '#editor .effectBrowserHeading b{color:#f0f3fa}',
+    '#editor .effectBrowserHeading small{color:#8d97b8}',
+    '#editor .effectBrowserNoResults{border-color:#3a4166;color:#9aa3c0}',
+
+    /* Export & Share — AMZ's sheet is light even though the editor is dark:
+       white cards, teal ring radios, navy Export button with teal text. */
+    '.exportSheet{background:#f4f4f6}',
+    '.exportTop{background:#ffffff;border-bottom:1px solid #e6e8ec}',
+    '.exportOption{border:0;border-radius:14px;box-shadow:0 1px 4px rgba(20,24,40,.06)}',
+    '.exportOption.active{border:0;box-shadow:0 1px 4px rgba(20,24,40,.06)}',
+    '.radioDot{border:2px solid #c3c7cf}',
+    '.radioRow.active .radioDot{border:5px solid #2fd6a4}',
+    '.exportFoot{background:#f4f4f6;border-top:0}',
+    '.exportFoot button{background:#23242e;color:#3ee6b0;border-radius:12px;height:48px;font-size:15px}',
 
     /* ------------------------------------------------------------------
        New Project sheet — AMZ creation dialog. */
