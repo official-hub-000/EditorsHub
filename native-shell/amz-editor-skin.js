@@ -21,6 +21,11 @@
  * the ratio icons are drawn as corner brackets instead of rectangle outlines,
  * and the project-name field carries a small clear ✕ at its right edge.
  *
+ * Pass 4 (same walkthrough, polish): the PROJECT/ELEMENT toggle is wired (it
+ * shipped dead — Element mode renames the action to BUAT ELEMEN, defaults the
+ * name to "Elemen Baru" and dims the Background row), and the Resolution row
+ * carries AMZ's "Composition Size / W × H" sub-line that follows the ratio.
+ *
  * Layout and markup are otherwise untouched — editor rules are scoped under
  * #editor and sheet rules under #newModal, and everything still works if the
  * small DOM move at the bottom fails to run (the close button just stays put).
@@ -165,6 +170,10 @@
     '#amzNameWrap{position:relative}',
     '#amzNameWrap #newName{padding-right:34px !important}',
     '#amzNameClear{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:1.6px solid #c3c7cf;border-radius:50%;background:transparent;color:#9aa0ac;font-size:12px;line-height:1;display:grid;place-items:center;cursor:pointer;padding:0}',
+    /* Resolution row carries AMZ's small grey "Composition Size / W × H" sub-line. */
+    '#newModal .amzResSub{display:block;color:#9aa0ac;font-size:11.5px;font-weight:400;margin-top:2px;line-height:1.45}',
+    /* Element mode dims the Background row the way AMZ does. */
+    '#newModal .settingRow.amzDimmed{opacity:.45;pointer-events:none}',
     /* CREATE PROJECT: AMZ renders it as bold navy text, not a filled button. */
     '#newModal .createBtn{background:transparent;color:#23242e;font-weight:800;font-size:14px;letter-spacing:1.2px;height:48px;margin-top:14px}',
     /* Plain large bottom ✕ — only after the script moves the button down. AMZ
@@ -207,6 +216,71 @@
         try { name.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
       });
       wrap.appendChild(clear);
+    }
+
+    /* The PROJECT/ELEMENT toggle ships in the markup but had no wiring — a dead tap.
+       AMZ's Element mode swaps the name and the action label and dims Background. */
+    var seg = modal.querySelector('.seg');
+    if (seg && !seg._amzSegWired) {
+      seg._amzSegWired = true;
+      var nameIn = document.getElementById('newName');
+      var createB = document.getElementById('createProject');
+      var bg = document.getElementById('newBg');
+      var bgRow = bg && bg.closest ? bg.closest('.settingRow') : null;
+      var DEFAULTS = ['Project Baru', 'Elemen Baru'];
+      Array.prototype.forEach.call(seg.querySelectorAll('button'), function (b, i) {
+        b.addEventListener('click', function () {
+          Array.prototype.forEach.call(seg.querySelectorAll('button'), function (x) { x.classList.remove('active'); });
+          b.classList.add('active');
+          var element = i === 1;
+          if (createB) createB.textContent = element ? 'BUAT ELEMEN' : 'BUAT PROYEK';
+          if (nameIn && (nameIn.value === '' || DEFAULTS.indexOf(nameIn.value) >= 0)) {
+            nameIn.value = element ? 'Elemen Baru' : 'Project Baru';
+          }
+          if (bgRow) bgRow.classList.toggle('amzDimmed', element);
+          if (bg) bg.disabled = element;
+        });
+      });
+    }
+
+    /* "Composition Size / W × H" under the Resolution label, kept in step with the
+       picked ratio and resolution. */
+    var resSel = document.getElementById('newRes');
+    var resRow = resSel && resSel.closest ? resSel.closest('.settingRow') : null;
+    if (resRow && resSel && !document.getElementById('amzResSub') && resRow.querySelector('label')) {
+      var sub = document.createElement('small');
+      sub.id = 'amzResSub';
+      sub.className = 'amzResSub';
+      resRow.querySelector('label').appendChild(sub);
+      var dimsFor = function (ratio, res) {
+        switch (ratio) {
+          case '16:9': return [Math.round(res * 16 / 9), res];
+          case '9:16': return [res, Math.round(res * 16 / 9)];
+          case '4:5': return [res, Math.round(res * 5 / 4)];
+          case '1:1': return [res, res];
+          case '4:3': return [Math.round(res * 4 / 3), res];
+          default: return null;
+        }
+      };
+      var syncSub = function (ratio) {
+        var activeA = modal.querySelector('#aspectGrid .aspect.active');
+        var r = ratio || (activeA && activeA.dataset ? activeA.dataset.r : '9:16');
+        var res = parseInt(resSel.value, 10) || 1080;
+        var dims = dimsFor(r, res);
+        if (!dims) {
+          var cw = document.getElementById('newCustomW'), ch = document.getElementById('newCustomH');
+          if (cw && ch && +cw.value && +ch.value) dims = [+cw.value, +ch.value];
+        }
+        sub.textContent = dims ? 'Composition Size\n' + dims[0] + ' × ' + dims[1] : '';
+        sub.style.whiteSpace = 'pre-line';
+      };
+      var grid = modal.querySelector('#aspectGrid');
+      if (grid) grid.addEventListener('click', function (e) {
+        var b = e.target && e.target.closest ? e.target.closest('.aspect') : null;
+        if (b) syncSub(b.dataset.r);
+      });
+      resSel.addEventListener('change', function () { syncSub(); });
+      syncSub();
     }
   }
   if (document.readyState === 'loading') {

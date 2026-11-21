@@ -96,7 +96,9 @@
     '.amzBtn.primary{background:var(--amz-accent);color:var(--amz-accent-ink)}',
     '.amzBtn.danger{background:#5a1f21;color:#ffd9d9}',
     '.amzGroup{margin:14px 4px 6px;font-size:12px;font-weight:800;letter-spacing:1.1px;color:var(--amz-accent);text-transform:uppercase}',
-    '.amzRow{display:flex;align-items:flex-start;gap:12px;padding:12px 12px;border-radius:14px;background:var(--amz-surface-2);margin-bottom:8px;}',
+    /* AMZ tool dialogs (07:37–07:42 walkthrough): toggle rows sit flat on the card —
+       no tile box. The settings drawer keeps its own light cards via the scoped override. */
+    '.amzRow{display:flex;align-items:flex-start;gap:12px;padding:10px 2px;margin-bottom:4px;}',
     '.amzRow .amzText{flex:1;min-width:0}',
     '.amzRow b{display:block;font-size:14px;font-weight:600;line-height:1.3}',
     '.amzRow p{margin:4px 0 0;font-size:11.5px;line-height:1.45;color:var(--amz-muted)}',
@@ -104,17 +106,20 @@
     '.amzSw::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:transform .16s}',
     '.amzSw[aria-checked="true"]{background:var(--amz-accent)}',
     '.amzSw[aria-checked="true"]::after{transform:translateX(19px)}',
-    '.amzSeg{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;background:var(--amz-surface-2);border-radius:13px;padding:5px}',
-    '.amzSeg button{flex:1;min-width:64px;height:34px;border-radius:10px;border:0;background:transparent;color:var(--amz-text);font-size:12.5px;cursor:pointer}',
+    '.amzSeg{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;background:var(--amz-surface-2);border-radius:999px;padding:5px}',
+    '.amzSeg button{flex:1;min-width:64px;height:38px;border-radius:999px;border:0;background:transparent;color:var(--amz-text);font-size:12.5px;cursor:pointer}',
     '.amzSeg button[aria-pressed="true"]{background:var(--amz-accent);border-color:var(--amz-accent);color:var(--amz-accent-ink);font-weight:700}',
     '.amzNum{width:88px;height:38px;border-radius:11px;border:1px solid var(--amz-line);background:rgba(0,0,0,.25);color:var(--amz-text);text-align:center;font-size:14px;flex:none}',
-    /* AMZ tool dialogs (pass 3, from the 07:37–07:42 walkthrough): thin teal sliders with a
-       round thumb on every range control inside a sheet. */
-    '.amzSheet input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:26px;background:transparent;margin:2px 0 6px}',
-    '.amzSheet input[type="range"]::-webkit-slider-runnable-track{height:4px;border-radius:3px;background:rgba(255,255,255,.14)}',
+    /* AMZ tool dialogs (pass 3, from the 07:37–07:42 walkthrough): thin sliders whose
+       filled part is teal up to a round thumb, with the value in teal at the right of
+       the label. The track is the input's own background gradient so script can paint
+       the fill position; paintRange() in the sheet engine keeps it in step. */
+    '.amzSheet input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:26px;background-color:transparent;background-image:linear-gradient(to right,var(--amz-accent) 0%,var(--amz-accent) 0%,rgba(255,255,255,.14) 0%,rgba(255,255,255,.14) 100%);background-size:100% 4px;background-position:center;background-repeat:no-repeat;margin:2px 0 6px}',
+    '.amzSheet input[type="range"]::-webkit-slider-runnable-track{height:4px;background:transparent}',
     '.amzSheet input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--amz-accent);margin-top:-7px;border:0;box-shadow:0 1px 6px rgba(0,0,0,.45)}',
-    '.amzSheet input[type="range"]::-moz-range-track{height:4px;border-radius:3px;background:rgba(255,255,255,.14)}',
+    '.amzSheet input[type="range"]::-moz-range-track{height:4px;border-radius:3px;background:transparent}',
     '.amzSheet input[type="range"]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--amz-accent);border:0}',
+    '.amzRangeVal{color:var(--amz-accent);font-weight:700;margin-left:auto;padding-left:10px}',
     /* Placeholders glow teal inside the dark fields (the Min/Sec/Ms look). */
     '.amzSheet input::placeholder,.amzSheet textarea::placeholder{color:var(--amz-accent);opacity:.8}',
     '.amzSearch{display:flex;align-items:center;gap:8px;margin:6px 4px 4px;padding:0 12px;height:44px;border-radius:14px;background:var(--amz-surface-2)}',
@@ -136,7 +141,7 @@
     '.amzDrop small{display:block;color:var(--amz-muted);font-size:11.5px;line-height:1.5}',
     '.amzDrop .amzBtn{margin-top:14px;display:inline-block;padding:0 24px;flex:none}',
     '.amzField,.amz-field{margin:0 4px 14px}',
-    '.amzLabel,.amz-label{display:block;font-size:13px;font-weight:700;letter-spacing:.2px;color:var(--amz-text);margin:0 2px 7px}',
+    '.amzLabel,.amz-label{display:block;font-size:14px;font-weight:700;letter-spacing:.2px;color:var(--amz-text);margin:0 2px 7px}',
     '.amzMuted,.amz-muted{font-size:12px;color:var(--amz-muted);word-break:break-word}',
     '.amzSelect,.amz-select{width:100%;height:44px;border-radius:13px;border:1px solid var(--amz-line);background:var(--amz-surface-2);color:var(--amz-text);font-size:14px;padding:0 12px}',
     '.amzCheck,.amz-check{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--amz-text)}',
@@ -264,6 +269,36 @@
 
   var openSheets = [];
 
+  /* Sliders in AMZ show a teal fill up to the thumb and the current value in teal at
+     the right of the label. The fill is the input's background gradient — painted here
+     because pure CSS cannot position it. */
+  function paintRange(r) {
+    var min = parseFloat(r.min) || 0, max = parseFloat(r.max) || 100, v = parseFloat(r.value) || 0;
+    var p = max > min ? Math.max(0, Math.min(100, (v - min) / (max - min) * 100)) : 0;
+    r.style.backgroundImage =
+      'linear-gradient(to right, var(--amz-accent) 0%, var(--amz-accent) ' + p + '%, ' +
+      'rgba(255,255,255,.14) ' + p + '%, rgba(255,255,255,.14) 100%)';
+  }
+  function enhanceRanges(body) {
+    body.querySelectorAll('input[type="range"]').forEach(function (r) {
+      paintRange(r);
+      var field = r.closest('.amz-field,.amzField');
+      if (!field || field.querySelector('.amzRangeVal')) return;
+      var label = field.querySelector('.amz-label,.amzLabel');
+      if (!label) return;
+      label.style.display = 'flex';
+      label.style.alignItems = 'baseline';
+      label.appendChild(el('span', 'amzRangeVal', r.value));
+    });
+    body.addEventListener('input', function (e) {
+      if (!e.target || e.target.type !== 'range') return;
+      paintRange(e.target);
+      var field = e.target.closest('.amz-field,.amzField');
+      var val = field && field.querySelector('.amzRangeVal');
+      if (val) val.textContent = e.target.value;
+    });
+  }
+
   /**
    * Opens a sheet.
    * @param {{title:string, subtitle?:string, build:(body:HTMLElement, close:()=>void)=>void,
@@ -308,6 +343,7 @@
     document.body.appendChild(wrap);
     openSheets.push(wrap);
     try { opts.build(body, close); } catch (e) { body.appendChild(el('p', null, 'Failed to open: ' + esc(e.message))); }
+    try { enhanceRanges(body); } catch (e) {}
     return { element: wrap, body: body, close: close };
   }
 
