@@ -22,8 +22,12 @@
     var box = el('div', 'amz-field');
     box.appendChild(el('div', 'amz-label', 'Source file'));
     var row = el('div', 'amz-row');
-    var btn = el('button', 'amz-btn', 'Choose file');
-    var name = el('span', 'amz-muted', 'Nothing chosen yet');
+    /* The AMZ tool dialogs open with a dark "Tap To Import …" pill; the noun comes from
+       the accept filter so video tools ask for a video and audio tools for audio. */
+    var noun = /video/.test(accept) ? 'Video' : /audio/.test(accept) ? 'Audio' : /image/.test(accept) ? 'Image' : 'File';
+    var btn = el('button', 'amz-btn', 'Tap To Import ' + noun);
+    var name = el('span', 'amz-muted', '');
+    name.style.display = 'none';
     row.appendChild(btn);
     row.appendChild(name);
     box.appendChild(row);
@@ -33,7 +37,8 @@
       M.pickFile(accept).then(function (src) {
         current = src;
         name.textContent = src.name + ' · ' + (src.bytes / 1048576).toFixed(1) + ' MB';
-        btn.textContent = 'Change file';
+        name.style.display = '';
+        btn.textContent = src.name;
         if (onPick) onPick(src);
       }).catch(function (e) { notify(e.message || 'Nothing chosen'); });
     });

@@ -16,6 +16,11 @@
  * Effect Browser, and the light Export & Share sheet (white cards, teal
  * radios, navy Export button with teal text).
  *
+ * Pass 3 (from the 07:37–07:42 walkthrough): the New Project sheet corrections
+ * — the bottom close is AMZ's plain large ✕ (not the circled one from pass 1),
+ * the ratio icons are drawn as corner brackets instead of rectangle outlines,
+ * and the project-name field carries a small clear ✕ at its right edge.
+ *
  * Layout and markup are otherwise untouched — editor rules are scoped under
  * #editor and sheet rules under #newModal, and everything still works if the
  * small DOM move at the bottom fails to run (the close button just stays put).
@@ -43,7 +48,7 @@
 
     /* Transport rail — muted icons, pure-white play, AMZ spacing. */
     '#editor .transport{background:#151826;border-bottom:1px solid #23283c;height:42px}',
-    '#editor .transport button{color:#9aa3b8}',
+    '#editor .transport button{color:#e2e6ee}',
     '#editor .transport button.active{color:#ffffff;background:#232839}',
     '#editor #playBtn{color:#ffffff !important}',
     '#editor #playBtn.loopActive{color:#4bffb3 !important}',
@@ -146,17 +151,26 @@
     '#newModal .seg button.active{background:#23242e;color:#3ee6b0;font-weight:800}',
     /* Project name: AMZ underline field instead of a boxed input. */
     '#newModal #newName{height:46px !important;border:0 !important;border-bottom:1px solid #dcdfe6 !important;border-radius:0 !important;padding:0 2px !important;font-size:16px;color:#15161a;background:transparent}',
-    /* Ratio pills: selected one is a solid teal fill with dark ink. */
-    '#newModal .aspect{border:1px solid #dcdfe6;border-radius:12px;padding:9px 4px;color:#3c3f47;background:#fff}',
+    /* Ratio pills: plain white pills, and the aspect icon is drawn as four dark
+       corner brackets (AMZ's crop-mark look) instead of a full rectangle outline.
+       Selected pill is a solid teal fill — the brackets flip to dark ink with it. */
+    '#newModal .aspect{border:1px solid #e4e6ec;border-radius:12px;padding:9px 4px;color:#3c3f47;background:#fff}',
     '#newModal .aspect.active{background:#3ee6b0;border-color:#3ee6b0;color:#06312a;font-weight:700}',
+    '#newModal .aspect .ratioIcon i{border:0;border-radius:0;background:linear-gradient(currentColor,currentColor) left top/8px 1.6px,linear-gradient(currentColor,currentColor) left top/1.6px 8px,linear-gradient(currentColor,currentColor) right top/8px 1.6px,linear-gradient(currentColor,currentColor) right top/1.6px 8px,linear-gradient(currentColor,currentColor) left bottom/8px 1.6px,linear-gradient(currentColor,currentColor) left bottom/1.6px 8px,linear-gradient(currentColor,currentColor) right bottom/8px 1.6px,linear-gradient(currentColor,currentColor) right bottom/1.6px 8px;background-repeat:no-repeat}',
     /* Dropdown rows: taller, rounder, AMZ white cards. */
     '#newModal .settingRow select,#newModal .settingRow input{height:46px;border-radius:11px;border:1px solid #dfe1e7;background:#fff;color:#222}',
     '#newModal .settingRow label{font-size:13.5px;color:#3c3f47}',
+    /* Name field: underline input with a small grey ✕ clear button pinned at the
+       right edge (the wrapper is added by fixNewModal below). */
+    '#amzNameWrap{position:relative}',
+    '#amzNameWrap #newName{padding-right:34px !important}',
+    '#amzNameClear{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:1.6px solid #c3c7cf;border-radius:50%;background:transparent;color:#9aa0ac;font-size:12px;line-height:1;display:grid;place-items:center;cursor:pointer;padding:0}',
     /* CREATE PROJECT: AMZ renders it as bold navy text, not a filled button. */
     '#newModal .createBtn{background:transparent;color:#23242e;font-weight:800;font-size:14px;letter-spacing:1.2px;height:48px;margin-top:14px}',
-    /* Circled bottom close — only after the script moves the button down. */
+    /* Plain large bottom ✕ — only after the script moves the button down. AMZ
+       has no circle around it, just the glyph centred under CREATE PROJECT. */
     '#newModal.amzNp .modalHead{display:none}',
-    '#newModal.amzNp #closeNew{position:static;display:grid;place-items:center;width:44px;height:44px;margin:14px auto 2px;border-radius:50%;border:0;background:rgba(0,0,0,.07);color:#15161a;font-size:20px;line-height:1}'
+    '#newModal.amzNp #closeNew{position:static;display:block;width:auto;height:auto;margin:4px auto 0;padding:2px 16px;border-radius:0;border:0;background:transparent;color:#15161a;font-size:32px;font-weight:300;line-height:1.2;cursor:pointer}'
   ].join('\n');
 
   var style = document.createElement('style');
@@ -165,7 +179,8 @@
   (document.head || document.documentElement).appendChild(style);
 
   /* Move the New Project close button from the header to the bottom centre, the
-     way AMZ places its circled X under CREATE PROJECT. Guarded and idempotent;
+     way AMZ places its plain X under CREATE PROJECT, and wrap the name field so
+     it gets the small clear button at its right edge. Guarded and idempotent;
      if anything is missing the sheet simply keeps its stock layout. */
   function fixNewModal() {
     var modal = document.getElementById('newModal');
@@ -175,6 +190,24 @@
     modal._amzNp = true;
     create.insertAdjacentElement('afterend', close);
     modal.classList.add('amzNp');
+    var name = document.getElementById('newName');
+    if (name && name.parentNode && !document.getElementById('amzNameWrap')) {
+      var wrap = document.createElement('div');
+      wrap.id = 'amzNameWrap';
+      name.parentNode.insertBefore(wrap, name);
+      wrap.appendChild(name);
+      var clear = document.createElement('button');
+      clear.type = 'button';
+      clear.id = 'amzNameClear';
+      clear.setAttribute('aria-label', 'Clear name');
+      clear.textContent = '×';
+      clear.addEventListener('click', function () {
+        name.value = '';
+        name.focus();
+        try { name.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
+      });
+      wrap.appendChild(clear);
+    }
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', fixNewModal);
