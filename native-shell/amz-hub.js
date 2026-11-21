@@ -47,6 +47,44 @@
     '.amzSheet.closing{animation:amzFadeOut .14s ease-in forwards}',
     '@keyframes amzFade{from{opacity:0}to{opacity:1}}',
     '@keyframes amzFadeOut{from{opacity:1}to{opacity:0}}',
+    /* Left drawer variant: the AMZ settings panel slides in from the left edge over the
+       dimmed screen instead of floating as a centred card. */
+    '.amzSheet.drawer{place-items:stretch start;padding:0;background:rgba(4,7,12,.5)}',
+    '.amzSheet.drawer .amzCard{width:72%;max-width:420px;height:100%;max-height:none;border-radius:0 24px 24px 0;animation:amzDrawerIn .22s cubic-bezier(.2,.85,.3,1)}',
+    '.amzSheet.drawer.closing .amzCard{animation:amzDrawerOut .16s ease-in forwards}',
+    '@keyframes amzDrawerIn{from{transform:translateX(-104%)}to{transform:none}}',
+    '@keyframes amzDrawerOut{from{transform:none}to{transform:translateX(-104%)}}',
+    /* AMZ Settings skin: near-white drawer, light-grey cards, dark ink text, and the
+       segmented control whose selected segment is a dark navy pill with teal type —
+       matching the reference screenshots exactly. Scoped to the settings card only. */
+    '.amzCard.amzSettingsLight{background:#f4f4f6;color:#15161a}',
+    '.amzSettingsLight .amzHead{padding:20px 18px 8px}',
+    '.amzSettingsLight .amzHead h2{color:#0b0b0d;font-size:24px;font-weight:800}',
+    '.amzSettingsLight .amzHead .amzSub{color:#6b6e76}',
+    '.amzSettingsLight .amzX{background:rgba(0,0,0,.07);color:#15161a}',
+    '.amzSettingsLight .amzGroup{color:#7c7f89;font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:none;margin:18px 6px 7px}',
+    '.amzSettingsLight .amzRow{background:#e9eaee;border-radius:16px;padding:16px 16px;margin-bottom:11px;align-items:center}',
+    '.amzSettingsLight .amzRow b{color:#15161a;font-size:15.5px;font-weight:600}',
+    '.amzSettingsLight .amzRow p{color:#6d7078;font-size:11.5px;margin-top:3px}',
+    '.amzSettingsLight .amzSearch{background:#e9eaee;border-radius:14px;height:46px}',
+    '.amzSettingsLight .amzSearch input{color:#15161a}',
+    '.amzSettingsLight .amzSearch input::placeholder{color:#8a8d95}',
+    '.amzSettingsLight .amzSearch svg{color:#6b6e76}',
+    /* Material switch, light track. */
+    '.amzSettingsLight .amzSw{background:rgba(0,0,0,.18)}',
+    '.amzSettingsLight .amzSw[aria-checked="true"]{background:#23242e}',
+    '.amzSettingsLight .amzSw[aria-checked="true"]::after{background:#3ee6b0}',
+    /* Segmented control: grey track, dark navy selected segment, teal selected text. */
+    '.amzSettingsLight .amzSeg{background:#e9eaee;border-radius:16px;padding:6px;gap:6px;flex-wrap:nowrap}',
+    '.amzSettingsLight .amzSeg button{border:0;background:transparent;color:#6d7078;height:44px;border-radius:12px;font-size:14px;font-weight:600}',
+    '.amzSettingsLight .amzSeg button[aria-pressed="true"]{background:#23242e;color:#3ee6b0;font-weight:800}',
+    '.amzSettingsLight .amzNum{background:#e9eaee;border:0;color:#15161a;border-radius:12px;height:44px}',
+    '.amzSettingsLight input[type="color"]{background:#e9eaee;border-radius:12px;border:0}',
+    '.amzSettingsLight .amzFoot{background:#f4f4f6;border-top:1px solid rgba(0,0,0,.08)}',
+    '.amzSettingsLight .amzBtn{background:#e9eaee;color:#15161a}',
+    '.amzSettingsLight .amzBtn.primary{background:#23242e;color:#3ee6b0}',
+    '.amzSettingsLight .amzBtn.danger{background:#f3e1e1;color:#a03232}',
+    '.amzSettingsLight .amzEmpty{color:#6b6e76}',
     '.amzCard{width:100%;max-width:520px;max-height:min(88vh,860px);display:flex;flex-direction:column;background:var(--amz-surface);color:var(--amz-text);border-radius:22px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.6);}',
     '.amzHead{display:flex;align-items:center;gap:10px;padding:18px 18px 10px;}',
     '.amzHead h2{margin:0;font-size:19px;font-weight:700;letter-spacing:.2px;flex:1}',
@@ -224,8 +262,8 @@
    */
   function sheet(opts) {
     injectStyles();
-    var wrap = el('div', 'amzSheet');
-    var card = el('div', 'amzCard');
+    var wrap = el('div', 'amzSheet' + (opts.drawer ? ' drawer' : ''));
+    var card = el('div', 'amzCard' + (opts.cardClass ? ' ' + opts.cardClass : ''));
     var head = el('div', 'amzHead');
     head.appendChild(el('h2', null, esc(opts.title) + (opts.subtitle ? '<span class="amzSub">' + esc(opts.subtitle) + '</span>' : '')));
     var closeBtn = el('button', 'amzX', '&#215;');
@@ -653,6 +691,8 @@
     sheet({
       title: 'Settings',
       subtitle: 'Every switch takes effect immediately unless it says otherwise',
+      drawer: true,
+      cardClass: 'amzSettingsLight',
       build: function (body) {
         /* The manual belongs anywhere a user goes looking for answers. */
         var manualRow = el('div', 'amzTool');
