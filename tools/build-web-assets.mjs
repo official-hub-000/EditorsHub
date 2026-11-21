@@ -147,6 +147,7 @@ function injectShell(html) {
     '<script src="./amz-inspector.js" defer id="oms-amz-inspector"></script>\n' +
     '<script src="./amz-tools.js" defer id="oms-amz-tools"></script>\n' +
     '<script src="./amz-manual.js" defer id="oms-amz-manual"></script>\n' +
+    '<script src="./amz-editor-skin.js" defer id="oms-amz-editor-skin"></script>\n' +
     '<script src="./native-shell.js" defer id="oms-native-shell"></script>\n';
   // The upstream document keeps a large trailing <style> block after </body>, so the
   // tag is anchored on the closing </html> instead: defer still guarantees the adapter
@@ -322,7 +323,7 @@ async function main() {
   await cp(path.join(shellDir, 'nodevideo-ui.js'), path.join(outDir, 'nodevideo-ui.js'));
   await cp(path.join(shellDir, 'nodevideo-pro.js'), path.join(outDir, 'nodevideo-pro.js'));
   await cp(path.join(shellDir, 'smooth-motion.js'), path.join(outDir, 'smooth-motion.js'));
-  for (const extra of ['amz-media.js', 'amz-settings.js', 'amz-hub.js', 'amz-layers.js', 'amz-shapes.js', 'amz-effects.js', 'amz-patch.js', 'amz-folders.js', 'amz-select.js', 'amz-adjust.js', 'amz-bridge.js', 'amz-analysis.js', 'amz-scopes.js', 'amz-sequence.js', 'amz-inspector.js', 'amz-settingswire.js', 'amz-tools.js', 'amz-manual.js']) {
+  for (const extra of ['amz-media.js', 'amz-settings.js', 'amz-hub.js', 'amz-layers.js', 'amz-shapes.js', 'amz-effects.js', 'amz-patch.js', 'amz-folders.js', 'amz-select.js', 'amz-adjust.js', 'amz-bridge.js', 'amz-analysis.js', 'amz-scopes.js', 'amz-sequence.js', 'amz-inspector.js', 'amz-settingswire.js', 'amz-tools.js', 'amz-manual.js', 'amz-editor-skin.js']) {
     await cp(path.join(shellDir, extra), path.join(outDir, extra));
   }
 
